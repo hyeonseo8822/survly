@@ -1,0 +1,51 @@
+.container {
+    width: 100vw;
+    height: 100vh;
+}
+
+.back {
+    height: 100%;
+    width: 100%;
+}
+
+.goSurvey {
+    position: absolute;
+    bottom: 30%;
+    left: 50.8%;
+    transform: translateX(-50%);
+    transition: transform 0.3s ease;
+    cursor: pointer;
+}
+
+.goSurvey:hover {
+    transform: translateX(-50%) scale(1.1);
+}
+
+.navbar {
+    z-index: 100;
+    justify-content: center;
+    width: 100%;
+    font-size: 20px;
+    top: 12px;
+    position: absolute;
+    display: flex;
+    gap : 40%;
+    color: #63A9E6;
+}
+
+.items {
+    gap: 68px;
+    display: flex;
+}
+
+.logobox {
+    width: 250px;
+}
+.nav {
+    cursor: pointer;
+    transition: opacity 0.3s ease; /* 부드럽게 변하도록 */
+}
+
+.nav:hover {
+    opacity: 0.5; /* 70% 불투명 */
+}
