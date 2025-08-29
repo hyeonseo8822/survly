@@ -1,0 +1,32 @@
+.logobox {
+    width: 250px;
+    cursor: pointer;
+}
+.nav {
+    cursor: pointer;
+    transition: opacity 0.3s ease;
+
+    text-decoration: none; 
+    color: #63A9E6;      
+}
+.nav:hover {
+    opacity: 0.5; 
+}
+.navbar {
+    z-index: 100;
+    justify-content: center;
+    width: 100%;
+    font-size: 20px;
+    top: 12px;
+    position: absolute;
+    display: flex;
+    gap : 45%;
+    color: #63A9E6;
+}
+
+.items {
+    gap: 68px;
+    display: flex;
+}
+
+

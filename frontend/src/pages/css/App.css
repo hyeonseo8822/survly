@@ -1,0 +1,23 @@
+.container {
+    width: 100vw;
+    height: 100vh;
+}
+
+.back {
+    height: 100%;
+    width: 100%;
+}
+
+.goSurvey {
+    position: absolute;
+    bottom: 30%;
+    left: 50.8%;
+    transform: translateX(-50%);
+    transition: transform 0.3s ease;
+    cursor: pointer;
+}
+
+.goSurvey:hover {
+    transform: translateX(-50%) scale(1.1);
+}
+
