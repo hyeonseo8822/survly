@@ -1,4 +1,5 @@
 .select {
+    position: absolute;
     font-family: 'Pretendard';
     font-weight: 600;
     font-size: 16px;
@@ -6,10 +7,36 @@
     display: flex;
     margin-left: 50%;
     transform: translateX(-50%);
-    bottom: 10px;
-    gap: 100px;
+    gap: 70px;
+    margin-top: 8%;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+    height: 6.1%;
+}
+.select:hover {
+     opacity: 0.8;
 }
 
+.select > div {
+    padding: 5px 25px;
+    border-radius: 0;
+    transition: all 0.2s ease;
+    position: relative; /* 밑줄을 ::after로 처리 */
+}
 
-.question,
-.answer {}
+/* 선택된 항목 */
+.select > div.selectActive {
+    color: #65B7FF;
+}
+
+/* 밑줄을 ::after로 만들어서 위쪽 둥근 효과 유지 */
+.select > div.selectActive::after {
+    content: "";
+    position: absolute;
+    bottom: 0;        /* 밑에 위치 */
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background-color: #65B7FF;
+    border-radius: 8px 8px 0 0; /* 위쪽만 둥글게 */
+}
