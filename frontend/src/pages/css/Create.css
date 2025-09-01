@@ -1,0 +1,15 @@
+.select {
+    font-family: 'Pretendard';
+    font-weight: 600;
+    font-size: 16px;
+    color: #505050;
+    display: flex;
+    margin-left: 50%;
+    transform: translateX(-50%);
+    bottom: 10px;
+    gap: 100px;
+}
+
+
+.question,
+.answer {}

@@ -26,16 +26,18 @@ function Surveys() {
 
     return (
         <div className="surveys">
-            <div className="surveyText lemon-regular">Surveys</div>
+            <div className="surveyText">Surveys</div>
+            <div className='surveyExplain'>여러가지 설문조사들을 확인해보세요!</div>
             <div className="rectList">
                 {surveyList.slice(0, visibleCount).map((question, index) => (
                     <div className="rect" key={index}>
+                        <p className='num'>01</p>
                         <p className="rectText">{question}</p>
                         <div className="graph"></div>
                         <img
                             className="part"
-                            src={`${process.env.PUBLIC_URL}/img/participation.svg`}
-                            alt="button"
+                            src={`${process.env.PUBLIC_URL}/img/arrow.svg`}
+                            alt="arrow"
                         />
                     </div>
                 ))}
@@ -49,6 +51,7 @@ function Surveys() {
                     />
                 </div>
             )}
+            <div className='box'></div>
         </div>
     );
 }
