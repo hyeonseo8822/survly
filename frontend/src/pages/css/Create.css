@@ -40,3 +40,75 @@
     background-color: #65B7FF;
     border-radius: 8px 8px 0 0; /* 위쪽만 둥글게 */
 }
+
+.titleBox {
+    width: 80%;
+    background-color: #fff;
+    border-radius: 8px 8px 0 0; /* 위쪽만 둥글게 */
+    margin-left: 50%;
+    transform: translateX(-50%);
+    margin-top: 2%;
+    box-shadow: 0 4px 10px rgba(133, 133, 133, 0.15);
+    border-top: 15px solid #7BBCF5;
+    padding: 20px;
+    box-sizing: border-box;
+    height: auto; /* 내용에 따라 높이 자동 조절 */
+}
+
+.titleInput {
+    margin-top: 2%;
+    margin-left: 3%;
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+}
+
+.titleInput textarea {
+    font-family: 'Pretendard';
+    font-weight: 400;
+    border: none;
+    outline: none;
+    background: transparent;
+    display: block;
+    width: 100%;
+    resize: none; 
+    overflow: hidden; 
+    min-height: 40px; 
+    box-sizing: border-box; 
+}
+
+.titleInput .title textarea {
+    font-size: 40px;
+    width: 50%;
+    min-height: 50px;
+    border-bottom: 2px solid #C0C0C0;
+    padding: 0;
+    color: #000;
+    line-height: 1.2; /* 글자 높이 조절 */
+}
+
+/* explain */
+.titleInput .explain textarea {
+    font-size: 20px;
+    width: 80%;
+    min-height: 40px;
+    border-bottom: 1.5px solid #C0C0C0;
+    padding: 0;
+    color: #000;
+    line-height: 1.2;
+}
+/* 플레이스홀더 */
+.titleInput .title textarea::placeholder {
+    color: #000;
+    transition: opacity 0.2s;
+}
+.titleInput .explain textarea::placeholder {
+    color: #C0C0C0;
+    transition: opacity 0.2s;
+}
+
+/* 포커스 시 플레이스홀더 사라짐 */
+.titleInput .title textarea:focus::placeholder,
+.titleInput .explain textarea:focus::placeholder {
+    opacity: 0;
+}
