@@ -1,4 +1,20 @@
+.navbar2 {
+    font-family: 'Pretendard';
+    font-weight: 600;
+    z-index: 100;
+    width: 100%;
+    top: 12px;
+    position: fixed;
+    display: flex;
+    gap: 55%;
+    height: 160px;
+    background-color: #fff;
+    margin-top: -1%;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
 .logobox {
+    z-index: 9999;
     margin-left: 20%;
     width: 200px;
     cursor: pointer;
@@ -23,14 +39,18 @@
 }
 
 .navbar {
+    margin-top: -1%;
+    background-color: #fff;
     font-family: 'Pretendard';
     font-weight: 600;
     z-index: 100;
     width: 100%;
+    height: 100px;
     top: 12px;
-    position: absolute;
+    position: fixed;
     display: flex;
     gap: 55%;
+    
 }
 
 .items {
@@ -39,18 +59,27 @@
 }
 
 .login_signup {
-    margin-top: 0.5%;
-    gap: 20px;
+    
+    margin-top: 2%;
+    gap: 50px;
     display: flex;
     color: #000;
 }
 
 .login,
 .signUp {
+    color: #000;
+    text-decoration: none;
+    margin-left: -10%;
     cursor: pointer;
     text-align: center;
     width: 95px;
     height: 42px;
+}
+
+
+.signUp:visited {
+  color: inherit;        
 }
 
 
@@ -59,12 +88,10 @@
     border-radius: 8px;
     color: #fff;
     transition: opacity 0.2s ease;
-    /* 부드럽게 변하게 */
 }
 
 .active:hover {
     opacity: 0.8;
-    /* 마우스 올리면 살짝 투명 */
 }
 
 
@@ -74,10 +101,10 @@
 
 .route {
     display: flex;
-    justify-content: space-between; /* 왼쪽 로고, 오른쪽 post */
-    align-items: center; /* 수직 중앙 정렬 */
+    justify-content: space-between;
+    align-items: center;
     width: 100%;
-    padding: 0 20px; 
+    padding: 0 20px;
     gap: 30%;
 }
 
@@ -91,11 +118,4 @@
     cursor: pointer;
     font-weight: 600;
     font-size: 16px;
-}
-
-.navBox {
-    width: 100%;
-    height: 160px;
-    background-color: #fff;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* 아주 살짝 그림자 */
 }

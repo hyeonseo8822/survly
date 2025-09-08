@@ -1,10 +1,7 @@
 import { Link } from 'react-router-dom';
-import './css/NavBar.css'
-import { useState } from "react";
+import './css/NavBar.css';
 
 function NavBar() {
-
-  const [active, setActive] = useState("signUp");
   return (
     <div className='navbar'>
       <div className='route'>
@@ -21,19 +18,13 @@ function NavBar() {
         </div>
       </div>
       <div className='login_signup'>
-        <div
-          className={`signUp ${active === "signUp" ? "active" : ""}`}
-          onClick={() => setActive("signUp")}
-        >
+        <Link to="/signup" className="signUp">
           <p className='losiText'>Sign up</p>
-        </div>
+        </Link>
 
-        <div
-          className={`login ${active === "login" ? "active" : ""}`}
-          onClick={() => setActive("login")}
-        >
+        <Link to="/login" className="login active">
           <p className='losiText'>Log in</p>
-        </div>
+        </Link>
       </div>
     </div>
   );

@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom';
 import './css/NavBar.css';
 
-function NavBarV2() {
+function NavBar2({ active, setActive }) {
   return (
-    <div className='navbar'>
+    <div className='navbar2'>
       <div className='route'>
         <Link to="/">
           <img
@@ -16,8 +16,22 @@ function NavBarV2() {
           <p>게시</p>
         </div>
       </div>
+      <div className='select'>
+        <div
+          className={`question ${active === "question" ? "selectActive" : ""}`}
+          onClick={() => setActive("question")}
+        >
+          질문
+        </div>
+        <div
+          className={`answer ${active === "answer" ? "selectActive" : ""}`}
+          onClick={() => setActive("answer")}
+        >
+          응답
+        </div>
+      </div>
     </div>
   );
 }
 
-export default NavBarV2;
+export default NavBar2;
