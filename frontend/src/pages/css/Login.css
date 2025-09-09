@@ -55,9 +55,8 @@
 }
 
 
-.LoginBtn ,
-.LoginBtn2
-{
+.LoginBtn,
+.LoginBtn2 {
     font-size: 32px;
     font-family: "Pretendard";
     font-weight: 600;
@@ -80,24 +79,27 @@
 
     transition: opacity 0.3s ease;
     text-decoration: none;
-    /* 밑줄 제거 */
+
+    border: none;
+    /* ← 이거 추가! */
+    outline: none;
+
 }
 
-.LoginBtn:hover
-.LoginBtn2:hover {
+.LoginBtn:hover .LoginBtn2:hover {
     opacity: 0.8;
     cursor: pointer;
 }
 
-.LoginBtn:visited
-.LoginBtn2:visited {
+.LoginBtn:visited .LoginBtn2:visited {
     color: #ffffff;
     text-decoration: none;
 }
 
-.LoginBtn2{
-    top:80%;
+.LoginBtn2 {
+    top: 80%;
 }
+
 .idInput,
 .idInput2,
 .passInput2,
@@ -151,9 +153,11 @@
 .idInput2 {
     top: 12%;
 }
+
 .passInput2 {
-    top:44%;
+    top: 44%;
 }
+
 .email {
-    top:77%;
+    top: 77%;
 }

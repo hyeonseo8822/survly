@@ -3,9 +3,15 @@ const express = require('express');
 const mysql = require('mysql2');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const cors = require('cors')
 
 const app = express();
 app.use(express.json());
+
+// CORS 허용 (여기 추가)
+app.use(cors());
+
+
 const PORT = process.env.PORT || 5000;
 
 const db = mysql.createConnection({
@@ -22,10 +28,6 @@ db.connect((err) => {
     return;
   }
   console.log('MySQL 연결 성공!');
-});
-
-app.get('/', (req, res) => {
-  res.send('Hello Survly!');
 });
 
 app.listen(PORT, () => {
@@ -75,124 +77,124 @@ app.post('/api/auth/login', (req, res) => {
 
 
 
-app.post('/api/surveys', (req, res) => {
-  const { title, description, isPublic, questions } = req.body;
+// app.post('/api/surveys', (req, res) => {
+//   const { title, description, isPublic, questions } = req.body;
 
-  if (!title || !questions) {
-    return res.status(400).json({ success: false, message: '필수 입력값 누락' });
-  }
+//   if (!title || !questions) {
+//     return res.status(400).json({ success: false, message: '필수 입력값 누락' });
+//   }
 
-  const sql = 'INSERT INTO surveys (title, description, isPublic) VALUES (?, ?, ?)';
-  db.query(sql, [title, description, isPublic], (err, result) => {
-    if (err) return res.status(500).json({ success: false, error: err });
+//   const sql = 'INSERT INTO surveys (title, description, isPublic) VALUES (?, ?, ?)';
+//   db.query(sql, [title, description, isPublic], (err, result) => {
+//     if (err) return res.status(500).json({ success: false, error: err });
 
-    const surveyId = result.insertId;
+//     const surveyId = result.insertId;
 
-    questions.forEach((q) => {
-      db.query(
-        'INSERT INTO survey_questions (surveyId, type, question) VALUES (?, ?, ?)',
-        [surveyId, q.type, q.question],
-        (err, qResult) => {
-          if (err) console.error(err);
-          if (q.options) {
-            q.options.forEach((opt) => {
-              db.query(
-                'INSERT INTO survey_options (questionId, optionText) VALUES (?, ?)',
-                [qResult.insertId, opt],
-                (err2) => {
-                  if (err2) console.error(err2);
-                }
-              );
-            });
-          }
-        }
-      );
-    });
+//     questions.forEach((q) => {
+//       db.query(
+//         'INSERT INTO questions (surveyId, type, question) VALUES (?, ?, ?)',
+//         [surveyId, q.type, q.question],
+//         (err, qResult) => {
+//           if (err) console.error(err);
+//           if (q.options) {
+//             q.options.forEach((opt) => {
+//               db.query(
+//                 'INSERT INTO options (questionId, optionText) VALUES (?, ?)',
+//                 [qResult.insertId, opt],
+//                 (err2) => {
+//                   if (err2) console.error(err2);
+//                 }
+//               );
+//             });
+//           }
+//         }
+//       );
+//     });
 
-    res.json({ success: true, surveyId });
-  });
-});
+//     res.json({ success: true, surveyId });
+//   });
+// });
 
-app.get('/api/surveys', (req, res) => {
-  const { isPublic, keyword, page = 1, limit = 10 } = req.query;
-  const offset = (page - 1) * limit;
+// app.get('/api/surveys', (req, res) => {
+//   const { isPublic, keyword, page = 1, limit = 10 } = req.query;
+//   const offset = (page - 1) * limit;
 
-  let sql = 'SELECT * FROM surveys WHERE 1=1';
-  const params = [];
+//   let sql = 'SELECT * FROM surveys WHERE 1=1';
+//   const params = [];
 
-  if (isPublic) {
-    sql += ' AND isPublic = ?';
-    params.push(isPublic === 'true' ? 1 : 0);
-  }
+//   if (isPublic) {
+//     sql += ' AND isPublic = ?';
+//     params.push(isPublic === 'true' ? 1 : 0);
+//   }
 
-  if (keyword) {
-    sql += ' AND title LIKE ?';
-    params.push(`%${keyword}%`);
-  }
+//   if (keyword) {
+//     sql += ' AND title LIKE ?';
+//     params.push(`%${keyword}%`);
+//   }
 
-  sql += ' LIMIT ? OFFSET ?';
-  params.push(Number(limit), Number(offset));
+//   sql += ' LIMIT ? OFFSET ?';
+//   params.push(Number(limit), Number(offset));
 
-  db.query(sql, params, (err, results) => {
-    if (err) return res.status(500).json({ success: false, error: err });
-    res.json({ success: true, surveys: results, total: results.length, page: Number(page), limit: Number(limit) });
-  });
-});
+//   db.query(sql, params, (err, results) => {
+//     if (err) return res.status(500).json({ success: false, error: err });
+//     res.json({ success: true, surveys: results, total: results.length, page: Number(page), limit: Number(limit) });
+//   });
+// });
 
-app.post('/api/surveys/:surveyId/responses', (req, res) => {
-  const { surveyId } = req.params;
-  const { answers } = req.body;
+// app.post('/api/surveys/:surveyId/responses', (req, res) => {
+//   const { surveyId } = req.params;
+//   const { answers } = req.body;
 
-  if (!answers) return res.status(400).json({ success: false, message: 'answers 누락' });
+//   if (!answers) return res.status(400).json({ success: false, message: 'answers 누락' });
 
-  answers.forEach((a) => {
-    db.query(
-      'INSERT INTO survey_responses (surveyId, questionId, answer) VALUES (?, ?, ?)',
-      [surveyId, a.questionId, a.answer],
-      (err) => {
-        if (err) console.error(err);
-      }
-    );
-  });
+//   answers.forEach((a) => {
+//     db.query(
+//       'INSERT INTO responses (surveyId, questionId, answer) VALUES (?, ?, ?)',
+//       [surveyId, a.questionId, a.answer],
+//       (err) => {
+//         if (err) console.error(err);
+//       }
+//     );
+//   });
 
-  res.json({ success: true, message: '응답 제출 완료' });
-});
+//   res.json({ success: true, message: '응답 제출 완료' });
+// });
 
-app.get('/api/surveys/:surveyId/results', (req, res) => {
-  const authHeader = req.headers['authorization'];
-  if (!authHeader) return res.status(401).json({ success: false, message: '토큰 없음' });
+// app.get('/api/surveys/:surveyId/results', (req, res) => {
+//   const authHeader = req.headers['authorization'];
+//   if (!authHeader) return res.status(401).json({ success: false, message: '토큰 없음' });
 
-  const token = authHeader.split(' ')[1];
-  try {
-    jwt.verify(token, process.env.JWT_SECRET);
-  } catch {
-    return res.status(403).json({ success: false, message: '유효하지 않은 토큰' });
-  }
+//   const token = authHeader.split(' ')[1];
+//   try {
+//     jwt.verify(token, process.env.JWT_SECRET);
+//   } catch {
+//     return res.status(403).json({ success: false, message: '유효하지 않은 토큰' });
+//   }
 
-  const { surveyId } = req.params;
+//   const { surveyId } = req.params;
 
-  const sql = `
-    SELECT q.id as questionId, q.type, q.question, r.answer
-    FROM survey_questions q
-    LEFT JOIN survey_responses r ON q.id = r.questionId
-    WHERE q.surveyId = ?
-  `;
+//   const sql = `
+//     SELECT q.id as questionId, q.type, q.question, r.answer
+//     FROM questions q
+//     LEFT JOIN responses r ON q.id = r.questionId
+//     WHERE q.surveyId = ?
+//   `;
 
-  db.query(sql, [surveyId], (err, results) => {
-    if (err) return res.status(500).json({ success: false, error: err });
+//   db.query(sql, [surveyId], (err, results) => {
+//     if (err) return res.status(500).json({ success: false, error: err });
 
-    const formatted = {};
-    results.forEach((row) => {
-      if (!formatted[row.questionId]) {
-        formatted[row.questionId] = { question: row.question, summary: {}, comments: [] };
-      }
-      if (row.type === 'multiple-choice') {
-        formatted[row.questionId].summary[row.answer] = (formatted[row.questionId].summary[row.answer] || 0) + 1;
-      } else {
-        formatted[row.questionId].comments.push(row.answer);
-      }
-    });
+//     const formatted = {};
+//     results.forEach((row) => {
+//       if (!formatted[row.questionId]) {
+//         formatted[row.questionId] = { question: row.question, summary: {}, comments: [] };
+//       }
+//       if (row.type === 'multiple-choice') {
+//         formatted[row.questionId].summary[row.answer] = (formatted[row.questionId].summary[row.answer] || 0) + 1;
+//       } else {
+//         formatted[row.questionId].comments.push(row.answer);
+//       }
+//     });
 
-    res.json({ success: true, surveyId, results: Object.values(formatted) });
-  });
-});
+//     res.json({ success: true, surveyId, results: Object.values(formatted) });
+//   });
+// });
