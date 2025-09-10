@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import './css/NavBar.css';
 
-function NavBar2({ active, setActive }) {
+function NavBar2({ active, setActive, saveSurvey }) {
   return (
     <div className='navbar2'>
       <div className='route'>
@@ -12,7 +12,11 @@ function NavBar2({ active, setActive }) {
             alt="logo"
           />
         </Link>
-        <div className="post active">
+        <div 
+          className="post active" 
+          onClick={saveSurvey}  
+          style={{ cursor: "pointer" }}
+        >
           <p>게시</p>
         </div>
       </div>

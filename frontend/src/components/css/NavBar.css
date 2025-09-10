@@ -49,8 +49,8 @@
     top: 12px;
     position: fixed;
     display: flex;
-    gap: 55%;
-    
+    gap: 65%;
+
 }
 
 .items {
@@ -59,7 +59,7 @@
 }
 
 .login_signup {
-    
+
     margin-top: 2%;
     gap: 50px;
     display: flex;
@@ -79,7 +79,7 @@
 
 
 .signUp:visited {
-  color: inherit;        
+    color: inherit;
 }
 
 
@@ -95,8 +95,15 @@
 }
 
 
+
 .losiText {
     margin-top: 13%;
+}
+
+.userText {
+    font-size: 20px;
+    margin-top: 5%;
+    margin-left: -120%;
 }
 
 .route {
@@ -118,4 +125,31 @@
     cursor: pointer;
     font-weight: 600;
     font-size: 16px;
+}
+
+.loggedIn-user {
+    gap: 35%;
+    display: flex;
+}
+
+.logout-btn {
+    outline: none;
+    border: none;
+    background-color: #6AB9FF;
+    margin-top: -1%;
+    cursor: pointer;
+    height: 50px;
+    width: 100px;
+    border-radius: 6px;
+    /* 살짝 둥글게 */
+    font-size: 14px;
+    /* 버튼 텍스트 크기 조절 */
+}
+
+.logoutText {
+    color: white;
+    /* 글자색 흰색 (원하는 색으로 변경 가능) */
+    font-weight: bold;
+    margin: 0;
+    /* p 태그 여백 제거 */
 }
