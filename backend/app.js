@@ -1,3 +1,4 @@
+
 require('dotenv').config();
 const express = require('express');
 const mysql = require('mysql2');
@@ -97,7 +98,10 @@ const verifyToken = (req, res, next) => {
 // 설문지 생성 (인증 필요)
 app.post('/api/surveys', verifyToken, (req, res) => {
   const { title, description, isPublic, questions } = req.body;
+  console.log(req.body);
   const userId = req.user.userId; // 토큰에서 userId 가져오기
+
+  console.log('Received survey data:', req.body); // Log the entire request body
 
   if (!title || !questions || !Array.isArray(questions)) {
     return res.status(400).json({ success: false, message: '필수 입력값 누락' });
@@ -148,8 +152,13 @@ app.post('/api/surveys', verifyToken, (req, res) => {
       questions.forEach((q) => {
         if (errorOccurred) return;
 
-        const questionSql = 'INSERT INTO questions (surveyId, type, question) VALUES (?, ?, ?)';
-        db.query(questionSql, [surveyId, q.type, q.question], (err, qResult) => {
+        console.log('Processing question:', q); // Log each question
+        const isRequired = q.isRequired === true ? 1 : 0;
+        console.log(`Value for isRequired: ${q.isRequired}, which is being converted to: ${isRequired}`);
+
+
+        const questionSql = 'INSERT INTO questions (surveyId, type, question, isRequired) VALUES (?, ?, ?, ?)';
+        db.query(questionSql, [surveyId, q.type, q.question, isRequired ? 1 : 0], (err, qResult) => {
           if (errorOccurred) return;
           if (err) {
             return handleError('질문 저장', err);
@@ -204,33 +213,48 @@ app.post('/api/surveys', verifyToken, (req, res) => {
 
 // 설문지 목록 조회
 app.get('/api/surveys', (req, res) => {
-  const { isPublic, keyword, page = 1, limit = 10 } = req.query;
+  const { isPublic, keyword, page = 1, limit = 6 } = req.query;
   const offset = (page - 1) * limit;
 
+  let countSql = 'SELECT COUNT(*) as total FROM surveys WHERE 1=1';
   let sql = 'SELECT * FROM surveys WHERE 1=1';
   const params = [];
+  const countParams = [];
 
   if (isPublic !== undefined) {
-    sql += ' AND isPublic = ?';
+    const condition = ' AND isPublic = ?';
+    sql += condition;
+    countSql += condition;
     params.push(isPublic === 'true' ? 1 : 0);
+    countParams.push(isPublic === 'true' ? 1 : 0);
   }
 
   if (keyword) {
-    sql += ' AND title LIKE ?';
+    const condition = ' AND title LIKE ?';
+    sql += condition;
+    countSql += condition;
     params.push(`%${keyword}%`);
+    countParams.push(`%${keyword}%`);
   }
 
   sql += ' ORDER BY id DESC LIMIT ? OFFSET ?';
   params.push(Number(limit), Number(offset));
 
-  db.query(sql, params, (err, results) => {
+  db.query(countSql, countParams, (err, countResult) => {
     if (err) return res.status(500).json({ success: false, error: err });
-    res.json({ 
-      success: true, 
-      surveys: results, 
-      total: results.length, 
-      page: Number(page), 
-      limit: Number(limit) 
+
+    const totalSurveys = countResult[0].total;
+
+    db.query(sql, params, (err, results) => {
+      if (err) return res.status(500).json({ success: false, error: err });
+      
+      res.json({ 
+        success: true, 
+        surveys: results, 
+        totalSurveys: totalSurveys,
+        page: Number(page), 
+        totalPages: Math.ceil(totalSurveys / limit)
+      });
     });
   });
 });
@@ -343,8 +367,8 @@ app.put('/api/surveys/:surveyId', (req, res) => {
           let completedQuestions = 0;
           questions.forEach((q) => {
             db.query(
-              'INSERT INTO questions (surveyId, type, question) VALUES (?, ?, ?)',
-              [surveyId, q.type, q.question],
+              'INSERT INTO questions (surveyId, type, question, isRequired) VALUES (?, ?, ?, ?)',
+              [surveyId, q.type, q.question, q.isRequired ? 1 : 0],
               (err, qResult) => {
                 if (err) {
                   return db.rollback(() => {
@@ -463,10 +487,11 @@ app.delete('/api/surveys/:surveyId', (req, res) => {
   });
 });
 
-// 설문지 응답 제출
-app.post('/api/surveys/:surveyId/responses', (req, res) => {
+// 설문지 응답 제출 (인증 필요)
+app.post('/api/surveys/:surveyId/responses', verifyToken, (req, res) => {
   const { surveyId } = req.params;
   const { answers } = req.body;
+  const userId = req.user.userId; // 토큰에서 userId 가져오기
 
   if (!answers || !Array.isArray(answers)) {
     return res.status(400).json({ success: false, message: 'answers 배열이 필요합니다.' });
@@ -479,13 +504,17 @@ app.post('/api/surveys/:surveyId/responses', (req, res) => {
     return res.status(400).json({ success: false, message: '최소 하나의 답변이 필요합니다.' });
   }
 
+  // 각 답변에 userId를 추가하여 DB에 저장
   answers.forEach((a) => {
     db.query(
-      'INSERT INTO responses (surveyId, questionId, answer) VALUES (?, ?, ?)',
-      [surveyId, a.questionId, a.answer],
+      'INSERT INTO responses (surveyId, questionId, answer, userId) VALUES (?, ?, ?, ?)',
+      [surveyId, a.questionId, a.answer, userId],
       (err) => {
         if (err) {
           console.error('응답 저장 오류:', err);
+          // 여기서 return을 하면 forEach 루프만 종료되므로, 전체 응답에 대한 처리가 필요
+          // 하지만 현재 구조에서는 각 쿼리가 비동기라 에러 처리가 복잡함.
+          // 일단 개별적으로 에러를 로깅만 함.
           return;
         }
         

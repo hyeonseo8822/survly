@@ -1,0 +1,167 @@
+/* Answer.css - Create.css 기반으로 답변 페이지에 맞게 수정 */
+
+.createContentWrapper {
+    margin-top: 10%;
+}
+
+.titleBox,
+.content {
+    width: 70%;
+    background-color: #fff;
+    border-radius: 8px;
+    margin: 2% auto 0 auto; /* 중앙 정렬 */
+    box-shadow: 0 4px 10px rgba(133, 133, 133, 0.15);
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.titleBox {
+    border-top: 15px solid #7BBCF5;
+}
+
+.content {
+    border-top: none;
+    border-left: 10px solid #A0C8EC;
+}
+
+/* 제목/설명 표시 스타일 */
+.titleInput {
+    margin-top: 2%;
+    margin-left: 3%;
+    display: flex;
+    flex-direction: column;
+    gap: 20px; /* 간격 조정 */
+}
+
+.titleInput .title {
+    font-family: 'Pretendard';
+    font-weight: 700; /* 굵게 */
+    font-size: 36px;
+    color: #000;
+}
+
+.titleInput .explain {
+    font-family: 'Pretendard';
+    font-weight: 400;
+    font-size: 18px;
+    color: #555; /* 약간 연한 색 */
+    border-top: 1px solid #eee;
+    padding-top: 20px;
+}
+
+/* 질문 표시 스타일 */
+.questionContent {
+    margin-left: 2%;
+}
+
+.questionbox {
+    width: 100%;
+    font-family: 'Pretendard';
+    font-weight: 600; /* 질문 굵게 */
+    font-size: 22px;
+    padding: 6px 10px;
+    background-color: #F7F7FB;
+    border-bottom: 1.5px solid #C0C0C0;
+}
+
+.questionNav {
+    display: flex;
+}
+
+/* 답변 옵션 스타일 */
+.radioOptions {
+    display: flex;
+    flex-direction: column;
+    margin-top: 20px;
+    gap: 15px;
+}
+
+.radio-option-container label {
+    font-family: 'Pretendard';
+    font-size: 18px;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+}
+
+.radio-option-container input[type='radio'] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.subjectiveInput {
+    margin-top: 20px;
+}
+
+.subjectiveInput input[type='text'] {
+    font-family: 'Pretendard';
+    font-weight: 400;
+    font-size: 18px;
+    width: 100%;
+    border: 1px solid #C0C0C0;
+    border-radius: 4px;
+    outline: none;
+    line-height: 1.5;
+    padding: 10px;
+    box-sizing: border-box;
+    transition: border-color 0.2s ease;
+}
+
+.subjectiveInput input[type='text']::placeholder {
+    color: #aaa;
+}
+
+.subjectiveInput input[type='text']:focus {
+    border-color: #65B7FF;
+}
+
+/* 응답 결과 페이지 스타일 */
+.answerContent {
+    width: 70%;
+    margin: 2% auto;
+}
+
+.survey-result-item {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  background-color: #f9f9f9;
+}
+
+.survey-result-item h4 {
+    font-size: 20px;
+    font-weight: 600;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+.survey-result-item ul {
+    list-style-type: none;
+    padding-left: 10px;
+}
+
+.survey-result-item li {
+    margin-bottom: 8px;
+    font-size: 16px;
+}
+
+/* 메시지 스타일 */
+.loading-message, .error-message {
+  text-align: center;
+  padding: 50px;
+  font-size: 18px;
+}
+
+.error-message {
+  background-color: #ffebee;
+  color: #c62828;
+  padding: 15px;
+  margin: 10px auto;
+  width: 70%;
+  border-radius: 4px;
+}

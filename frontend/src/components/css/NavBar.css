@@ -127,6 +127,11 @@
     font-size: 16px;
 }
 
+.post.disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
 .loggedIn-user {
     gap: 35%;
     display: flex;

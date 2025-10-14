@@ -1,7 +1,14 @@
 import { Link } from 'react-router-dom';
 import './css/NavBar.css';
 
-function NavBar2({ active, setActive, saveSurvey }) {
+function NavBar2({ 
+  active, 
+  setActive, 
+  onButtonClick, 
+  loading, 
+  buttonText = '게시', 
+  tab1Text = '질문' 
+}) {
   return (
     <div className='navbar2'>
       <div className='route'>
@@ -13,23 +20,22 @@ function NavBar2({ active, setActive, saveSurvey }) {
           />
         </Link>
         <div 
-          className="post active" 
-          onClick={saveSurvey}  
-          style={{ cursor: "pointer" }}
+          className={`post active ${loading ? 'disabled' : ''}`}
+          onClick={!loading ? onButtonClick : null}  
         >
-          <p>게시</p>
+          <p>{loading ? '처리 중...' : buttonText}</p>
         </div>
       </div>
       <div className='select'>
         <div
-          className={`question ${active === "question" ? "selectActive" : ""}`}
-          onClick={() => setActive("question")}
+          className={`question ${active === "question" || active === "answer" ? "selectActive" : ""}`}
+          onClick={() => setActive(tab1Text === '질문' ? "question" : "answer")}
         >
-          질문
+          {tab1Text}
         </div>
         <div
-          className={`answer ${active === "answer" ? "selectActive" : ""}`}
-          onClick={() => setActive("answer")}
+          className={`answer ${active === "responses" ? "selectActive" : ""}`}
+          onClick={() => setActive("responses")}
         >
           응답
         </div>

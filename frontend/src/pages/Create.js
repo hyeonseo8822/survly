@@ -7,7 +7,6 @@ function Create() {
   const [active, setActive] = useState("question");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
   const [surveyId, setSurveyId] = useState(null);
   
   const { id } = useParams(); 
@@ -116,7 +115,7 @@ function Create() {
 
   // 설문지 저장/게시 (NavBar2의 게시 버튼에서 호출)
   const saveSurvey = async () => {
-    console.log('saveSurvey 함수 호출됨');
+    if (loading) return; // 이미 로딩 중이면 중복 실행 방지
 
     // 로그인 상태 확인
     if (!checkAuthToken()) {
@@ -128,10 +127,6 @@ function Create() {
     try {
       setLoading(true);
       setError(null);
-      setSuccess(null);
-
-      console.log('현재 설문지 정보:', surveyInfo);
-      console.log('현재 질문들:', questions);
 
       // 유효성 검사
       if (!surveyInfo.title.trim()) {
@@ -146,7 +141,7 @@ function Create() {
         throw new Error('모든 옵션을 입력해주세요.');
       }
 
-      // API 요청 데이터 준비 - 백엔드 형식에 정확히 맞춤
+      // API 요청 데이터 준비
       const surveyData = {
         title: surveyInfo.title,
         description: surveyInfo.description || '',
@@ -154,11 +149,10 @@ function Create() {
         questions: questions.map(q => ({
           type: q.questionType === 'objective' ? 'multiple-choice' : 'text',
           question: q.question,
-          options: q.questionType === 'objective' ? q.options.filter(opt => opt.trim() !== '') : null
+          options: q.questionType === 'objective' ? q.options.filter(opt => opt.trim() !== '') : null,
+          isRequired: q.isOn
         }))
       };
-
-      console.log('전송할 데이터:', surveyData);
 
       // API 호출
       const response = await fetch('http://localhost:5000/api/surveys', {
@@ -170,10 +164,6 @@ function Create() {
         body: JSON.stringify(surveyData)
       });
 
-      console.log('응답 상태:', response.status);
-      const result = await response.json();
-      console.log('서버 응답:', result);
-
       if (response.status === 401 || response.status === 403) {
         localStorage.removeItem('token');
         alert('로그인이 만료되었습니다. 다시 로그인해 주세요.');
@@ -181,83 +171,49 @@ function Create() {
         return;
       }
 
+      const result = await response.json();
+
       if (!response.ok) {
         throw new Error(result.message || `HTTP error! status: ${response.status}`);
       }
 
       if (result.success) {
-        console.log('Success block entered. Setting success message and timer.');
-        setSurveyId(result.surveyId);
-        setSuccess('설문지가 성공적으로 게시되었습니다!');
-        
-        setTimeout(() => {
-          console.log('2-second timer finished. Navigating to /');
-          navigate('/');
-        }, 2000);
+        navigate('/'); // 성공 시 바로 홈으로 이동
       } else {
-        throw new Error(result.message || '설문지 게시 중 오류가 발생했습니다.');
+        throw new Error(result.message || '설문지 게시에 실패했습니다.');
       }
 
     } catch (err) {
-      console.error('에러 발생:', err);
       setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  // 에러/성공 메시지 자동 숨김
+  // 에러 메시지 자동 숨김
   useEffect(() => {
-    if (error || success) {
+    if (error) {
       const timer = setTimeout(() => {
         setError(null);
-        setSuccess(null);
       }, 5000);
       return () => clearTimeout(timer);
     }
-  }, [error, success]);
-
-  if (loading && !surveyId) {
-    return (
-      <div className='container'>
-        <div style={{ textAlign: 'center', padding: '50px' }}>
-          <p>로딩 중...</p>
-        </div>
-      </div>
-    );
-  }
+  }, [error]);
 
   return (
     <div className='container'>
-      <NavBar2 active={active} setActive={setActive} saveSurvey={saveSurvey} />
+      <NavBar2 
+        active={active} 
+        setActive={setActive} 
+        onButtonClick={saveSurvey} 
+        loading={loading} 
+        buttonText="게시"
+        tab1Text="질문"
+      />
       
-      {/* 에러/성공 메시지 */}
       {error && (
-        <div style={{ 
-          backgroundColor: '#ffebee', 
-          color: '#c62828', 
-          padding: '10px', 
-          margin: '10px 0', 
-          borderRadius: '4px',
-          textAlign: 'center'
-        }}>
+        <div className='error-message'>
           {error}
-        </div>
-      )}
-      
-      {success && (
-        <div style={{ 
-          backgroundColor: '#e8f5e8', 
-          color: '#2e7d32', 
-          padding: '10px', 
-          margin: '10px 0', 
-          borderRadius: '4px',
-          textAlign: 'center'
-        }}>
-          {console.log('Rendering success message.')}
-          {success}
-          <br />
-          <small>잠시 후 홈 페이지로 이동합니다...</small>
         </div>
       )}
 
@@ -271,13 +227,7 @@ function Create() {
             <div>
               <h3>설문 결과</h3>
               {responses.map((result, idx) => (
-                <div key={idx} style={{
-                  border: '1px solid #ddd',
-                  borderRadius: '8px',
-                  padding: '15px',
-                  margin: '10px 0',
-                  backgroundColor: '#f9f9f9'
-                }}>
+                <div key={idx} className='survey-result-item'>
                   <h4>{result.question}</h4>
                   {Object.keys(result.summary).length > 0 ? (
                     <div>
@@ -342,7 +292,6 @@ function Create() {
             </div>
           </div>
 
-          {/* 질문들 */}
           {questions.map((q, qIdx) => (
             <div key={qIdx} className='createContent'>
               <div className='content'>
@@ -377,35 +326,21 @@ function Create() {
                     </div>
                   </div>
 
-                  {/* 객관식 */}
                   {q.questionType === 'objective' && (
                     <div className='radioOptions'>
                       {q.options.map((opt, idx) => (
-                        <div key={idx} style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
+                        <div key={idx} className='radio-option-container'>
                           <input type='radio' name={`answer-${qIdx}`} disabled />
                           <input
                             type='text'
                             value={opt}
                             onChange={(e) => updateOption(qIdx, idx, e.target.value)}
-                            style={{
-                              border: 'none',
-                              borderBottom: '1px solid #ccc',
-                              outline: 'none',
-                              marginLeft: '8px',
-                              padding: '4px',
-                              flex: 1
-                            }}
+                            className='radio-option-input'
                           />
                           {q.options.length > 1 && (
                             <button
                               onClick={() => deleteOption(qIdx, idx)}
-                              style={{
-                                marginLeft: '10px',
-                                background: 'none',
-                                border: 'none',
-                                color: '#dc3545',
-                                cursor: 'pointer'
-                              }}
+                              className='delete-option-button'
                             >
                               ×
                             </button>
@@ -413,20 +348,18 @@ function Create() {
                         </div>
                       ))}
                       <label
-                        className='additionalOption'
+                        className='additionalOption add-option-label'
                         onClick={() => {
                           const newQ = [...questions];
                           newQ[qIdx].options.push(`옵션 ${newQ[qIdx].options.length + 1}`);
                           setQuestions(newQ);
                         }}
-                        style={{ color: "#A0A0A0", cursor: "pointer" }}
                       >
                         옵션 추가
                       </label>
                     </div>
                   )}
 
-                  {/* 주관식 */}
                   {q.questionType === 'subjective' && (
                     <div className='subjectiveInput'>
                       <input type='text' disabled placeholder='답변' />
@@ -445,10 +378,7 @@ function Create() {
                             setQuestions(newQ);
                           }
                         }}
-                        style={{ 
-                          cursor: questions.length > 1 ? 'pointer' : 'not-allowed',
-                          opacity: questions.length > 1 ? 1 : 0.5
-                        }}
+                        className={`delete-question-image ${questions.length > 1 ? '' : 'disabled'}`}
                       />
                     </div>
                     <div className='lengthLine'></div>
@@ -471,7 +401,6 @@ function Create() {
             </div>
           ))}
 
-          {/* plus 버튼 */}
           <div className='plusImg' onClick={addQuestion}>
             <img src={`${process.env.PUBLIC_URL}/img/plus.svg`} alt='plus' />
           </div>
