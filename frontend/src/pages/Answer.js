@@ -124,7 +124,11 @@ function Answer() {
       if (!response.ok) throw new Error(result.message || '답변 제출에 실패했습니다.');
       if (result.success) {
         alert('답변이 성공적으로 제출되었습니다!');
-        navigate('/'); // 답변 제출 후 메인 페이지로 이동
+        if (isCreator) {
+          setActive('responses');
+        } else {
+          setUserAnswers({});
+        }
       } else {
         throw new Error(result.message || '답변 제출에 실패했습니다.');
       }
@@ -135,11 +139,7 @@ function Answer() {
     }
   };
 
-  const showResponseTab = isCreator || survey?.isPublic; // 사용자 요구사항에 맞춰 로직 수정
-
-  const currentOnButtonClick = active === 'answer' ? submitAnswer : null;
-  const currentButtonText = active === 'answer' ? "제출" : null;
-  const showSubmitButton = active === 'answer'; // 제출 버튼 표시 여부
+  const showResponseTab = isCreator && !link;
 
   if (loading && !survey) return <div className='container'><p>로딩 중...</p></div>;
   if (error) return <div className='container'><p>오류: {error}</p></div>;
@@ -149,12 +149,11 @@ function Answer() {
       <NavBar2
         active={active}
         setActive={setActive}
-        onButtonClick={currentOnButtonClick}
+        onButtonClick={submitAnswer}
         loading={loading}
-        buttonText={currentButtonText}
+        buttonText="제출"
         tab1Text="답변"
         showResponseTab={showResponseTab}
-        showButton={showSubmitButton}
       />
       {error && <div className='error-message'>{error}</div>}
       {active === 'answer' && survey && (
@@ -168,7 +167,7 @@ function Answer() {
               <h4>
                 {q.question}
                 {q.isRequired === 1 && <span style={{ color: 'red' }}> *</span>}
-              </h4>
+                </h4>
                   {q.type === 'multiple-choice' && (
                     <div className='radioOptions'>
                       {q.options.map((opt, idx) => (
