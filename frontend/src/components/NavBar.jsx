@@ -41,7 +41,6 @@ function NavBar() {
       <div className='login_signup'>
         {user ? (
           <div className="loggedIn-user">
-            <p className='userText'>{user}님 안녕하세요!</p>
             <button onClick={handleLogout} className="logout-btn">
               <p className='logoutText'>Log out</p>
             </button>

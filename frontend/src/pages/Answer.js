@@ -95,6 +95,17 @@ function Answer() {
 
   const submitAnswer = async () => {
     if (loading || !survey?.id) return;
+
+    for (const q of survey.questions) {
+      if (q.isRequired === 1) {
+        const answer = userAnswers[q.questionId];
+        if (!answer || (typeof answer === 'string' && answer.trim() === '')) {
+          alert(`'${q.question}'은(는) 필수 질문입니다. 답변을 입력해주세요.`);
+          return;
+        }
+      }
+    }
+
     try {
       setLoading(true);
       setError(null);
@@ -113,11 +124,7 @@ function Answer() {
       if (!response.ok) throw new Error(result.message || '답변 제출에 실패했습니다.');
       if (result.success) {
         alert('답변이 성공적으로 제출되었습니다!');
-        if (isCreator) {
-          setActive('responses');
-        } else {
-          setUserAnswers({});
-        }
+        navigate('/'); // 답변 제출 후 메인 페이지로 이동
       } else {
         throw new Error(result.message || '답변 제출에 실패했습니다.');
       }
@@ -128,38 +135,40 @@ function Answer() {
     }
   };
 
-  const showResponseTab = isCreator && !link;
+  const showResponseTab = isCreator || survey?.isPublic; // 사용자 요구사항에 맞춰 로직 수정
+
+  const currentOnButtonClick = active === 'answer' ? submitAnswer : null;
+  const currentButtonText = active === 'answer' ? "제출" : null;
+  const showSubmitButton = active === 'answer'; // 제출 버튼 표시 여부
 
   if (loading && !survey) return <div className='container'><p>로딩 중...</p></div>;
   if (error) return <div className='container'><p>오류: {error}</p></div>;
 
   return (
     <div className="answer-container">
-      <NavBar2 
-        active={active} 
-        setActive={setActive} 
-        onButtonClick={submitAnswer} 
-        loading={loading} 
-        buttonText="제출"
+      <NavBar2
+        active={active}
+        setActive={setActive}
+        onButtonClick={currentOnButtonClick}
+        loading={loading}
+        buttonText={currentButtonText}
         tab1Text="답변"
         showResponseTab={showResponseTab}
+        showButton={showSubmitButton}
       />
       {error && <div className='error-message'>{error}</div>}
       {active === 'answer' && survey && (
-        <div className='createContentWrapper'>
-          <div className='titleBox'>
-            <div className='titleInput'>
-              <div className='title'>{survey.title}</div>
-              <div className='explain'>{survey.description}</div>
-            </div>
+        <div className='answerContentWrapper'>
+          <div className="answer-title-box">
+            <div className="answer-title">{survey.title}</div>
+            <div className="answer-description">{survey.description}</div>
           </div>
           {survey.questions.map((q) => (
-            <div key={q.questionId} className='createContent'>
-              <div className='content'>
-                <div className='questionContent'>
-                  <div className='questionNav'>
-                    <div className='questionbox'><p>{q.question}</p></div>
-                  </div>
+            <div key={q.questionId} className='result-item-box'>
+              <h4>
+                {q.question}
+                {q.isRequired === 1 && <span style={{ color: 'red' }}> *</span>}
+              </h4>
                   {q.type === 'multiple-choice' && (
                     <div className='radioOptions'>
                       {q.options.map((opt, idx) => (
@@ -176,19 +185,21 @@ function Answer() {
                     </div>
                   )}
                 </div>
-              </div>
-            </div>
-          ))}
+              ))}
         </div>
       )}
       {active === 'responses' && survey && (
         <div className='answerContentWrapper'>
-          <div className="answer-title-box">
-            <div className="answer-title">{survey.title}</div>
-            <div className="answer-description">{survey.description}</div>
-          </div>
-          {loading ? <p className="loading-message">응답을 불러오는 중...</p> : responses.length === 0 ? <p className="loading-message">응답이 아직 없습니다.</p> : (
+          {loading ? (
+            <p className="loading-message">응답을 불러오는 중...</p>
+          ) : responses.length === 0 ? (
+            <p className="no-responses-message">아직 응답이 없습니다.</p>
+          ) : (
             <>
+              <div className="answer-title-box">
+                <div className="answer-title">{survey.title}</div>
+                <div className="answer-description">{survey.description}</div>
+              </div>
               {responses.map((result, idx) => (
                 <div key={idx} className='result-item-box'>
                   <h4>{result.question}</h4>
@@ -205,13 +216,15 @@ function Answer() {
                         </BarChart>
                       </ResponsiveContainer>
                     </div>
-                  ) : (
+                  ) : result.comments && result.comments.length > 0 ? (
                     <div>
                       <strong>주관식 응답:</strong>
                       <ul className="text-answers-list">
                         {result.comments.map((comment, commentIdx) => <li key={commentIdx}>{comment}</li>)}
                       </ul>
                     </div>
+                  ) : (
+                    <p>아직 응답이 없습니다.</p>
                   )}
                 </div>
               ))}

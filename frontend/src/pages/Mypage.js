@@ -13,6 +13,9 @@ function Mypage() {
     const [error, setError] = useState(null);
     const [createdPage, setCreatedPage] = useState(1);
     const [createdTotalPages, setCreatedTotalPages] = useState(0);
+    const [participatedPage, setParticipatedPage] = useState(1);
+    const [participatedTotalPages, setParticipatedTotalPages] = useState(0);
+    const [loggedInUserId, setLoggedInUserId] = useState(null); // 로그인한 사용자 ID 상태 추가
     const navigate = useNavigate();
 
     // fetchApi 함수를 useEffect 밖으로 이동
@@ -47,11 +50,13 @@ function Mypage() {
 
     useEffect(() => {
         const token = localStorage.getItem('token');
-        if (!token) {
+        const userId = localStorage.getItem('userId');
+        if (!token || !userId) {
             alert('로그인이 필요합니다.');
             navigate('/login');
             return;
         }
+        setLoggedInUserId(userId); // 로그인한 사용자 ID 설정
 
         // Fetch Created Surveys
         fetchApi(
@@ -68,11 +73,11 @@ function Mypage() {
             }
         });
 
-        // Fetch Participated Surveys (no pagination for now)
+        // Fetch Participated Surveys
         fetchApi(
-            'http://localhost:5000/api/me/responses/surveys',
+            `http://localhost:5000/api/me/responses/surveys?page=${participatedPage}&limit=${ITEMS_PER_PAGE}`,
             setParticipatedSurveys,
-            null,
+            setParticipatedTotalPages,
             'participated'
         ).catch(err => {
             if (err.message === '로그인이 필요합니다.') {
@@ -83,7 +88,7 @@ function Mypage() {
             }
         });
 
-    }, [navigate, createdPage]);
+    }, [navigate, createdPage, participatedPage]);
 
     const handleSurveyClick = (id) => {
         navigate(`/surveys/${id}`);
@@ -157,10 +162,7 @@ function Mypage() {
                     <div className="mypage-rect" key={survey.id}>
                         <div className="mypage-survey-info" onClick={() => handleSurveyClick(survey.id)}>
                             <p className='num'>
-                                {type === 'created' 
-                                    ? String((pageNum - 1) * ITEMS_PER_PAGE + index + 1).padStart(2, '0')
-                                    : String(index + 1).padStart(2, '0')
-                                }
+                                {String((pageNum - 1) * ITEMS_PER_PAGE + index + 1).padStart(2, '0')}
                             </p>
                             <p className="mypage-rectText">{survey.title}</p>
                             {type === 'created' && (
@@ -198,11 +200,18 @@ function Mypage() {
         <>
             <NavBar />
             <div className="mypage-container">
-                <img 
-                    src={`${process.env.PUBLIC_URL}/img/Survly.svg`}
-                    alt="Survly Logo"
-                    className="mypage-logo"
-                />
+                {loggedInUserId && (
+                    <h1 style={{
+                        fontFamily: "Lemon",
+                        color: "#6AB9FF",
+                        fontSize: "48px",
+                        textAlign: "center",
+                        marginTop: "20px",
+                        marginBottom: "40px"
+                    }}>
+                        {loggedInUserId}
+                    </h1>
+                )}
                 
                 {error && <p className='error-message'>{error}</p>}
 
@@ -220,7 +229,14 @@ function Mypage() {
 
                 <div className="mypage-survey-section">
                     <h2 className="mypage-section-title">내가 참여한 설문</h2>
-                    {loading.participated ? <p className="mypage-loading-text">로딩 중...</p> : renderSurveyList(participatedSurveys, 'participated')}
+                    {loading.participated ? <p className="mypage-loading-text">로딩 중...</p> : renderSurveyList(participatedSurveys, 'participated', participatedPage)}
+                    {!loading.participated && participatedTotalPages > 1 && (
+                        <Pagination 
+                            currentPage={participatedPage}
+                            totalPages={participatedTotalPages}
+                            onPageChange={setParticipatedPage}
+                        />
+                    )}
                 </div>
             </div>
         </>

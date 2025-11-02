@@ -49,7 +49,7 @@
     top: 12px;
     position: fixed;
     display: flex;
-    gap: 65%;
+    gap: 65% ;
 
 }
 
@@ -133,7 +133,8 @@
 }
 
 .loggedIn-user {
-    gap: 35%;
+    gap: 20px;
+    /* Adjusting gap from percentage to fixed pixel value */
     display: flex;
 }
 
@@ -148,7 +149,6 @@
     border-radius: 6px;
     /* 살짝 둥글게 */
     font-size: 14px;
-    /* 버튼 텍스트 크기 조절 */
 }
 
 .logoutText {

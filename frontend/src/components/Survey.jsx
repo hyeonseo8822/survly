@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './css/Surveys.css';
 import Pagination from './Pagination';
+
 function Surveys() {
     const [surveyList, setSurveyList] = useState([]);
     const [page, setPage] = useState(1);
@@ -62,7 +63,15 @@ function Surveys() {
                         <div className="rect" key={survey.id || index} onClick={() => handleSurveyClick(survey.id)}>
                             <p className='num'>{String((page - 1) * 6 + index + 1).padStart(2, '0')}</p>
                             <p className="rectText">{survey.title}</p>
-                            <div className="graph"></div>
+                            <div className="graph">
+                                <img 
+                                    src={survey.img && survey.img !== 'default_img' 
+                                        ? `http://localhost:5000/uploads/${survey.img}` 
+                                        : `${process.env.PUBLIC_URL}/img/default_img.svg`}
+                                    alt="Survey Thumbnail"
+                                    className="survey-thumbnail"
+                                />
+                            </div>
                             <img
                                 className="part"
                                 src={`${process.env.PUBLIC_URL}/img/arrow.svg`}
@@ -85,4 +94,3 @@ function Surveys() {
 }
 
 export default Surveys;
-

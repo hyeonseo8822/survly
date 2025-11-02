@@ -1,10 +1,19 @@
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import './css/App.css';
 import NavBar from '../components/NavBar';
 import Surveys from '../components/Survey';
 
-
 function Main() {
+  const [keyword, setKeyword] = useState('');
+  const navigate = useNavigate();
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      navigate(`/search?keyword=${keyword}`);
+    }
+  };
+
   return (<>
     <NavBar />
     <div className="container">
@@ -24,6 +33,9 @@ function Main() {
           type="text"
           placeholder="검색어를 입력해주세요"
           className="search-input"
+          value={keyword}
+          onChange={(e) => setKeyword(e.target.value)}
+          onKeyDown={handleKeyDown}
         />
       </div>
       <img className='back'

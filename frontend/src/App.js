@@ -5,7 +5,7 @@ import Login from './pages/Login';
 import SignUp from './pages/SignUp';
 import Answer from './pages/Answer';
 import Mypage from './pages/Mypage';
-
+import Search from './pages/Search';
 function App() {
   return (
     <Routes>
@@ -16,6 +16,7 @@ function App() {
       <Route path='/login' element={<Login />} ></Route>
       <Route path='/signup' element={<SignUp />} ></Route>
       <Route path='/mypage' element={<Mypage />} ></Route>
+      <Route path='/search' element={<Search />} ></Route>
     </Routes>
   );
 }

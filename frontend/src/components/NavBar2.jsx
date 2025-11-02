@@ -1,14 +1,15 @@
 import { Link } from 'react-router-dom';
 import './css/NavBar.css';
 
-function NavBar2({ 
-  active, 
-  setActive, 
-  onButtonClick, 
-  loading, 
-  buttonText = '게시', 
-  tab1Text = '질문', 
-  showResponseTab = true 
+function NavBar2({
+  active,
+  setActive,
+  onButtonClick,
+  loading,
+  buttonText = '게시',
+  tab1Text = '질문',
+  showResponseTab = true,
+  showButton = true // 새로운 prop 추가
 }) {
   return (
     <div className='navbar2'>
@@ -20,12 +21,14 @@ function NavBar2({
             alt="logo"
           />
         </Link>
-        <div 
-          className={`post active ${loading ? 'disabled' : ''}`}
-          onClick={!loading ? onButtonClick : null}  
-        >
-          <p>{loading ? '처리 중...' : buttonText}</p>
-        </div>
+        {showButton && (
+          <div 
+            className={`post active ${loading ? 'disabled' : ''}`}
+            onClick={!loading ? onButtonClick : null}  
+          >
+            <p>{loading ? '처리 중...' : buttonText}</p>
+          </div>
+        )}
       </div>
       <div className='select'>
         <div
@@ -48,3 +51,4 @@ function NavBar2({
 }
 
 export default NavBar2;
+

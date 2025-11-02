@@ -10,6 +10,10 @@ function Create() {
   const [success, setSuccess] = useState(null);
   const [surveyId, setSurveyId] = useState(null);
   const [currentSurveyId, setCurrentSurveyId] = useState(null); // New state variable
+  const [selectedImage, setSelectedImage] = useState(null); // 선택된 이미지 파일
+  const [imagePreview, setImagePreview] = useState(null); // 이미지 미리보기 URL
+  const [existingImage, setExistingImage] = useState(null); // 기존 이미지 파일명 (수정 모드)
+  const [shouldRemoveExistingImage, setShouldRemoveExistingImage] = useState(false); // 기존 이미지 삭제 여부
   
   const { id } = useParams(); // survey ID for editing
   const navigate = useNavigate();
@@ -58,9 +62,13 @@ function Create() {
             setQuestions(fetchedSurvey.questions.map(q => ({
               questionType: q.type === 'multiple-choice' ? 'objective' : 'subjective',
               options: q.options || [],
-              isOn: q.isRequired || false,
+              isOn: q.isRequired === 1,
               question: q.question,
             })));
+            // 기존 이미지 설정
+            if (fetchedSurvey.img && fetchedSurvey.img !== 'default_img') {
+              setExistingImage(`http://localhost:5000/uploads/${fetchedSurvey.img}`);
+            }
           } else {
             throw new Error(result.message || '설문 데이터를 불러오는데 실패했습니다.');
           }
@@ -121,6 +129,20 @@ function Create() {
     };
   };
 
+  // 이미지 선택 핸들러
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedImage(file);
+      setImagePreview(URL.createObjectURL(file));
+      setExistingImage(null); // 새 이미지 선택 시 기존 이미지 제거
+      setShouldRemoveExistingImage(false); // 새 이미지 선택 시 삭제 플래그 초기화
+    } else {
+      setSelectedImage(null);
+      setImagePreview(null);
+    }
+  };
+
   // 설문지 저장/게시/수정 (NavBar2의 버튼에서 호출)
   const saveSurvey = async () => {
     // 로그인 상태 확인
@@ -136,29 +158,44 @@ function Create() {
       setSuccess(null);
 
       // 유효성 검사
-      if (!surveyInfo.title.trim()) {
-        throw new Error('설문지 제목을 입력해주세요.');
+      if (!surveyInfo.title || surveyInfo.title.trim() === '') {
+        alert('설문지 제목을 입력해주세요.');
+        return;
       }
 
-      if (questions.some(q => !q.question.trim())) {
-        throw new Error('모든 질문을 입력해주세요.');
+      if (questions.some(q => !q.question || q.question.trim() === '')) {
+        alert('모든 질문을 입력해주세요.');
+        return;
       }
 
-      if (questions.some(q => q.questionType === 'objective' && q.options.some(opt => !opt.trim()))) {
-        throw new Error('모든 옵션을 입력해주세요.');
+      if (questions.some(q => q.questionType === 'objective' && (!q.options || q.options.some(opt => !opt || opt.trim() === '')))) {
+        alert('모든 옵션을 입력해주세요.');
+        return;
       }
 
-      // API 요청 데이터 준비
-      const surveyData = {
-        title: surveyInfo.title,
-        description: surveyInfo.description || '',
-        questions: questions.map(q => ({
-          type: q.questionType === 'objective' ? 'multiple-choice' : 'text',
-          question: q.question,
-          options: q.questionType === 'objective' ? q.options.filter(opt => opt.trim() !== '') : null,
-          isRequired: q.isOn
-        }))
-      };
+      // FormData 준비
+      const formData = new FormData();
+      formData.append('title', surveyInfo.title);
+      formData.append('description', surveyInfo.description || '');
+      formData.append('questions', JSON.stringify(questions.map(q => ({
+        type: q.questionType === 'objective' ? 'multiple-choice' : 'text',
+        question: q.question,
+        options: q.questionType === 'objective' ? q.options.filter(opt => opt.trim() !== '') : null,
+        isRequired: q.isOn
+      }))));
+
+      if (selectedImage) {
+        formData.append('surveyImage', selectedImage);
+      } else if (shouldRemoveExistingImage) {
+        // 기존 이미지를 삭제하기로 했다면 default_img로 설정
+        formData.append('img', 'default_img');
+      } else if (existingImage) {
+        // 새 이미지가 없고 기존 이미지가 있다면 기존 이미지 파일명을 보냄
+        formData.append('img', existingImage.split('/').pop()); // URL에서 파일명만 추출
+      } else {
+        // 이미지가 없고 기존 이미지도 없다면 default_img로 설정
+        formData.append('img', 'default_img');
+      }
 
       let method = 'POST';
       let url = 'http://localhost:5000/api/surveys';
@@ -168,7 +205,7 @@ function Create() {
         url = 'http://localhost:5000/api/surveys/' + currentSurveyId;
       } else { // Create mode
         const isPublic = window.confirm('이 설문을 공개하시겠습니까? 공개 설문은 메인 페이지에 노출됩니다.');
-        surveyData.isPublic = isPublic;
+        formData.append('isPublic', isPublic ? 1 : 0);
       }
 
       console.log('saveSurvey - Method:', method); // Debugging line
@@ -178,10 +215,9 @@ function Create() {
       const response = await fetch(url, {
         method: method,
         headers: {
-          'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
-        body: JSON.stringify(surveyData)
+        body: formData // FormData 사용
       });
 
       const result = await response.json();
@@ -200,23 +236,21 @@ function Create() {
       if (result.success) {
         setSurveyId(result.surveyId || currentSurveyId); // For edit, surveyId is already known
 
-        if (method === 'POST') {
-          if (surveyData.isPublic) {
-            setSuccess('설문지가 성공적으로 게시되었습니다!');
-            setTimeout(() => {
-              navigate('/');
-            }, 2000);
-          } else {
-            const shareableLink = `${window.location.origin}/s/${result.link}`;
-            setSuccess(`비공개 설문이 생성되었습니다! 다음 링크를 공유하세요: ${shareableLink}`);
-          }
-        } else { // PUT request
-          setSuccess('설문지가 성공적으로 수정되었습니다!');
-          setTimeout(() => {
-            navigate('/mypage'); // Go back to mypage after edit
-          }, 2000);
-        }
-      } else {
+                  if (method === 'POST') {
+                    if (formData.get('isPublic') === '1') { // FormData에서 isPublic 값 확인
+                      setSuccess('설문지가 성공적으로 게시되었습니다!');
+                      navigate('/'); // 즉시 메인 페이지로 이동
+                    } else {
+                      const shareableLink = `${window.location.origin}/s/${result.link}`;
+                      setSuccess(`비공개 설문이 생성되었습니다! 다음 링크를 공유하세요: ${shareableLink}`);
+                      navigate('/'); // 비공개 설문도 메인 페이지로 즉시 이동
+                    }
+                  } else { // PUT request
+                    setSuccess('설문지가 성공적으로 수정되었습니다!');
+                    setTimeout(() => {
+                      navigate('/mypage'); // Go back to mypage after edit
+                    }, 2000);
+                  }      } else {
         throw new Error(result.message || '설문지 처리 중 오류가 발생했습니다.');
       }
 
@@ -320,6 +354,34 @@ function Create() {
                 />
               </div>
             </div>
+
+            {/* 이미지 업로드 섹션 */}
+            <div className='image-upload-section'>
+              <label htmlFor="surveyImageUpload" className="image-upload-button">이미지 등록</label>
+              <input
+                id="surveyImageUpload"
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                style={{ display: 'none' }} // 기본 파일 입력 숨기기
+              />
+              {(imagePreview || existingImage) && (
+                <div className='image-preview-container'>
+                  <img 
+                    src={imagePreview || existingImage}
+                    alt="Survey Preview"
+                    className="image-preview"
+                  />
+                  <button onClick={() => { 
+                    setSelectedImage(null); 
+                    setImagePreview(null); 
+                    setExistingImage(null); 
+                    setShouldRemoveExistingImage(true); 
+                  }} className="remove-image-button">X</button>
+                </div>
+              )}
+            </div>
+
           </div>
 
           {/* 질문들 */}

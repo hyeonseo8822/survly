@@ -5,10 +5,15 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const crypto = require('crypto');
+const multer = require('multer');
+const path = require('path');
 
 const app = express();
 app.use(express.json());
 app.use(cors());
+
+// 정적 파일 서비스 (업로드된 이미지)
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 const PORT = process.env.PORT || 5000;
 
@@ -31,6 +36,19 @@ db.connect((err) => {
 app.listen(PORT, () => {
   console.log(`서버 실행 중 → http://localhost:${PORT}`);
 });
+
+// --- Multer 설정 ---
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/'); // 업로드될 파일이 저장될 경로
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ storage: storage });
 
 // --- Auth Endpoints ---
 
@@ -103,11 +121,28 @@ const softVerifyToken = (req, res, next) => {
 
 // --- Survey Endpoints ---
 
-app.post('/api/surveys', verifyToken, (req, res) => {
-  const { title, description, isPublic, questions } = req.body;
-  const userId = req.user.userId; // Use string userId from token
+app.post('/api/surveys', verifyToken, upload.single('surveyImage'), (req, res) => {
+  console.log('req.file:', req.file);
+  console.log('req.body:', req.body);
+
+  let { title, description, questions, isPublic, img } = req.body;
+  const userId = req.user.userId; 
+  
+  // questions 파싱
+  try {
+    questions = JSON.parse(questions);
+  } catch (e) {
+    return res.status(400).json({ success: false, message: '질문 데이터 형식이 올바르지 않습니다.' });
+  }
+
+  // isPublic 값 숫자형으로 변환
+  isPublic = isPublic === '1' ? 1 : 0;
+
+  // 이미지 파일명 결정
+  const finalImg = req.file ? req.file.filename : (img || 'default_img');
+
   if (!userId) return res.status(401).json({ success: false, message: '인증 토큰이 올바르지 않습니다. 다시 로그인해주세요.' });
-  if (!title || !questions || !Array.isArray(questions)) return res.status(400).json({ success: false, message: '필수 입력값 누락' });
+  if (!title || !questions || !Array.isArray(questions)) return res.status(400).json({ success: false, message: '필수 입력값 누락 또는 질문 데이터 형식이 올바르지 않습니다.' });
 
   let link = null;
   if (!isPublic) {
@@ -117,8 +152,8 @@ app.post('/api/surveys', verifyToken, (req, res) => {
   db.beginTransaction(err => {
     if (err) return res.status(500).json({ success: false, message: '서버 오류', error: err });
 
-    const surveySql = 'INSERT INTO surveys (title, description, isPublic, userId, link) VALUES (?, ?, ?, ?, ?)';
-    db.query(surveySql, [title, description, isPublic ? 1 : 0, userId, link], (err, result) => {
+    const surveySql = 'INSERT INTO surveys (title, description, isPublic, userId, link, img) VALUES (?, ?, ?, ?, ?, ?)';
+    db.query(surveySql, [title, description, isPublic, userId, link, finalImg], (err, result) => {
       if (err) {
         return db.rollback(() => res.status(500).json({ success: false, message: '설문 저장 실패', error: err }));
       }
@@ -170,13 +205,26 @@ app.post('/api/surveys', verifyToken, (req, res) => {
   });
 });
 
-app.put('/api/surveys/:surveyId', verifyToken, (req, res) => {
+app.put('/api/surveys/:surveyId', verifyToken, upload.single('surveyImage'), (req, res) => {
+  console.log('req.file:', req.file);
+  console.log('req.body:', req.body);
+
   const { surveyId } = req.params;
-  const { title, description, isPublic, questions } = req.body;
-  const userId = req.user.userId; // From token
+  let { title, description, questions, img } = req.body;
+  const userId = req.user.userId; 
+
+  // questions 파싱
+  try {
+    questions = JSON.parse(questions);
+  } catch (e) {
+    return res.status(400).json({ success: false, message: '질문 데이터 형식이 올바르지 않습니다.' });
+  }
+
+  // 이미지 파일명 결정
+  const finalImg = req.file ? req.file.filename : (img || 'default_img');
 
   if (!userId) return res.status(401).json({ success: false, message: '인증 토큰이 올바르지 않습니다. 다시 로그인해주세요.' });
-  if (!title || !questions || !Array.isArray(questions)) return res.status(400).json({ success: false, message: '필수 입력값 누락' });
+  if (!title || !questions || !Array.isArray(questions)) return res.status(400).json({ success: false, message: '필수 입력값 누락 또는 질문 데이터 형식이 올바르지 않습니다.' });
 
   db.beginTransaction(err => {
     if (err) return res.status(500).json({ success: false, message: '서버 오류', error: err });
@@ -188,8 +236,8 @@ app.put('/api/surveys/:surveyId', verifyToken, (req, res) => {
       if (results[0].userId !== userId) return db.rollback(() => res.status(403).json({ success: false, message: '설문을 수정할 권한이 없습니다.' }));
 
       // 2. Update survey basic info
-      const updateSurveySql = 'UPDATE surveys SET title = ?, description = ? WHERE id = ?';
-      db.query(updateSurveySql, [title, description, surveyId], (err) => {
+      const updateSurveySql = 'UPDATE surveys SET title = ?, description = ?, img = ? WHERE id = ?';
+      db.query(updateSurveySql, [title, description, finalImg, surveyId], (err) => {
         if (err) return db.rollback(() => res.status(500).json({ success: false, message: '설문 기본 정보 업데이트 실패', error: err }));
 
         // 3. Delete existing options
@@ -338,7 +386,7 @@ app.get('/api/surveys', (req, res) => {
 
 const getSurveyDetails = (res, survey) => {
   const questionsQuery = `
-    SELECT q.id as questionId, q.type, q.question, o.id as optionId, o.optionText
+    SELECT q.id as questionId, q.type, q.question, q.isRequired, o.id as optionId, o.optionText
     FROM questions q
     LEFT JOIN options o ON q.id = o.questionId
     WHERE q.surveyId = ?
@@ -349,7 +397,7 @@ const getSurveyDetails = (res, survey) => {
     const questionsMap = {};
     questionResults.forEach(row => {
       if (!questionsMap[row.questionId]) {
-        questionsMap[row.questionId] = { questionId: row.questionId, type: row.type, question: row.question, options: [] };
+        questionsMap[row.questionId] = { questionId: row.questionId, type: row.type, question: row.question, isRequired: row.isRequired, options: [] };
       }
       if (row.optionId && row.optionText) {
         questionsMap[row.questionId].options.push(row.optionText);
@@ -382,7 +430,7 @@ app.get('/api/s/:link', (req, res) => {
 // --- User-specific Endpoints ---
 
 app.get('/api/me/surveys', verifyToken, (req, res) => {
-  const userId = req.user.userId; // Use string userId from token
+  const userId = req.user.userId; 
   if (!userId) return res.status(401).json({ success: false, message: '인증 토큰이 올바르지 않습니다. 다시 로그인해주세요.' });
 
   const { page = 1, limit = 6 } = req.query;
@@ -409,18 +457,41 @@ app.get('/api/me/surveys', verifyToken, (req, res) => {
 });
 
 app.get('/api/me/responses/surveys', verifyToken, (req, res) => {
-  const userId = req.user.userId; // Use string userId from token
+  const userId = req.user.userId; 
   if (!userId) return res.status(401).json({ success: false, message: '인증 토큰이 올바르지 않습니다. 다시 로그인해주세요.' });
-  const sql = `
+
+  const { page = 1, limit = 6 } = req.query;
+  const offset = (page - 1) * limit;
+
+  let countSql = `
+    SELECT COUNT(DISTINCT s.id) as total
+    FROM surveys s
+    INNER JOIN responses r ON s.id = r.surveyId
+    WHERE r.userId = ? AND s.isPublic = 1
+  `;
+  let sql = `
     SELECT DISTINCT s.*
     FROM surveys s
     INNER JOIN responses r ON s.id = r.surveyId
-    WHERE r.userId = ?
+    WHERE r.userId = ? AND s.isPublic = 1
     ORDER BY s.id DESC
+    LIMIT ? OFFSET ?
   `;
-  db.query(sql, [userId], (err, results) => {
+
+  db.query(countSql, [userId], (err, countResult) => {
     if (err) return res.status(500).json({ success: false, error: err });
-    res.json({ success: true, surveys: results });
+    const totalSurveys = countResult[0].total;
+
+    db.query(sql, [userId, Number(limit), Number(offset)], (err, results) => {
+      if (err) return res.status(500).json({ success: false, error: err });
+      res.json({
+        success: true,
+        surveys: results,
+        totalSurveys: totalSurveys,
+        page: Number(page),
+        totalPages: Math.ceil(totalSurveys / limit)
+      });
+    });
   });
 });
 
@@ -429,7 +500,7 @@ app.get('/api/me/responses/surveys', verifyToken, (req, res) => {
 app.post('/api/surveys/:surveyId/responses', softVerifyToken, (req, res) => {
   const { surveyId } = req.params;
   const { answers } = req.body;
-  const userId = req.user ? req.user.userId : null; // Use string userId from token if it exists
+  const userId = req.user ? req.user.userId : null;
 
   if (!answers || !Array.isArray(answers) || answers.length === 0) {
     return res.status(400).json({ success: false, message: '최소 하나의 답변이 필요합니다.' });

@@ -14,6 +14,16 @@ function SignUp() {
             return;
         }
 
+        if (userId.length > 10) {
+            alert("아이디는 10자 이내로 입력해주세요.");
+            return;
+        }
+
+        if (password.length > 12) {
+            alert("비밀번호는 12자 이내로 입력해주세요.");
+            return;
+        }
+
         try {
             const res = await fetch("http://localhost:5000/api/auth/register", {
                 method: "POST",
