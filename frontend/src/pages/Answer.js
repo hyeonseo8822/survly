@@ -124,11 +124,7 @@ function Answer() {
       if (!response.ok) throw new Error(result.message || '답변 제출에 실패했습니다.');
       if (result.success) {
         alert('답변이 성공적으로 제출되었습니다!');
-        if (isCreator) {
-          setActive('responses');
-        } else {
-          setUserAnswers({});
-        }
+        navigate('/');
       } else {
         throw new Error(result.message || '답변 제출에 실패했습니다.');
       }
@@ -139,7 +135,7 @@ function Answer() {
     }
   };
 
-  const showResponseTab = isCreator && !link;
+  const showResponseTab = survey && survey.link === null ? true : (!link && isCreator);
 
   if (loading && !survey) return <div className='container'><p>로딩 중...</p></div>;
   if (error) return <div className='container'><p>오류: {error}</p></div>;
@@ -154,6 +150,7 @@ function Answer() {
         buttonText="제출"
         tab1Text="답변"
         showResponseTab={showResponseTab}
+        showButton={active !== 'responses'}
       />
       {error && <div className='error-message'>{error}</div>}
       {active === 'answer' && survey && (
