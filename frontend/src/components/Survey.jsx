@@ -1,55 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './css/Surveys.css';
-
-// Pagination 컴포넌트
-const Pagination = ({ currentPage, totalPages, onPageChange }) => {
-    const pagesPerGroup = 3;
-    const [pageGroup, setPageGroup] = useState(Math.floor((currentPage - 1) / pagesPerGroup));
-
-    useEffect(() => {
-        setPageGroup(Math.floor((currentPage - 1) / pagesPerGroup));
-    }, [currentPage]);
-
-    const startPage = pageGroup * pagesPerGroup + 1;
-    const endPage = Math.min(startPage + pagesPerGroup - 1, totalPages);
-
-    const pageNumbers = [];
-    for (let i = startPage; i <= endPage; i++) {
-        pageNumbers.push(i);
-    }
-
-    const handlePrev = () => {
-        if (currentPage > 1) {
-            onPageChange(currentPage - 1);
-        }
-    };
-
-    const handleNext = () => {
-        if (currentPage < totalPages) {
-            onPageChange(currentPage + 1);
-        }
-    };
-
-    if (totalPages <= 1) return null;
-
-    return (
-        <div className="pagination">
-            <button onClick={handlePrev} disabled={currentPage === 1}>&lt;</button>
-            {pageNumbers.map(number => (
-                <button 
-                    key={number} 
-                    onClick={() => onPageChange(number)} 
-                    className={currentPage === number ? 'active' : ''}
-                >
-                    {number}
-                </button>
-            ))}
-            <button onClick={handleNext} disabled={currentPage === totalPages}>&gt;</button>
-        </div>
-    );
-};
-
+import Pagination from './Pagination';
 function Surveys() {
     const [surveyList, setSurveyList] = useState([]);
     const [page, setPage] = useState(1);
@@ -62,7 +14,7 @@ function Surveys() {
         const fetchSurveys = async (pageNum) => {
             setLoading(true);
             try {
-                const response = await fetch(`http://localhost:5000/api/surveys?page=${pageNum}&limit=6`);
+                const response = await fetch(`http://localhost:5000/api/surveys?page=${pageNum}&limit=6&isPublic=true`);
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
                 }
@@ -84,7 +36,13 @@ function Surveys() {
     }, [page]);
 
     const handleSurveyClick = (id) => {
-        navigate(`/surveys/${id}`);
+        const token = localStorage.getItem('token');
+        if (!token) {
+            alert('로그인이 필요합니다.');
+            navigate('/login');
+        } else {
+            navigate(`/surveys/${id}`);
+        }
     };
 
     if (error) {

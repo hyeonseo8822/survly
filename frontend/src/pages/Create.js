@@ -16,6 +16,14 @@ function Create() {
   const explainRef = useRef(null);
   const questionRef = useRef(null);
 
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('로그인이 필요합니다. 로그인 페이지로 이동합니다.');
+      navigate('/login');
+    }
+  }, [navigate]);
+
   // 설문지 기본 정보
   const [surveyInfo, setSurveyInfo] = useState({
     title: '',
@@ -26,7 +34,7 @@ function Create() {
     { questionType: "objective", options: ["옵션 1"], isOn: false, question: '' }
   ]);
 
-  const [responses, setResponses] = useState([]);
+
 
   const autoResize = (ref) => {
     if (ref.current) {
@@ -54,37 +62,7 @@ function Create() {
     autoResize(questionRef);
   }, []);
 
-  // 응답 탭 활성화 시 데이터 로드
-  useEffect(() => {
-    const loadResponseData = async () => {
-      if (!surveyId) return;
-      
-      try {
-        setLoading(true);
-        setError(null);
-        const response = await fetch(`http://localhost:5000/api/surveys/${surveyId}/results`, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
-        });
-        const data = await response.json();
-        
-        if (data.success) {
-          setResponses(data.results);
-        } else {
-          setError(data.message || '응답을 불러오는 중 오류가 발생했습니다.');
-        }
-      } catch (err) {
-        setError('응답을 불러오는 중 오류가 발생했습니다: ' + err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
 
-    if (active === 'answer' && surveyId) {
-      loadResponseData();
-    }
-  }, [active, surveyId]);
 
   const addQuestion = () => {
     setQuestions([
@@ -146,11 +124,14 @@ function Create() {
         throw new Error('모든 옵션을 입력해주세요.');
       }
 
-      // API 요청 데이터 준비 - 백엔드 형식에 정확히 맞춤
+      // 공개 여부 확인
+      const isPublic = window.confirm('이 설문을 공개하시겠습니까? 공개 설문은 메인 페이지에 노출됩니다.');
+
+      // API 요청 데이터 준비
       const surveyData = {
         title: surveyInfo.title,
         description: surveyInfo.description || '',
-        isPublic: true,
+        isPublic: isPublic,
         questions: questions.map(q => ({
           type: q.questionType === 'objective' ? 'multiple-choice' : 'text',
           question: q.question,
@@ -187,14 +168,18 @@ function Create() {
       }
 
       if (result.success) {
-        console.log('Success block entered. Setting success message and timer.');
         setSurveyId(result.surveyId);
-        setSuccess('설문지가 성공적으로 게시되었습니다!');
-        
-        setTimeout(() => {
-          console.log('2-second timer finished. Navigating to /');
-          navigate('/');
-        }, 2000);
+
+        if (isPublic) {
+          setSuccess('설문지가 성공적으로 게시되었습니다!');
+          setTimeout(() => {
+            navigate('/');
+          }, 2000);
+        } else {
+          const shareableLink = `${window.location.origin}/s/${result.link}`;
+          setSuccess(`비공개 설문이 생성되었습니다! 다음 링크를 공유하세요: ${shareableLink}`);
+          // 비공개 설문은 자동으로 넘어가지 않고 링크를 복사할 시간을 줍니다.
+        }
       } else {
         throw new Error(result.message || '설문지 게시 중 오류가 발생했습니다.');
       }
@@ -230,7 +215,7 @@ function Create() {
 
   return (
     <div className='container'>
-      <NavBar2 active={active} setActive={setActive} saveSurvey={saveSurvey} />
+      <NavBar2 active={active} setActive={setActive} onButtonClick={saveSurvey} showResponseTab={false} />
       
       {/* 에러/성공 메시지 */}
       {error && (
@@ -262,51 +247,7 @@ function Create() {
         </div>
       )}
 
-      {active === "answer" && (
-        <div className='answerContent'>
-          {loading ? (
-            <p>응답을 불러오는 중...</p>
-          ) : responses.length === 0 ? (
-            <p>응답이 아직 없습니다.</p>
-          ) : (
-            <div>
-              <h3>설문 결과</h3>
-              {responses.map((result, idx) => (
-                <div key={idx} style={{
-                  border: '1px solid #ddd',
-                  borderRadius: '8px',
-                  padding: '15px',
-                  margin: '10px 0',
-                  backgroundColor: '#f9f9f9'
-                }}>
-                  <h4>{result.question}</h4>
-                  {Object.keys(result.summary).length > 0 ? (
-                    <div>
-                      <strong>객관식 응답 통계:</strong>
-                      <ul>
-                        {Object.entries(result.summary).map(([answer, count]) => (
-                          <li key={answer}>
-                            {answer}: {count}개
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ) : (
-                    <div>
-                      <strong>주관식 응답:</strong>
-                      <ul>
-                        {result.comments.map((comment, commentIdx) => (
-                          <li key={commentIdx}>{comment}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
+
 
       {active === "question" && (
         <div className='createContentWrapper'>

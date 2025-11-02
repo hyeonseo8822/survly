@@ -7,7 +7,8 @@ function NavBar2({
   onButtonClick, 
   loading, 
   buttonText = '게시', 
-  tab1Text = '질문' 
+  tab1Text = '질문', 
+  showResponseTab = true 
 }) {
   return (
     <div className='navbar2'>
@@ -33,12 +34,14 @@ function NavBar2({
         >
           {tab1Text}
         </div>
-        <div
-          className={`answer ${active === "responses" ? "selectActive" : ""}`}
-          onClick={() => setActive("responses")}
-        >
-          응답
-        </div>
+        {showResponseTab && (
+          <div
+            className={`answer ${active === "responses" ? "selectActive" : ""}`}
+            onClick={() => setActive("responses")}
+          >
+            응답
+          </div>
+        )}
       </div>
     </div>
   );

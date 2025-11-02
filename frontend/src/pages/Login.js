@@ -24,6 +24,7 @@ function Login() {
                 localStorage.setItem("token", data.token); 
                 localStorage.setItem("userId", data.userId); // userId 저장
                 navigate("/"); 
+                navigate("/"); 
             } else {
                 alert(data.message || "로그인 실패");
             }
