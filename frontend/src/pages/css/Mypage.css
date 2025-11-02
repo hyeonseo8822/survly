@@ -6,12 +6,11 @@
     font-family: 'Pretendard', sans-serif;
 }
 
-.mypage-title {
-    font-size: 32px;
-    font-weight: 700;
-    margin-bottom: 40px;
-    color: #333;
-    text-align: center;
+.mypage-logo {
+    display: block;
+    margin: 80px auto 40px auto;
+    width: 150px; /* Adjust as needed */
+    height: auto;
 }
 
 .mypage-survey-section {
@@ -88,6 +87,12 @@
     background-color: #ede9fe;
 }
 
+.mypage-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
 .mypage-copyLinkBtn {
     padding: 8px 12px;
     font-size: 14px;
@@ -103,6 +108,28 @@
 
 .mypage-copyLinkBtn:hover {
     background-color: #5aa8f7;
+}
+
+.mypage-edit-icon {
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.mypage-edit-icon:hover {
+    transform: scale(1.1);
+}
+
+.mypage-delete-icon {
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.mypage-delete-icon:hover {
+    transform: scale(1.1);
 }
 
 .mypage-loading-text, .mypage-empty-text {

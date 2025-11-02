@@ -15,6 +15,36 @@ function Mypage() {
     const [createdTotalPages, setCreatedTotalPages] = useState(0);
     const navigate = useNavigate();
 
+    // fetchApi 함수를 useEffect 밖으로 이동
+    const fetchApi = async (url, setter, totalPagesSetter, type) => {
+        const token = localStorage.getItem('token'); // fetchApi 내부에서 토큰 가져오기
+        if (!token) {
+            // 토큰이 없으면 로그인 페이지로 리다이렉트 (여기서는 직접 처리하지 않고 호출하는 곳에서 처리)
+            // 또는 에러를 던져서 호출하는 곳에서 처리하도록 함
+            throw new Error('로그인이 필요합니다.');
+        }
+        try {
+            const response = await fetch(url, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!response.ok) throw new Error(`Failed to fetch ${type} surveys`);
+            const data = await response.json();
+            if (data.success) {
+                setter(data.surveys);
+                if (totalPagesSetter) {
+                    totalPagesSetter(data.totalPages || 1);
+                }
+            } else {
+                throw new Error(data.message || `Failed to fetch ${type} surveys`);
+            }
+        } catch (err) {
+            setError(err.message);
+            throw err; // 에러를 다시 던져서 호출하는 곳에서 catch하도록 함
+        } finally {
+            setLoading(prev => ({ ...prev, [type]: false }));
+        }
+    };
+
     useEffect(() => {
         const token = localStorage.getItem('token');
         if (!token) {
@@ -23,35 +53,20 @@ function Mypage() {
             return;
         }
 
-        const fetchApi = async (url, setter, totalPagesSetter, type) => {
-            try {
-                const response = await fetch(url, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (!response.ok) throw new Error(`Failed to fetch ${type} surveys`);
-                const data = await response.json();
-                if (data.success) {
-                    setter(data.surveys);
-                    if (totalPagesSetter) {
-                        totalPagesSetter(data.totalPages || 1);
-                    }
-                } else {
-                    throw new Error(data.message || `Failed to fetch ${type} surveys`);
-                }
-            } catch (err) {
-                setError(err.message);
-            } finally {
-                setLoading(prev => ({ ...prev, [type]: false }));
-            }
-        };
-
         // Fetch Created Surveys
         fetchApi(
             `http://localhost:5000/api/me/surveys?page=${createdPage}&limit=${ITEMS_PER_PAGE}`,
             setCreatedSurveys,
             setCreatedTotalPages,
             'created'
-        );
+        ).catch(err => {
+            if (err.message === '로그인이 필요합니다.') {
+                alert(err.message);
+                navigate('/login');
+            } else {
+                setError(err.message);
+            }
+        });
 
         // Fetch Participated Surveys (no pagination for now)
         fetchApi(
@@ -59,12 +74,69 @@ function Mypage() {
             setParticipatedSurveys,
             null,
             'participated'
-        );
+        ).catch(err => {
+            if (err.message === '로그인이 필요합니다.') {
+                alert(err.message);
+                navigate('/login');
+            } else {
+                setError(err.message);
+            }
+        });
 
     }, [navigate, createdPage]);
 
     const handleSurveyClick = (id) => {
         navigate(`/surveys/${id}`);
+    };
+
+    const handleEditClick = (id) => {
+        navigate(`/create/${id}`);
+    };
+
+    const handleDeleteClick = async (id) => {
+        if (window.confirm('정말 이 설문을 삭제하시겠습니까?')) {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    alert('로그인이 필요합니다.');
+                    navigate('/login');
+                    return;
+                }
+                const response = await fetch(`http://localhost:5000/api/surveys/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.message || '설문 삭제에 실패했습니다.');
+                }
+
+                if (result.success) {
+                    alert('설문이 성공적으로 삭제되었습니다.');
+                    setCreatedPage(1); // Reset to first page after deletion
+                    // Re-fetch data by calling fetchApi directly
+                    fetchApi(
+                        `http://localhost:5000/api/me/surveys?page=1&limit=${ITEMS_PER_PAGE}`,
+                        setCreatedSurveys,
+                        setCreatedTotalPages,
+                        'created'
+                    ).catch(err => {
+                        if (err.message === '로그인이 필요합니다.') {
+                            alert(err.message);
+                            navigate('/login');
+                        } else {
+                            setError(err.message);
+                        }
+                    });
+                } else {
+                    throw new Error(result.message || '설문 삭제 중 오류가 발생했습니다.');
+                }
+            } catch (err) {
+                setError(err.message);
+                alert(`삭제 중 오류 발생: ${err.message}`);
+            }
+        }
     };
 
     const copyLink = (link) => {
@@ -97,8 +169,24 @@ function Mypage() {
                                 </span>
                             )}
                         </div>
-                        {type === 'created' && !survey.isPublic && (
-                            <button onClick={() => copyLink(survey.link)} className="mypage-copyLinkBtn">링크 복사</button>
+                        {type === 'created' && (
+                            <div className="mypage-actions">
+                                {!survey.isPublic && (
+                                    <button onClick={() => copyLink(survey.link)} className="mypage-copyLinkBtn">링크 복사</button>
+                                )}
+                                <img 
+                                    src={`${process.env.PUBLIC_URL}/img/edit.svg`}
+                                    alt="Edit Survey"
+                                    className="mypage-edit-icon"
+                                    onClick={() => handleEditClick(survey.id)}
+                                />
+                                <img 
+                                    src={`${process.env.PUBLIC_URL}/img/delete.svg`}
+                                    alt="Delete Survey"
+                                    className="mypage-delete-icon"
+                                    onClick={() => handleDeleteClick(survey.id)}
+                                />
+                            </div>
                         )}
                     </div>
                 ))}
@@ -110,7 +198,11 @@ function Mypage() {
         <>
             <NavBar />
             <div className="mypage-container">
-                <h1 className="mypage-title">마이페이지</h1>
+                <img 
+                    src={`${process.env.PUBLIC_URL}/img/Survly.svg`}
+                    alt="Survly Logo"
+                    className="mypage-logo"
+                />
                 
                 {error && <p className='error-message'>{error}</p>}
 

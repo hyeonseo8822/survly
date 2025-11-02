@@ -170,6 +170,137 @@ app.post('/api/surveys', verifyToken, (req, res) => {
   });
 });
 
+app.put('/api/surveys/:surveyId', verifyToken, (req, res) => {
+  const { surveyId } = req.params;
+  const { title, description, isPublic, questions } = req.body;
+  const userId = req.user.userId; // From token
+
+  if (!userId) return res.status(401).json({ success: false, message: '인증 토큰이 올바르지 않습니다. 다시 로그인해주세요.' });
+  if (!title || !questions || !Array.isArray(questions)) return res.status(400).json({ success: false, message: '필수 입력값 누락' });
+
+  db.beginTransaction(err => {
+    if (err) return res.status(500).json({ success: false, message: '서버 오류', error: err });
+
+    // 1. Check if user owns the survey
+    db.query('SELECT userId FROM surveys WHERE id = ?', [surveyId], (err, results) => {
+      if (err) return db.rollback(() => res.status(500).json({ success: false, message: '설문 소유자 확인 실패', error: err }));
+      if (results.length === 0) return db.rollback(() => res.status(404).json({ success: false, message: '설문을 찾을 수 없습니다.' }));
+      if (results[0].userId !== userId) return db.rollback(() => res.status(403).json({ success: false, message: '설문을 수정할 권한이 없습니다.' }));
+
+      // 2. Update survey basic info
+      const updateSurveySql = 'UPDATE surveys SET title = ?, description = ? WHERE id = ?';
+      db.query(updateSurveySql, [title, description, surveyId], (err) => {
+        if (err) return db.rollback(() => res.status(500).json({ success: false, message: '설문 기본 정보 업데이트 실패', error: err }));
+
+        // 3. Delete existing options
+        const deleteOptionsSql = 'DELETE FROM options WHERE questionId IN (SELECT id FROM questions WHERE surveyId = ?)';
+        db.query(deleteOptionsSql, [surveyId], (err) => {
+          if (err) return db.rollback(() => res.status(500).json({ success: false, message: '기존 옵션 삭제 실패', error: err }));
+
+          // 4. Delete existing questions
+          const deleteQuestionsSql = 'DELETE FROM questions WHERE surveyId = ?';
+          db.query(deleteQuestionsSql, [surveyId], (err) => {
+            if (err) return db.rollback(() => res.status(500).json({ success: false, message: '기존 질문 삭제 실패', error: err }));
+
+            // 5. Insert new questions and options
+            let completedQuestions = 0;
+            if (questions.length === 0) {
+              return db.commit(err => {
+                if (err) return db.rollback(() => res.status(500).json({ success: false, message: '커밋 실패', error: err }));
+                res.json({ success: true, message: '설문지가 성공적으로 수정되었습니다.' });
+              });
+            }
+
+            questions.forEach((q) => {
+              const insertQuestionSql = 'INSERT INTO questions (surveyId, type, question, isRequired) VALUES (?, ?, ?, ?)';
+              db.query(insertQuestionSql, [surveyId, q.type, q.question, q.isRequired ? 1 : 0], (err, qResult) => {
+                if (err) return db.rollback(() => res.status(500).json({ success: false, message: '새 질문 삽입 실패', error: err }));
+                const questionId = qResult.insertId;
+                const options = q.options;
+
+                if (options && options.length > 0) {
+                  let completedOptions = 0;
+                  options.forEach((opt) => {
+                    const insertOptionSql = 'INSERT INTO options (questionId, optionText) VALUES (?, ?)';
+                    db.query(insertOptionSql, [questionId, opt], (err2) => {
+                      if (err2) return db.rollback(() => res.status(500).json({ success: false, message: '새 옵션 삽입 실패', error: err2 }));
+                      completedOptions++;
+                      if (completedOptions === options.length) {
+                        completedQuestions++;
+                        if (completedQuestions === questions.length) {
+                          db.commit(err => {
+                            if (err) return db.rollback(() => res.status(500).json({ success: false, message: '커밋 실패', error: err }));
+                            res.json({ success: true, message: '설문지가 성공적으로 수정되었습니다.' });
+                          });
+                        }
+                      }
+                    });
+                  });
+                } else {
+                  completedQuestions++;
+                  if (completedQuestions === questions.length) {
+                    db.commit(err => {
+                      if (err) return db.rollback(() => res.status(500).json({ success: false, message: '커밋 실패', error: err }));
+                      res.json({ success: true, message: '설문지가 성공적으로 수정되었습니다.' });
+                    });
+                  }
+                }
+              });
+            });
+          });
+        });
+      });
+    });
+  });
+});
+
+app.delete('/api/surveys/:surveyId', verifyToken, (req, res) => {
+  const { surveyId } = req.params;
+  const userId = req.user.userId; // From token
+
+  if (!userId) return res.status(401).json({ success: false, message: '인증 토큰이 올바르지 않습니다. 다시 로그인해주세요.' });
+
+  db.beginTransaction(err => {
+    if (err) return res.status(500).json({ success: false, message: '서버 오류', error: err });
+
+    // 1. Check if user owns the survey
+    db.query('SELECT userId FROM surveys WHERE id = ?', [surveyId], (err, results) => {
+      if (err) return db.rollback(() => res.status(500).json({ success: false, message: '설문 소유자 확인 실패', error: err }));
+      if (results.length === 0) return db.rollback(() => res.status(404).json({ success: false, message: '설문을 찾을 수 없습니다.' }));
+      if (results[0].userId !== userId) return db.rollback(() => res.status(403).json({ success: false, message: '설문을 삭제할 권한이 없습니다.' }));
+
+      // 2. Delete responses
+      const deleteResponsesSql = 'DELETE FROM responses WHERE surveyId = ?';
+      db.query(deleteResponsesSql, [surveyId], (err) => {
+        if (err) return db.rollback(() => res.status(500).json({ success: false, message: '응답 삭제 실패', error: err }));
+
+        // 3. Delete options
+        const deleteOptionsSql = 'DELETE FROM options WHERE questionId IN (SELECT id FROM questions WHERE surveyId = ?)';
+        db.query(deleteOptionsSql, [surveyId], (err) => {
+          if (err) return db.rollback(() => res.status(500).json({ success: false, message: '옵션 삭제 실패', error: err }));
+
+          // 4. Delete questions
+          const deleteQuestionsSql = 'DELETE FROM questions WHERE surveyId = ?';
+          db.query(deleteQuestionsSql, [surveyId], (err) => {
+            if (err) return db.rollback(() => res.status(500).json({ success: false, message: '질문 삭제 실패', error: err }));
+
+            // 5. Delete survey
+            const deleteSurveySql = 'DELETE FROM surveys WHERE id = ? AND userId = ?';
+            db.query(deleteSurveySql, [surveyId, userId], (err) => {
+              if (err) return db.rollback(() => res.status(500).json({ success: false, message: '설문 삭제 실패', error: err }));
+
+              db.commit(err => {
+                if (err) return db.rollback(() => res.status(500).json({ success: false, message: '커밋 실패', error: err }));
+                res.json({ success: true, message: '설문지가 성공적으로 삭제되었습니다.' });
+              });
+            });
+          });
+        });
+      });
+    });
+  });
+});
+
 app.get('/api/surveys', (req, res) => {
   const { isPublic, keyword, page = 1, limit = 6 } = req.query;
   const offset = (page - 1) * limit;
@@ -288,7 +419,7 @@ app.get('/api/me/responses/surveys', verifyToken, (req, res) => {
     ORDER BY s.id DESC
   `;
   db.query(sql, [userId], (err, results) => {
-    if (err) return res.status(500).json({ success: false, message: '서버 오류가 발생했습니다.', error: err });
+    if (err) return res.status(500).json({ success: false, error: err });
     res.json({ success: true, surveys: results });
   });
 });

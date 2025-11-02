@@ -9,20 +9,13 @@ function Create() {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [surveyId, setSurveyId] = useState(null);
+  const [currentSurveyId, setCurrentSurveyId] = useState(null); // New state variable
   
-  const { id } = useParams(); 
+  const { id } = useParams(); // survey ID for editing
   const navigate = useNavigate();
   const titleRef = useRef(null);
   const explainRef = useRef(null);
   const questionRef = useRef(null);
-
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      alert('로그인이 필요합니다. 로그인 페이지로 이동합니다.');
-      navigate('/login');
-    }
-  }, [navigate]);
 
   // 설문지 기본 정보
   const [surveyInfo, setSurveyInfo] = useState({
@@ -34,7 +27,58 @@ function Create() {
     { questionType: "objective", options: ["옵션 1"], isOn: false, question: '' }
   ]);
 
+  // 컴포넌트 마운트 시 로그인 상태 확인 및 수정 모드 데이터 로드
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('로그인이 필요합니다. 로그인 페이지로 이동합니다.');
+      navigate('/login');
+      return;
+    }
 
+    console.log('Create.js - useParams id:', id); // Debugging line
+
+    if (id) { // Edit mode
+      setSurveyId(id);
+      setCurrentSurveyId(id); // Set the new state variable
+      const fetchSurveyForEdit = async () => {
+        setLoading(true);
+        try {
+          const response = await fetch(`http://localhost:5000/api/surveys/${id}`);
+          if (!response.ok) {
+            throw new Error('설문 데이터를 불러오는데 실패했습니다.');
+          }
+          const result = await response.json();
+          if (result.success) {
+            const fetchedSurvey = result.survey;
+            setSurveyInfo({
+              title: fetchedSurvey.title,
+              description: fetchedSurvey.description,
+            });
+            setQuestions(fetchedSurvey.questions.map(q => ({
+              questionType: q.type === 'multiple-choice' ? 'objective' : 'subjective',
+              options: q.options || [],
+              isOn: q.isRequired || false,
+              question: q.question,
+            })));
+          } else {
+            throw new Error(result.message || '설문 데이터를 불러오는데 실패했습니다.');
+          }
+        } catch (err) {
+          setError(err.message);
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchSurveyForEdit();
+    }
+  }, [id, navigate]);
+
+  useEffect(() => {
+    autoResize(titleRef);
+    autoResize(explainRef);
+    autoResize(questionRef);
+  }, [surveyInfo, questions]); // Re-run autoResize when surveyInfo or questions change
 
   const autoResize = (ref) => {
     if (ref.current) {
@@ -48,21 +92,6 @@ function Create() {
     const token = localStorage.getItem('token');
     return token && token.trim() !== '';
   };
-
-  // 컴포넌트 마운트 시 수정 모드인지 확인
-  useEffect(() => {
-    if (id) {
-      setSurveyId(id);
-    }
-  }, [id]);
-
-  useEffect(() => {
-    autoResize(titleRef);
-    autoResize(explainRef);
-    autoResize(questionRef);
-  }, []);
-
-
 
   const addQuestion = () => {
     setQuestions([
@@ -89,13 +118,11 @@ function Create() {
     if (newQ[qIdx].options.length > 1) {
       newQ[qIdx].options.splice(optIdx, 1);
       setQuestions(newQ);
-    }
+    };
   };
 
-  // 설문지 저장/게시 (NavBar2의 게시 버튼에서 호출)
+  // 설문지 저장/게시/수정 (NavBar2의 버튼에서 호출)
   const saveSurvey = async () => {
-    console.log('saveSurvey 함수 호출됨');
-
     // 로그인 상태 확인
     if (!checkAuthToken()) {
       alert('로그인이 필요합니다. 먼저 로그인해 주세요.');
@@ -107,9 +134,6 @@ function Create() {
       setLoading(true);
       setError(null);
       setSuccess(null);
-
-      console.log('현재 설문지 정보:', surveyInfo);
-      console.log('현재 질문들:', questions);
 
       // 유효성 검사
       if (!surveyInfo.title.trim()) {
@@ -124,14 +148,10 @@ function Create() {
         throw new Error('모든 옵션을 입력해주세요.');
       }
 
-      // 공개 여부 확인
-      const isPublic = window.confirm('이 설문을 공개하시겠습니까? 공개 설문은 메인 페이지에 노출됩니다.');
-
       // API 요청 데이터 준비
       const surveyData = {
         title: surveyInfo.title,
         description: surveyInfo.description || '',
-        isPublic: isPublic,
         questions: questions.map(q => ({
           type: q.questionType === 'objective' ? 'multiple-choice' : 'text',
           question: q.question,
@@ -140,11 +160,23 @@ function Create() {
         }))
       };
 
-      console.log('전송할 데이터:', surveyData);
+      let method = 'POST';
+      let url = 'http://localhost:5000/api/surveys';
+
+      if (currentSurveyId) { // Use currentSurveyId here
+        method = 'PUT';
+        url = 'http://localhost:5000/api/surveys/' + currentSurveyId;
+      } else { // Create mode
+        const isPublic = window.confirm('이 설문을 공개하시겠습니까? 공개 설문은 메인 페이지에 노출됩니다.');
+        surveyData.isPublic = isPublic;
+      }
+
+      console.log('saveSurvey - Method:', method); // Debugging line
+      console.log('saveSurvey - URL:', url);     // Debugging line
 
       // API 호출
-      const response = await fetch('http://localhost:5000/api/surveys', {
-        method: 'POST',
+      const response = await fetch(url, {
+        method: method,
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -152,9 +184,7 @@ function Create() {
         body: JSON.stringify(surveyData)
       });
 
-      console.log('응답 상태:', response.status);
       const result = await response.json();
-      console.log('서버 응답:', result);
 
       if (response.status === 401 || response.status === 403) {
         localStorage.removeItem('token');
@@ -168,24 +198,29 @@ function Create() {
       }
 
       if (result.success) {
-        setSurveyId(result.surveyId);
+        setSurveyId(result.surveyId || currentSurveyId); // For edit, surveyId is already known
 
-        if (isPublic) {
-          setSuccess('설문지가 성공적으로 게시되었습니다!');
+        if (method === 'POST') {
+          if (surveyData.isPublic) {
+            setSuccess('설문지가 성공적으로 게시되었습니다!');
+            setTimeout(() => {
+              navigate('/');
+            }, 2000);
+          } else {
+            const shareableLink = `${window.location.origin}/s/${result.link}`;
+            setSuccess(`비공개 설문이 생성되었습니다! 다음 링크를 공유하세요: ${shareableLink}`);
+          }
+        } else { // PUT request
+          setSuccess('설문지가 성공적으로 수정되었습니다!');
           setTimeout(() => {
-            navigate('/');
+            navigate('/mypage'); // Go back to mypage after edit
           }, 2000);
-        } else {
-          const shareableLink = `${window.location.origin}/s/${result.link}`;
-          setSuccess(`비공개 설문이 생성되었습니다! 다음 링크를 공유하세요: ${shareableLink}`);
-          // 비공개 설문은 자동으로 넘어가지 않고 링크를 복사할 시간을 줍니다.
         }
       } else {
-        throw new Error(result.message || '설문지 게시 중 오류가 발생했습니다.');
+        throw new Error(result.message || '설문지 처리 중 오류가 발생했습니다.');
       }
 
     } catch (err) {
-      console.error('에러 발생:', err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -215,7 +250,13 @@ function Create() {
 
   return (
     <div className='container'>
-      <NavBar2 active={active} setActive={setActive} onButtonClick={saveSurvey} showResponseTab={false} />
+      <NavBar2 
+        active={active} 
+        setActive={setActive} 
+        onButtonClick={saveSurvey} 
+        showResponseTab={false}
+        buttonText={currentSurveyId ? "수정" : "게시"} // Change button text based on mode
+      />
       
       {/* 에러/성공 메시지 */}
       {error && (
@@ -240,14 +281,11 @@ function Create() {
           borderRadius: '4px',
           textAlign: 'center'
         }}>
-          {console.log('Rendering success message.')}
           {success}
           <br />
-          <small>잠시 후 홈 페이지로 이동합니다...</small>
+          <small>잠시 후 {currentSurveyId ? "마이페이지" : "홈 페이지"}로 이동합니다...</small>
         </div>
       )}
-
-
 
       {active === "question" && (
         <div className='createContentWrapper'>
