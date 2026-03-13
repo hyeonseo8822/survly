@@ -1,0 +1,80 @@
+const mongoose = require('mongoose');
+const Question = require('../models/Question');
+const Option = require('../models/Option');
+
+function isValidObjectId(id) {
+  return mongoose.Types.ObjectId.isValid(id);
+}
+
+function parseQuestionsPayload(rawQuestions) {
+  if (Array.isArray(rawQuestions)) {
+    return rawQuestions;
+  }
+
+  try {
+    const parsed = JSON.parse(rawQuestions);
+    return Array.isArray(parsed) ? parsed : null;
+  } catch (error) {
+    return null;
+  }
+}
+
+function normalizeBoolean(value) {
+  return value === true || value === 'true' || value === '1' || value === 1;
+}
+
+function toSurveyResponse(survey) {
+  return {
+    id: survey._id.toString(),
+    title: survey.title,
+    description: survey.description,
+    isPublic: survey.isPublic,
+    userId: survey.userId,
+    link: survey.link,
+    img: survey.img,
+    created_at: survey.created_at
+  };
+}
+
+function toQuestionResponse(question, options) {
+  return {
+    questionId: question._id.toString(),
+    type: question.type,
+    question: question.question,
+    isRequired: question.isRequired ? 1 : 0,
+    options
+  };
+}
+
+async function getSurveyDetails(surveyDoc) {
+  const questions = await Question.find({ surveyId: surveyDoc._id }).sort({ _id: 1 }).lean();
+  const questionIds = questions.map((question) => question._id);
+  const options = questionIds.length > 0
+    ? await Option.find({ questionId: { $in: questionIds } }).sort({ _id: 1 }).lean()
+    : [];
+
+  const optionsByQuestionId = new Map();
+  options.forEach((option) => {
+    const key = option.questionId.toString();
+    if (!optionsByQuestionId.has(key)) {
+      optionsByQuestionId.set(key, []);
+    }
+    optionsByQuestionId.get(key).push(option.optionText);
+  });
+
+  return {
+    ...toSurveyResponse(surveyDoc),
+    questions: questions.map((question) => toQuestionResponse(
+      question,
+      optionsByQuestionId.get(question._id.toString()) || []
+    ))
+  };
+}
+
+module.exports = {
+  isValidObjectId,
+  parseQuestionsPayload,
+  normalizeBoolean,
+  toSurveyResponse,
+  getSurveyDetails
+};

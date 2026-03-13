@@ -8,6 +8,7 @@
 .plusImg:hover {
     opacity: 0.8;
 }
+
 .createContentWrapper {
     margin-top: 10%;
 }
@@ -356,134 +357,144 @@ input[type='text']:focus {
 }
 
 .loading-message {
-  text-align: center;
-  padding: 50px;
+    text-align: center;
+    padding: 50px;
 }
 
 .error-message {
-  background-color: #ffebee;
-  color: #c62828;
-  padding: 10px;
-  margin: 10px 0;
-  border-radius: 4px;
-  text-align: center;
+    background-color: #ffebee;
+    color: #c62828;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 4px;
+    text-align: center;
 }
 
 .success-message {
-  background-color: #e8f5e8;
-  color: #2e7d32;
-  padding: 10px;
-  margin: 10px 0;
-  border-radius: 4px;
-  text-align: center;
+    background-color: #e8f5e8;
+    color: #2e7d32;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 4px;
+    text-align: center;
 }
 
 .survey-result-item {
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 15px;
-  margin: 10px 0;
-  background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 15px;
+    margin: 10px 0;
+    background-color: #f9f9f9;
 }
 
 .radio-option-container {
-  display: flex;
-  align-items: center;
-  margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
 }
 
 .radio-option-input {
-  border: none;
-  border-bottom: 1px solid #ccc;
-  outline: none;
-  margin-left: 8px;
-  padding: 4px;
-  flex: 1;
+    border: none;
+    border-bottom: 1px solid #ccc;
+    outline: none;
+    margin-left: 8px;
+    padding: 4px;
+    flex: 1;
 }
 
 .delete-option-button {
-  margin-left: 10px;
-  background: none;
-  border: none;
-  color: #dc3545;
-  cursor: pointer;
+    margin-left: 10px;
+    background: none;
+    border: none;
+    color: #dc3545;
+    cursor: pointer;
 }
 
 .add-option-label {
-  color: #A0A0A0;
-  cursor: pointer;
+    color: #A0A0A0;
+    cursor: pointer;
 }
 
 .delete-question-image {
-  cursor: pointer;
+    cursor: pointer;
 }
 
 .delete-question-image.disabled {
-  cursor: not-allowed;
-  opacity: 0.5;
+    cursor: not-allowed;
+    opacity: 0.5;
 }
 
 /* 이미지 업로드 섹션 */
 .image-upload-section {
-  margin-top: 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 15px;
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
 }
 
 .image-upload-button {
-  background-color: #7BBCF5;
-  color: white;
-  padding: 10px 20px;
-  border-radius: 5px;
-  cursor: pointer;
-  font-weight: bold;
-  transition: background-color 0.2s ease;
+    background-color: #7BBCF5;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s ease;
 }
 
 .image-upload-button:hover {
-  background-color: #65B7FF;
+    background-color: #65B7FF;
 }
 
 .image-preview-container {
-  position: relative;
-  width: 200px; /* 미리보기 이미지 크기 */
-  height: 150px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  overflow: hidden;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: #f9f9f9;
+    position: relative;
+    width: 200px;
+    /* 미리보기 이미지 크기 */
+    height: 150px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #f9f9f9;
 }
 
 .image-preview {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain; /* 이미지가 잘리지 않고 컨테이너에 맞게 */
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    /* 이미지가 잘리지 않고 컨테이너에 맞게 */
+}
+
+.option-delete-btn {
+    margin-left: 10px;
+    background: none;
+    border: none;
+    color: #dc3545;
+    cursor: pointer;
 }
 
 .remove-image-button {
-  position: absolute;
-  top: 5px;
-  right: 5px;
-  background-color: rgba(255, 0, 0, 0.7);
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 25px;
-  height: 25px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  cursor: pointer;
-  font-weight: bold;
-  font-size: 14px;
-  line-height: 1;
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background-color: rgba(255, 0, 0, 0.7);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 25px;
+    height: 25px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
+    line-height: 1;
 }
 
 .remove-image-button:hover {
-  background-color: red;
+    background-color: red;
 }
