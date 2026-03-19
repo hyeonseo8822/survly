@@ -14,7 +14,9 @@ function Main() {
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
-      navigate(`/search?keyword=${keyword}`);
+      const trimmed = keyword.trim();
+      if (!trimmed) return;
+      navigate(`/search?keyword=${encodeURIComponent(trimmed)}&mode=survey`);
     }
   };
 
@@ -23,38 +25,57 @@ function Main() {
       {/* 상단 네비게이션 바 컴포넌트 */}
       <NavBar />
       
-      <div className="container">
-        {/* 설문 생성 페이지로 이동하는 버튼 */}
-        <Link to="/create">
-          <div className='goSurvey'>
-            <img src={`${process.env.PUBLIC_URL}/img/goSurvey.svg`}
-              alt='button' />
+      <main className="main-page">
+        <section className="main-hero">
+          <div className="main-hero__content">
+            <div className="main-hero__brand">Survly</div>
+            <h1 className="main-hero__title">당신이 궁금한 것, 설문으로 알아보세요</h1>
+            <p className="main-hero__subtitle">Find out what people are curious about through a survey</p>
+
+            <div className='main-hero__search'>
+              <img
+                src={`${process.env.PUBLIC_URL}/img/magnifier.svg`}
+                alt='magnifier'
+              />
+              <input
+                id="search"
+                type="text"
+                placeholder="검색어를 입력해주세요"
+                className="main-hero__search-input"
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+                onKeyDown={handleKeyDown}
+              />
+            </div>
+
+            <div className="main-hero__actions">
+              <Link to="/create" className="main-hero__cta">
+                설문 만들기
+              </Link>
+            </div>
           </div>
-        </Link>
-        
-        {/* 검색창 */}
-        <div className='search'>
-          <img
-            src={`${process.env.PUBLIC_URL}/img/magnifier.svg`}
-            alt='magnifier'
-          />
-          <input
-            id="search"
-            type="text"
-            placeholder="검색어를 입력해주세요"
-            className="search-input"
-            value={keyword}
-            onChange={(e) => setKeyword(e.target.value)} // 입력 값에 따라 keyword state 업데이트
-            onKeyDown={handleKeyDown} // 키 입력 시 handleKeyDown 함수 호출
-          />
-        </div>
-        
-        {/* 배경 이미지 */}
-        <img className='back'
-          src={`${process.env.PUBLIC_URL}/img/background.svg`}
-          alt="Logo"
-        />
-      </div>
+
+          <div className="main-hero__visual" aria-hidden="true">
+            <div className="main-hero__glow main-hero__glow--large"></div>
+            <div className="main-hero__glow main-hero__glow--small"></div>
+            <img
+              className="main-hero__shape main-hero__shape--one"
+              src={`${process.env.PUBLIC_URL}/img/image%202.png`}
+              alt=""
+            />
+            <img
+              className="main-hero__shape main-hero__shape--two"
+              src={`${process.env.PUBLIC_URL}/img/image%203.png`}
+              alt=""
+            />
+            <img
+              className="main-hero__shape main-hero__shape--three"
+              src={`${process.env.PUBLIC_URL}/img/image%204%20(1).png`}
+              alt=""
+            />
+          </div>
+        </section>
+      </main>
       
       {/* 공개 설문 목록을 보여주는 컴포넌트 */}
       <Surveys />

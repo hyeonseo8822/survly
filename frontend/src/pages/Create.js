@@ -2,6 +2,79 @@ import { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import './css/Create.css';
 import NavBar2 from '../components/NavBar2';
+import { useNotification } from '../components/NotificationProvider';
+
+const QUESTION_TYPE_META = {
+  objective: {
+    label: '객관식 질문',
+    apiType: 'multiple-choice',
+    hasOptions: true
+  },
+  checkbox: {
+    label: '객관식(중복가능) 질문',
+    apiType: 'checkboxes',
+    hasOptions: true
+  },
+  subjective: {
+    label: '단답형 질문',
+    apiType: 'text',
+    hasOptions: false
+  },
+  longtext: {
+    label: '장문형 질문',
+    apiType: 'long-text',
+    hasOptions: false
+  },
+  rating: {
+    label: '평점 질문',
+    apiType: 'rating',
+    hasOptions: false
+  },
+  date: {
+    label: '날짜 질문',
+    apiType: 'date',
+    hasOptions: false
+  }
+};
+
+const createDefaultQuestion = () => ({ questionType: 'objective', options: ['옵션 1', '옵션 2'], isOn: false, question: '' });
+
+const mapApiTypeToUi = (apiType) => {
+  const mappedEntry = Object.entries(QUESTION_TYPE_META)
+    .find(([, meta]) => meta.apiType === apiType);
+
+  return mappedEntry ? mappedEntry[0] : 'subjective';
+};
+
+const normalizeEmbedUrl = (rawUrl) => {
+  const trimmed = String(rawUrl || '').trim();
+  if (!trimmed) {
+    return '';
+  }
+
+  try {
+    const parsed = new URL(trimmed);
+    const host = parsed.hostname.replace(/^www\./, '').toLowerCase();
+
+    if (host === 'youtube.com' || host === 'm.youtube.com') {
+      const videoId = parsed.searchParams.get('v');
+      if (videoId) {
+        return `https://www.youtube.com/embed/${videoId}`;
+      }
+    }
+
+    if (host === 'youtu.be') {
+      const videoId = parsed.pathname.replace(/^\//, '');
+      if (videoId) {
+        return `https://www.youtube.com/embed/${videoId}`;
+      }
+    }
+  } catch (error) {
+    return trimmed;
+  }
+
+  return trimmed;
+};
 
 
 function Create() {
@@ -15,9 +88,12 @@ function Create() {
   const [imagePreview, setImagePreview] = useState(null); // 새로 선택된 이미지의 미리보기 URL
   const [existingImage, setExistingImage] = useState(null); // 수정 모드에서 기존에 있던 이미지의 URL
   const [shouldRemoveExistingImage, setShouldRemoveExistingImage] = useState(false); // 기존 이미지를 삭제할지 여부
+  const [surveyIsPublic, setSurveyIsPublic] = useState(false);
+  const [responseTabPublic, setResponseTabPublic] = useState(false);
 
   const { id } = useParams(); // URL 파라미터에서 'id'를 가져옴 (수정 모드 식별용)
   const navigate = useNavigate();
+  const { notify } = useNotification();
   const titleRef = useRef(null); // 제목 textarea 참조
   const explainRef = useRef(null); // 설명 textarea 참조
 
@@ -25,18 +101,19 @@ function Create() {
   const [surveyInfo, setSurveyInfo] = useState({
     title: '',
     description: '',
+    embedUrl: '',
   });
 
   // 질문 목록 상태
   const [questions, setQuestions] = useState([
-    { questionType: "objective", options: ["옵션 1"], isOn: false, question: '' }
+    createDefaultQuestion()
   ]);
 
 
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token) {
-      alert('로그인이 필요합니다. 로그인 페이지로 이동합니다.');
+      notify('로그인이 필요합니다. 로그인 페이지로 이동합니다.', 'warning');
       navigate('/login');
       return;
     }
@@ -58,10 +135,13 @@ function Create() {
             setSurveyInfo({
               title: fetchedSurvey.title,
               description: fetchedSurvey.description,
+              embedUrl: fetchedSurvey.embedUrl || '',
             });
+            setSurveyIsPublic(Boolean(fetchedSurvey.isPublic));
+            setResponseTabPublic(Boolean(fetchedSurvey.responseTabPublic));
             setQuestions(fetchedSurvey.questions.map(q => ({
-              questionType: q.type === 'multiple-choice' ? 'objective' : 'subjective',
-              options: q.options || [],
+              questionType: mapApiTypeToUi(q.type),
+              options: Array.isArray(q.options) ? q.options : [],
               isOn: q.isRequired === 1,
               question: q.question,
             })));
@@ -79,7 +159,7 @@ function Create() {
       };
       fetchSurveyForEdit();
     }
-  }, [id, navigate]); // id나 navigate가 변경될 때만 실행
+  }, [id, navigate, notify]); // id나 navigate가 변경될 때만 실행
 
   // Effect 2: textarea 자동 높이 조절
   useEffect(() => {
@@ -129,7 +209,7 @@ function Create() {
   const addQuestion = () => {
     setQuestions([
       ...questions,
-      { questionType: "objective", options: ["옵션 1"], isOn: false, question: '' },
+      createDefaultQuestion(),
     ]);
   };
 
@@ -186,38 +266,51 @@ function Create() {
    */
   const saveSurvey = async () => {
     if (!checkAuthToken()) {
-      alert('로그인이 필요합니다. 먼저 로그인해 주세요.');
+      notify('로그인이 필요합니다. 먼저 로그인해 주세요.', 'warning');
       navigate('/login');
       return;
     }
 
     try {
-      setLoading(true);
-      setError(null);
-      setSuccess(null);
-
       // 1. 유효성 검사
       if (!surveyInfo.title || surveyInfo.title.trim() === '') {
-        alert('설문지 제목을 입력해주세요.');
+        notify('설문지 제목을 입력해주세요.', 'warning');
         return;
       }
       if (questions.some(q => !q.question || q.question.trim() === '')) {
-        alert('모든 질문을 입력해주세요.');
+        notify('모든 질문을 입력해주세요.', 'warning');
         return;
       }
-      if (questions.some(q => q.questionType === 'objective' && (!q.options || q.options.some(opt => !opt || opt.trim() === '')))) {
-        alert('모든 옵션을 입력해주세요.');
+      if (questions.some(q => {
+        const meta = QUESTION_TYPE_META[q.questionType] || QUESTION_TYPE_META.subjective;
+        return meta.hasOptions && (!Array.isArray(q.options) || q.options.filter(opt => String(opt || '').trim() !== '').length < 2);
+      })) {
+        notify('객관식/체크박스 질문은 옵션을 2개 이상 입력해주세요.', 'warning');
         return;
       }
+      if (surveyInfo.embedUrl && !/^https?:\/\//i.test(surveyInfo.embedUrl.trim())) {
+        notify('임베드 URL은 http 또는 https로 시작해야 합니다.', 'warning');
+        return;
+      }
+
+      setLoading(true);
+      setError(null);
+      setSuccess(null);
+      const normalizedEmbedUrl = normalizeEmbedUrl(surveyInfo.embedUrl);
 
       // 2. FormData 생성 (파일과 텍스트를 함께 보내기 위함)
       const formData = new FormData();
       formData.append('title', surveyInfo.title);
       formData.append('description', surveyInfo.description || '');
+      formData.append('embedUrl', normalizedEmbedUrl);
+      formData.append('isPublic', surveyIsPublic ? 1 : 0);
+      formData.append('responseTabPublic', responseTabPublic ? 1 : 0);
       formData.append('questions', JSON.stringify(questions.map(q => ({
-        type: q.questionType === 'objective' ? 'multiple-choice' : 'text',
+        type: (QUESTION_TYPE_META[q.questionType] || QUESTION_TYPE_META.subjective).apiType,
         question: q.question,
-        options: q.questionType === 'objective' ? q.options.filter(opt => opt.trim() !== '') : null,
+        options: (QUESTION_TYPE_META[q.questionType] || QUESTION_TYPE_META.subjective).hasOptions
+          ? q.options.map(opt => String(opt || '').trim()).filter(opt => opt !== '')
+          : null,
         isRequired: q.isOn
       }))));
 
@@ -239,9 +332,6 @@ function Create() {
       if (currentSurveyId) { // 수정 모드
         method = 'PUT';
         url = `http://localhost:5000/api/surveys/${currentSurveyId}`;
-      } else { // 생성 모드
-        const isPublic = window.confirm('이 설문을 공개하시겠습니까? 공개 설문은 메인 페이지에 노출됩니다.');
-        formData.append('isPublic', isPublic ? 1 : 0);
       }
 
       // 5. API 호출
@@ -256,7 +346,7 @@ function Create() {
       // 6. 응답 처리
       if (response.status === 401 || response.status === 403) { // 인증 에러
         localStorage.removeItem('token');
-        alert('로그인이 만료되었습니다. 다시 로그인해 주세요.');
+        notify('로그인이 만료되었습니다. 다시 로그인해 주세요.', 'warning');
         navigate('/login');
         return;
       }
@@ -267,7 +357,7 @@ function Create() {
       if (result.success) {
         setSurveyId(result.surveyId || currentSurveyId);
         if (method === 'POST') { // 생성 성공
-          if (formData.get('isPublic') === '1') {
+          if (surveyIsPublic) {
             setSuccess('설문지가 성공적으로 게시되었습니다!');
             navigate('/');
           } else {
@@ -296,8 +386,13 @@ function Create() {
     return <div className='container'><div style={{ textAlign: 'center', padding: '50px' }}><p>로딩 중...</p></div></div>;
   }
 
+  const hasCoverImage = Boolean(imagePreview || existingImage);
+  const embedPreviewUrl = surveyInfo.embedUrl && /^https?:\/\//i.test(surveyInfo.embedUrl.trim())
+    ? normalizeEmbedUrl(surveyInfo.embedUrl)
+    : '';
+
   return (
-    <div className='container'>
+    <div className='container create-page'>
       <NavBar2 
         active={active} 
         setActive={setActive} 
@@ -318,10 +413,52 @@ function Create() {
 
       {/* 설문지 작성 폼 */}
       {active === "question" && (
-        <div className='createContentWrapper'>
+        <div className='createContentWrapper create-shell'>
           {/* 제목, 설명, 이미지 업로드 영역 */}
-          <div className='titleBox'>
+          <div className='titleBox createHeroCard'>
             <div className='titleInput'>
+              <div className='createSettingsPanel'>
+                <div className='createVisibilityControl'>
+                  <p>설문 공개 설정</p>
+                  <div className='createVisibilityToggle' role='group' aria-label='설문 공개 설정'>
+                    <button
+                      type='button'
+                      className={`createVisibilityToggle__btn ${surveyIsPublic ? 'is-active' : ''}`}
+                      onClick={() => setSurveyIsPublic(true)}
+                    >
+                      공개
+                    </button>
+                    <button
+                      type='button'
+                      className={`createVisibilityToggle__btn ${!surveyIsPublic ? 'is-active' : ''}`}
+                      onClick={() => setSurveyIsPublic(false)}
+                    >
+                      비공개
+                    </button>
+                  </div>
+                </div>
+
+                <div className='createVisibilityControl'>
+                  <p>응답탭 공개 설정</p>
+                  <div className='createVisibilityToggle' role='group' aria-label='응답탭 공개 설정'>
+                    <button
+                      type='button'
+                      className={`createVisibilityToggle__btn ${responseTabPublic ? 'is-active' : ''}`}
+                      onClick={() => setResponseTabPublic(true)}
+                    >
+                      공개
+                    </button>
+                    <button
+                      type='button'
+                      className={`createVisibilityToggle__btn ${!responseTabPublic ? 'is-active' : ''}`}
+                      onClick={() => setResponseTabPublic(false)}
+                    >
+                      비공개
+                    </button>
+                  </div>
+                </div>
+              </div>
+
               <div className='title'>
                 <textarea ref={titleRef} placeholder='제목 없는 설문지' value={surveyInfo.title}
                   onInput={(e) => {
@@ -339,13 +476,17 @@ function Create() {
                 />
               </div>
             </div>
-            <div className='image-upload-section'>
-              <label htmlFor="surveyImageUpload" className="image-upload-button">이미지 등록</label>
+            <div className={`image-upload-section createMediaPanel ${hasCoverImage ? 'createMediaPanel--hasImage' : ''}`}>
+              {!hasCoverImage && (
+                <>
+                  <label htmlFor="surveyImageUpload" className="image-upload-button">이미지 등록</label>
+                </>
+              )}
               <input id="surveyImageUpload" type="file" accept="image/*" onChange={handleImageChange} style={{ display: 'none' }} />
-              {(imagePreview || existingImage) && (
+              {hasCoverImage && (
                 <div className='image-preview-container'>
                   <img src={imagePreview || existingImage} alt="Survey Preview" className="image-preview" />
-                  <button onClick={() => { 
+                  <button type='button' onClick={() => { 
                     setSelectedImage(null); 
                     setImagePreview(null); 
                     setExistingImage(null); 
@@ -354,12 +495,39 @@ function Create() {
                 </div>
               )}
             </div>
+            <div className='createEmbedField'>
+              <p>임베드 URL</p>
+              <input
+                type='url'
+                placeholder='https://www.youtube.com/embed/...'
+                value={surveyInfo.embedUrl}
+                onChange={(e) => setSurveyInfo(prev => ({ ...prev, embedUrl: e.target.value }))}
+              />
+              {embedPreviewUrl && (
+                <div className='createEmbedPreview'>
+                  <iframe
+                    title='survey-embed-preview'
+                    src={embedPreviewUrl}
+                    loading='lazy'
+                    referrerPolicy='no-referrer-when-downgrade'
+                    allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share'
+                    allowFullScreen
+                  />
+                </div>
+              )}
+            </div>
           </div>
 
           {/* 질문 목록 */}
+          <div className='createQuestionList'>
           {questions.map((q, qIdx) => (
-            <div key={qIdx} className='createContent'>
+            <div key={qIdx} className='createContent createQuestionCard'>
               <div className='content'>
+                <div className='createQuestionCard__header'>
+                  <div className='createQuestionCard__type'>
+                    {(QUESTION_TYPE_META[q.questionType] || QUESTION_TYPE_META.subjective).label}
+                  </div>
+                </div>
                 <div className='questionContent'>
                   <div className='questionNav'>
                     <div className='questionbox'>
@@ -376,27 +544,35 @@ function Create() {
                         onChange={(e) => {
                           const newQ = [...questions];
                           newQ[qIdx].questionType = e.target.value;
-                          if (e.target.value === 'objective' && (!newQ[qIdx].options || newQ[qIdx].options.length === 0)) {
-                            newQ[qIdx].options = ['옵션 1'];
+                          const selectedMeta = QUESTION_TYPE_META[e.target.value] || QUESTION_TYPE_META.subjective;
+                          if (selectedMeta.hasOptions && (!newQ[qIdx].options || newQ[qIdx].options.length === 0)) {
+                            newQ[qIdx].options = ['옵션 1', '옵션 2'];
+                          }
+                          if (!selectedMeta.hasOptions) {
+                            newQ[qIdx].options = [];
                           }
                           setQuestions(newQ);
                         }}
                       >
                         <option value='objective'>객관식</option>
-                        <option value='subjective'>주관식</option>
+                        <option value='checkbox'>객관식(중복가능)</option>
+                        <option value='subjective'>단답형</option>
+                        <option value='longtext'>장문형</option>
+                        <option value='rating'>평점(1~5)</option>
+                        <option value='date'>날짜</option>
                       </select>
                     </div>
                   </div>
 
-                  {/* 객관식 옵션 입력 */}
-                  {q.questionType === 'objective' && (
+                  {/* 옵션형 질문 입력 */}
+                  {(q.questionType === 'objective' || q.questionType === 'checkbox') && (
                     <div className='radioOptions'>
                       {q.options.map((opt, idx) => (
                         <div key={idx} className="option-item">
-                          <input type='radio' name={`answer-${qIdx}`} disabled />
+                          <input type={q.questionType === 'objective' ? 'radio' : 'checkbox'} name={`answer-${qIdx}`} disabled />
                           <input type='text' value={opt} onChange={(e) => updateOption(qIdx, idx, e.target.value)} className="option-input" />
                           {q.options.length > 1 && (
-                            <button onClick={() => deleteOption(qIdx, idx)} className="option-delete-btn">X</button>
+                            <button type='button' onClick={() => deleteOption(qIdx, idx)} className="option-delete-btn">X</button>
                           )}
                         </div>
                       ))}
@@ -408,10 +584,30 @@ function Create() {
                     </div>
                   )}
 
-                  {/* 주관식 답변 미리보기 */}
+                  {/* 단답형 답변 미리보기 */}
                   {q.questionType === 'subjective' && (
                     <div className='subjectiveInput'>
                       <input type='text' disabled placeholder='답변' />
+                    </div>
+                  )}
+
+                  {q.questionType === 'longtext' && (
+                    <div className='createLongTextPreview'>
+                      <textarea disabled placeholder='장문 답변' />
+                    </div>
+                  )}
+
+                  {q.questionType === 'rating' && (
+                    <div className='createRatingPreview'>
+                      {[1, 2, 3, 4, 5].map((score) => (
+                        <span key={score}>{score}</span>
+                      ))}
+                    </div>
+                  )}
+
+                  {q.questionType === 'date' && (
+                    <div className='createDatePreview'>
+                      <input type='date' disabled />
                     </div>
                   )}
 
@@ -447,11 +643,13 @@ function Create() {
               </div>
             </div>
           ))}
+          </div>
 
           {/* 질문 추가 버튼 */}
-          <div className='plusImg' onClick={addQuestion}>
-            <img src={`${process.env.PUBLIC_URL}/img/plus.svg`} alt='plus' />
-          </div>
+          <button type='button' className='plusImg createAddQuestionButton' onClick={addQuestion}>
+            <span className='createAddQuestionButton__icon'>+</span>
+            <span>질문 추가하기</span>
+          </button>
         </div>
       )}
     </div>

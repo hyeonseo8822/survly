@@ -28,10 +28,13 @@ function toSurveyResponse(survey) {
     id: survey._id.toString(),
     title: survey.title,
     description: survey.description,
+    embedUrl: survey.embedUrl || '',
     isPublic: survey.isPublic,
+    responseTabPublic: survey.responseTabPublic,
     userId: survey.userId,
     link: survey.link,
     img: survey.img,
+    participantCount: survey.participantCount || 0,
     created_at: survey.created_at
   };
 }

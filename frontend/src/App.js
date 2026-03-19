@@ -6,6 +6,7 @@ import SignUp from './pages/SignUp'; // 회원가입 페이지
 import Answer from './pages/Answer'; // 설문 응답 페이지
 import Mypage from './pages/Mypage'; // 마이페이지
 import Search from './pages/Search'; // 설문 검색 페이지
+import UserProfile from './pages/UserProfile'; // 사용자 프로필 페이지
 
 function App() {
   return (
@@ -16,7 +17,8 @@ function App() {
       <Route path='/s/:link' element={<Answer />} ></Route>
       <Route path='/login' element={<Login />} ></Route>
       <Route path='/signup' element={<SignUp />} ></Route>
-      <Route path='/mypage' element={<Mypage />} ></Route>
+      <Route path='/mypage/:section?' element={<Mypage />} ></Route>
+      <Route path='/profile/:userId' element={<UserProfile />} ></Route>
       <Route path='/search' element={<Search />} ></Route>
     </Routes>
   );
