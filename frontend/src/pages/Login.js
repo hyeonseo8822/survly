@@ -1,6 +1,7 @@
 import './css/Login.css';
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { useNotification } from '../components/NotificationProvider';
 
 
 function Login() {
@@ -8,6 +9,7 @@ function Login() {
     const [password, setPassword] = useState(""); // 사용자가 입력한 비밀번호
     
     const navigate = useNavigate();
+    const { notify } = useNotification();
 
     const handleLogin = async () => {
         try {
@@ -23,66 +25,55 @@ function Login() {
             const data = await res.json();
 
             if (res.ok) { 
-                alert("로그인 성공!");
+                notify("로그인 성공!", 'success');
                 // 서버로부터 받은 토큰과 사용자 ID를 localStorage에 저장합니다.
                 localStorage.setItem("token", data.token); 
                 localStorage.setItem("userId", data.userId);
                 
                 navigate("/"); 
             } else {
-                alert(data.message || "로그인 실패");
+                notify(data.message || "로그인 실패", 'error');
             }
         } catch (err) {
             // 서버 연결 실패 등 네트워크 오류 발생 시
             console.error(err);
-            alert("서버 오류 발생");
+            notify("서버 오류 발생", 'error');
         }
     };
 
     return (
-        <div className="container">
-            {/* 로고 이미지 */}
-            <div className="logoImg">
-                <img src={`${process.env.PUBLIC_URL}/img/Survly.svg`}
-                    alt="logoImg" />
+        <div className="auth-page">
+            <div className="auth-brand-wrap">
+                <span className="auth-brand">Login</span>
             </div>
-            
-            {/* 로그인 박스 상단 */}
-            <div className='loginBox'>
-                <div className='loginText'>로그인</div>
-                <div className='isMember'>
-                    <div className='isMemberText'>회원이 아니신가요?</div>
-                    <div className='SignUpLink'>
-                        {/* 회원가입 페이지로 이동하는 링크 */}
-                        <Link className='signLink' to="/signup">회원가입</Link>
-                    </div>
+
+            <div className="auth-card">
+                <div className='auth-switch'>
+                    <span className='auth-switch-text'>회원이 아니신가요?</span>
+                    <Link className='auth-switch-link' to="/signup">회원가입</Link>
                 </div>
+
+                <div className='auth-inputs'>
+                    <input
+                        className='auth-input'
+                        type='text'
+                        placeholder='아이디'
+                        value={userId}
+                        onChange={(e) => setUserId(e.target.value)}
+                    />
+                    <input
+                        className='auth-input'
+                        type='password'
+                        placeholder='비밀번호'
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                    />
+                </div>
+
+                <button className='auth-submit' onClick={handleLogin}>
+                    로그인
+                </button>
             </div>
-            
-            {/* 아이디 및 비밀번호 입력 필드 */}
-            <div className='LoginBox'>
-                <img src={`${process.env.PUBLIC_URL}/img/loginbox.svg`}
-                    alt="Loginbox" />
-                <input
-                    className='idInput'
-                    type='text'
-                    placeholder='아이디'
-                    value={userId}
-                    onChange={(e) => setUserId(e.target.value)} // 입력 값에 따라 userId state 업데이트
-                />
-                <input
-                    className='passInput'
-                    type='password'
-                    placeholder='비밀번호'
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)} // 입력 값에 따라 password state 업데이트
-                />
-            </div>
-            
-            {/* 로그인 실행 버튼 */}
-            <button className='LoginBtn' onClick={handleLogin}>
-                로그인
-            </button>
         </div>
     );
 }

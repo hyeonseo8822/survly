@@ -32,11 +32,9 @@ function NavBar2({
       <div className='route'>
         {/* 로고: 클릭 시 메인 페이지로 이동 */}
         <Link to="/">
-          <img
-            className="logobox"
-            src={`${process.env.PUBLIC_URL}/img/logobox.svg`}
-            alt="logo"
-          />
+          <div className="brandmark">
+            <span className="brand-word">Survly</span>
+          </div>
         </Link>
         
         {/* showButton prop이 true일 때만 액션 버튼을 렌더링합니다. */}
@@ -53,11 +51,11 @@ function NavBar2({
       </div>
       
       {/* 탭 선택 영역 */}
-      <div className='select'>
+      <div className='navbar2-select'>
         {/* 첫 번째 탭 (질문 또는 답변) */}
         <div
           // 현재 active 상태와 일치하면 'selectActive' 클래스를 적용하여 활성화된 탭 스타일을 보여줍니다.
-          className={`question ${active === "question" || active === "answer" ? "selectActive" : ""}`}
+          className={`navbar2-tab ${active === "question" || active === "answer" ? "navbar2-tab-active" : ""}`}
           // 클릭 시 setActive 함수를 호출하여 상태를 변경합니다. tab1Text 값에 따라 'question' 또는 'answer'로 설정됩니다.
           onClick={() => setActive(tab1Text === '질문' ? "question" : "answer")}
         >
@@ -68,7 +66,7 @@ function NavBar2({
         {showResponseTab && (
           <div
             // 현재 active 상태가 'responses'이면 'selectActive' 클래스를 적용합니다.
-            className={`answer ${active === "responses" ? "selectActive" : ""}`}
+            className={`navbar2-tab ${active === "responses" ? "navbar2-tab-active" : ""}`}
             // 클릭 시 setActive 함수를 호출하여 상태를 'responses'로 변경합니다.
             onClick={() => setActive("responses")}
           >
