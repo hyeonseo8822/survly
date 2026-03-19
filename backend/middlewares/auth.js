@@ -1,12 +1,23 @@
 const jwt = require('jsonwebtoken');
 
+function extractTokenFromHeader(authHeader = '') {
+  const header = String(authHeader || '').trim();
+  if (!header) {
+    return '';
+  }
+
+  const bearerPrefix = /^Bearer\s+/i;
+  const rawToken = bearerPrefix.test(header) ? header.replace(bearerPrefix, '') : header;
+  return rawToken.trim().replace(/^"|"$/g, '');
+}
+
 function verifyToken(req, res, next) {
   const authHeader = req.headers.authorization;
   if (!authHeader) {
     return res.status(401).json({ success: false, message: '토큰이 없습니다' });
   }
 
-  const token = authHeader.split(' ')[1];
+  const token = extractTokenFromHeader(authHeader);
   if (!token) {
     return res.status(401).json({ success: false, message: '토큰 형식이 올바르지 않습니다' });
   }
@@ -25,7 +36,7 @@ function softVerifyToken(req, res, next) {
     return next();
   }
 
-  const token = authHeader.split(' ')[1];
+  const token = extractTokenFromHeader(authHeader);
   if (!token) {
     return next();
   }
