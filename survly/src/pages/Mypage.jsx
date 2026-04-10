@@ -36,7 +36,7 @@ const readLocalJson = (key, fallback) => {
 
 function Mypage() {
     const [createdSurveys, setCreatedSurveys] = useState([]); // 내가 생성한 설문 목록
-    const [previewCreatedSurveys, setPreviewCreatedSurveys] = useState([]);
+    // const [previewCreatedSurveys, setPreviewCreatedSurveys] = useState([]); // 미사용 변수 제거
     const [bookmarkLists, setBookmarkLists] = useState([]);
     const [selectedBookmarkListId, setSelectedBookmarkListId] = useState('');
     const [bookmarkSurveys, setBookmarkSurveys] = useState([]);
@@ -67,9 +67,7 @@ function Mypage() {
     const [relationView, setRelationView] = useState('surveys');
     const [relationUsers, setRelationUsers] = useState([]);
     const [relationLoading, setRelationLoading] = useState(false);
-    const [previewComments, setPreviewComments] = useState([]);
-    const [previewRespondedSurveys, setPreviewRespondedSurveys] = useState([]);
-    const [previewLoading, setPreviewLoading] = useState({ comments: false, responses: false });
+    // 미사용 프리뷰 상태 제거
     const [commentManagePage, setCommentManagePage] = useState(1);
     const [commentManageTotalPages, setCommentManageTotalPages] = useState(1);
     const [managedComments, setManagedComments] = useState([]);
@@ -77,7 +75,7 @@ function Mypage() {
     const [responseManageTotalPages, setResponseManageTotalPages] = useState(1);
     const [managedRespondedSurveys, setManagedRespondedSurveys] = useState([]);
     const [manageLoading, setManageLoading] = useState(false);
-    
+
     const navigate = useNavigate();
     const { section } = useParams();
     const { notify } = useNotification();
@@ -87,7 +85,8 @@ function Mypage() {
     const displayedAvatar = avatarPreview || profileDraft.avatarUrl || profile.avatarUrl;
     const avatarFallback = (profileDraft.displayName || profile.displayName || loggedInUserId || 'SV').slice(0, 2).toUpperCase();
     const selectedBookmarkList = bookmarkLists.find((list) => list.id === selectedBookmarkListId) || null;
-    const isCenterOnlyView = relationView !== 'surveys';
+    // 왼쪽 프로필은 항상 고정, 상세(팔로워/팔로잉/리스트 상세)만 중앙 정렬
+    const isCenterOnlyView = relationView === 'followers' || relationView === 'following' || relationView === 'bookmark-list';
 
     const persistLocalProfile = (userId, nextProfile) => {
         localStorage.setItem(getProfileStorageKey(userId), JSON.stringify(nextProfile));
@@ -107,12 +106,12 @@ function Mypage() {
         return nextProfile;
     };
 
-    const handleLogout = () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('userId');
-        navigate('/');
-        window.location.reload();
-    };
+    // const handleLogout = () => {
+    //     localStorage.removeItem('token');
+    //     localStorage.removeItem('userId');
+    //     navigate('/');
+    //     window.location.reload();
+    // };
 
     const isAuthExpiredError = (error) => error?.code === AUTH_EXPIRED_ERROR;
 
@@ -267,7 +266,8 @@ function Mypage() {
             return;
         }
 
-        setRelationView('surveys');
+        // 기본값을 '내 설문'으로
+        setRelationView('created');
     }, [section]);
 
     useEffect(() => {
@@ -358,25 +358,6 @@ function Mypage() {
             return;
         }
 
-        setLoading((prev) => ({ ...prev, created: true, bookmarkLists: true }));
-
-        fetchApi(
-            `http://localhost:5000/api/me/surveys?page=1&limit=${ITEMS_PER_PAGE}`,
-            setPreviewCreatedSurveys,
-            setCreatedTotalPages,
-            'created'
-        ).catch(err => {
-            if (isAuthExpiredError(err)) {
-                return;
-            }
-            if (err.message === '로그인이 필요합니다.') {
-                notify(err.message, 'warning');
-                navigate('/login');
-            } else {
-                setError(err.message);
-            }
-        });
-
         fetchBookmarkLists()
             .catch((err) => {
                 if (isAuthExpiredError(err)) {
@@ -391,38 +372,6 @@ function Mypage() {
             })
             .finally(() => {
                 setLoading((prev) => ({ ...prev, bookmarkLists: false }));
-            });
-
-        setPreviewLoading({ comments: true, responses: true });
-
-        fetchMyComments({ page: 1, limit: ITEMS_PER_PAGE })
-            .then((data) => {
-                setPreviewComments(data.comments || []);
-            })
-            .catch((err) => {
-                if (isAuthExpiredError(err)) {
-                    return;
-                }
-                setPreviewComments([]);
-                setError(err.message);
-            })
-            .finally(() => {
-                setPreviewLoading((prev) => ({ ...prev, comments: false }));
-            });
-
-        fetchMyRespondedSurveys({ page: 1, limit: ITEMS_PER_PAGE })
-            .then((data) => {
-                setPreviewRespondedSurveys(data.surveys || []);
-            })
-            .catch((err) => {
-                if (isAuthExpiredError(err)) {
-                    return;
-                }
-                setPreviewRespondedSurveys([]);
-                setError(err.message);
-            })
-            .finally(() => {
-                setPreviewLoading((prev) => ({ ...prev, responses: false }));
             });
     }, [fetchApi, fetchBookmarkLists, fetchMyComments, fetchMyRespondedSurveys, loggedInUserId, navigate, notify]);
 
@@ -754,7 +703,7 @@ function Mypage() {
                 setCreatedSurveys((prev) => prev.filter((survey) => String(survey.id) !== String(id)));
                 setBookmarkSurveys((prev) => prev.filter((survey) => String(survey.id) !== String(id)));
                 setOpenSurveyMenuId('');
-                fetchBookmarkLists().catch(() => {});
+                fetchBookmarkLists().catch(() => { });
             } else {
                 throw new Error(result.message || '설문 삭제 중 오류가 발생했습니다.');
             }
@@ -845,7 +794,7 @@ function Mypage() {
         setIsBookmarkListMenuOpen(false);
         setOpenSurveyMenuId('');
         setRelationView('surveys');
-        navigate('/mypage');
+        // 페이지 이동 제거: 오른쪽 화면만 변경
     };
 
     const openManageDetail = (type) => {
@@ -856,24 +805,24 @@ function Mypage() {
         } else {
             setResponseManagePage(1);
         }
-        navigate(`/mypage/${target}`);
+        // navigate(`/mypage/${target}`); // URL 이동 제거
     };
 
     const openCreatedDetail = () => {
         setRelationView('created');
         setCreatedPage(1);
-        navigate('/mypage/created');
+        // navigate('/mypage/created'); // URL 이동 제거
     };
 
     const openListOverviewDetail = () => {
         setRelationView('lists');
         setBookmarkListOverviewPage(1);
-        navigate('/mypage/lists');
+        // navigate('/mypage/lists'); // URL 이동 제거
     };
 
     const closeManageDetail = () => {
         setRelationView('surveys');
-        navigate('/mypage');
+        // 페이지 이동 제거: 오른쪽 화면만 변경
     };
 
     const openCommentDetail = (comment) => {
@@ -920,7 +869,6 @@ function Mypage() {
             }
 
             setManagedRespondedSurveys((prev) => prev.filter((item) => String(item.id) !== String(surveyId)));
-            setPreviewRespondedSurveys((prev) => prev.filter((item) => String(item.id) !== String(surveyId)));
             notify('참여 응답이 삭제되었습니다.', 'success');
         } catch (err) {
             notify(err.message || '참여 응답 삭제에 실패했습니다.', 'error');
@@ -994,7 +942,7 @@ function Mypage() {
             }
 
             setBookmarkSurveys((prev) => prev.filter((survey) => String(survey.id) !== String(surveyId)));
-            fetchBookmarkLists().catch(() => {});
+            fetchBookmarkLists().catch(() => { });
             notify('리스트에서 제거되었습니다.', 'success');
         } catch (err) {
             notify(err.message || '리스트에서 제거하지 못했습니다.', 'error');
@@ -1028,13 +976,13 @@ function Mypage() {
                     ? `http://localhost:5000/api/me/bookmark-lists/${selectedBookmarkListId}`
                     : 'http://localhost:5000/api/me/bookmark-lists',
                 {
-                method: isRename ? 'PATCH' : 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ name: nextName })
-            });
+                    method: isRename ? 'PATCH' : 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ name: nextName })
+                });
             const data = await safeParseJson(response);
 
             if (!response.ok || !data.success) {
@@ -1150,7 +1098,7 @@ function Mypage() {
             <div className="mypage-rectList">
                 {relationUsers.map((user, index) => (
                     <div className="mypage-rect" key={`${user.userId}-${index}`}>
-                        <div className="mypage-survey-info" onClick={() => navigate(`/profile/${user.userId}`)}>
+                        <div className="mypage-survey-info" onClick={() => {/* 프로필은 새 창 이동 허용 */ navigate(`/profile/${user.userId}`); }}>
                             <div className="mypage-user-row">
                                 <div className="mypage-user-avatar">
                                     {resolveAvatarUrl(user.avatarUrl) ? (
@@ -1178,57 +1126,13 @@ function Mypage() {
         );
     };
 
-    const renderCommentsPreview = () => {
-        if (previewLoading.comments) {
-            return <p className="mypage-loading-text">댓글 미리보기를 불러오는 중...</p>;
-        }
+    // const renderCommentsPreview = () => {
+    //     ... 미사용 함수 제거
+    // };
 
-        if (previewComments.length === 0) {
-            return <p className="mypage-empty-text">관리할 댓글이 없습니다.</p>;
-        }
-
-        return (
-            <div className="mypage-rectList">
-                {previewComments.map((comment, index) => (
-                    <div className="mypage-rect" key={comment.id}>
-                        <div className="mypage-survey-info" onClick={() => navigate(`/surveys/${comment.surveyId}`)}>
-                            <p className='num'>{String(index + 1).padStart(2, '0')}</p>
-                            <div className="mypage-manage-preview-body">
-                                <p className="mypage-rectText">{comment.surveyTitle}</p>
-                                <p className="mypage-manage-preview-sub">{comment.content}</p>
-                            </div>
-                        </div>
-                    </div>
-                ))}
-            </div>
-        );
-    };
-
-    const renderRespondedPreview = () => {
-        if (previewLoading.responses) {
-            return <p className="mypage-loading-text">참여 설문 미리보기를 불러오는 중...</p>;
-        }
-
-        if (previewRespondedSurveys.length === 0) {
-            return <p className="mypage-empty-text">참여한 설문이 없습니다.</p>;
-        }
-
-        return (
-            <div className="mypage-rectList">
-                {previewRespondedSurveys.map((survey, index) => (
-                    <div className="mypage-rect" key={survey.id}>
-                        <div className="mypage-survey-info" onClick={() => navigate(`/surveys/${survey.id}`)}>
-                            <p className='num'>{String(index + 1).padStart(2, '0')}</p>
-                            <div className="mypage-manage-preview-body">
-                                <p className="mypage-rectText">{survey.title}</p>
-                                <p className="mypage-manage-preview-sub">응답을 수정하거나 참여 기록을 삭제할 수 있습니다.</p>
-                            </div>
-                        </div>
-                    </div>
-                ))}
-            </div>
-        );
-    };
+    // const renderRespondedPreview = () => {
+    //     ... 미사용 함수 제거
+    // };
 
 
     /**
@@ -1307,7 +1211,7 @@ function Mypage() {
                     <div className="mypage-delete-modal" onClick={(e) => e.stopPropagation()}>
                         <div className="mypage-delete-modal__icon">
                             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="#e05c5c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                <path d="M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="#e05c5c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
                         </div>
                         <p className="mypage-delete-modal__title">설문 삭제</p>
@@ -1326,7 +1230,7 @@ function Mypage() {
                     <div className="mypage-delete-modal" onClick={(e) => e.stopPropagation()}>
                         <div className="mypage-delete-modal__icon">
                             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="#e05c5c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                <path d="M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="#e05c5c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
                         </div>
                         <p className="mypage-delete-modal__title">참여 응답 삭제</p>
@@ -1376,72 +1280,32 @@ function Mypage() {
             <div className="mypage-container">
                 <div className={`mypage-layout ${isCenterOnlyView ? 'mypage-layout--center-only' : ''}`}>
                     {!isCenterOnlyView && (
-                    <aside className="mypage-left-column">
-                        <div className="mypage-profile-panel">
-                        <div className="mypage-profile-layout">
-                            <div className="mypage-avatar-column">
-                                <input
-                                    ref={avatarInputRef}
-                                    type="file"
-                                    accept="image/*"
-                                    className="mypage-avatar-input"
-                                    onChange={handleAvatarChange}
-                                />
-                                <div className={`mypage-avatar-shell ${isEditingProfile ? 'mypage-avatar-shell--editable' : ''}`} onClick={isEditingProfile ? openAvatarPicker : undefined}>
-                                    {displayedAvatar ? (
-                                        <img
-                                            src={displayedAvatar.startsWith('/uploads/') ? `http://localhost:5000${displayedAvatar}` : displayedAvatar}
-                                            alt="Profile avatar"
-                                            className="mypage-avatar-image"
+                        <aside className="mypage-left-column">
+                            <div className="mypage-profile-panel">
+                                <div className="mypage-profile-layout">
+                                    <div className="mypage-avatar-column">
+                                        <input
+                                            ref={avatarInputRef}
+                                            type="file"
+                                            accept="image/*"
+                                            className="mypage-avatar-input"
+                                            onChange={handleAvatarChange}
                                         />
-                                    ) : (
-                                        <span className="mypage-avatar-fallback">{avatarFallback}</span>
-                                    )}
-                                </div>
-                                <h1 className="mypage-profile-name">{profileLoading ? '불러오는 중...' : (profile.displayName || loggedInUserId)}</h1>
-                                <p className="mypage-profile-id">@{loggedInUserId}</p>
-
-                            </div>
-
-                            <div className="mypage-profile-fields">
-                                {profileLoading ? (
-                                    <p className="mypage-loading-text">프로필을 불러오는 중...</p>
-                                ) : (
-                                    isEditingProfile ? (
-                                        <div className="mypage-edit-grid">
-                                            <label className="mypage-field">
-                                                <span>아이디</span>
-                                                <div className="mypage-id-check-row">
-                                                    <input
-                                                        type="text"
-                                                        value={profileDraft.userId || ''}
-                                                        maxLength={20}
-                                                        onChange={(event) => handleDraftChange('userId', event.target.value)}
-                                                        placeholder="아이디"
-                                                    />
-                                                    <button type="button" className="mypage-id-check-btn" onClick={handleUserIdDuplicateCheck}>
-                                                        중복확인
-                                                    </button>
-                                                </div>
-                                                {userIdCheck.message ? (
-                                                    <p className={`mypage-id-check-message mypage-id-check-message--${userIdCheck.status}`}>
-                                                        {userIdCheck.message}
-                                                    </p>
-                                                ) : null}
-                                            </label>
-                                            <label className="mypage-field">
-                                                <span>표시 이름</span>
-                                                <input
-                                                    type="text"
-                                                    value={profileDraft.displayName}
-                                                    maxLength={24}
-                                                    onChange={(event) => handleDraftChange('displayName', event.target.value)}
-                                                    placeholder="커뮤니티에서 보여질 이름"
+                                        <div className={`mypage-avatar-shell ${isEditingProfile ? 'mypage-avatar-shell--editable' : ''}`} onClick={isEditingProfile ? openAvatarPicker : undefined}>
+                                            {displayedAvatar ? (
+                                                <img
+                                                    src={displayedAvatar.startsWith('/uploads/') ? `http://localhost:5000${displayedAvatar}` : displayedAvatar}
+                                                    alt="Profile avatar"
+                                                    className="mypage-avatar-image"
                                                 />
-                                            </label>
+                                            ) : (
+                                                <span className="mypage-avatar-fallback">{avatarFallback}</span>
+                                            )}
                                         </div>
-                                    ) : (
-                                        <>
+                                        <h1 className="mypage-profile-name">{profileLoading ? '불러오는 중...' : (profile.displayName || loggedInUserId)}</h1>
+                                        <p className="mypage-profile-id">@{loggedInUserId}</p>
+                                        {/* 팔로워/팔로잉 버튼은 프로필 편집 모드가 아닐 때만 표시 (중복 제거) */}
+                                        {!isEditingProfile && (
                                             <div className="mypage-follow-stats">
                                                 <button type="button" className="mypage-follow-stat-btn" onClick={() => openRelationView('followers')}>
                                                     <strong>{profile.followerCount || 0}</strong> followers
@@ -1450,30 +1314,76 @@ function Mypage() {
                                                     <strong>{profile.followingCount || 0}</strong> following
                                                 </button>
                                             </div>
-                                        </>
-                                    )
-                                )}
-
-                                {!profileLoading && (
-                                    <div className="mypage-profile-controls mypage-profile-controls--stack">
-                                        {isEditingProfile ? (
-                                            <>
-                                                <button className="mypage-primary-btn" type="button" onClick={handleProfileSave} disabled={profileSaving}>
-                                                    {profileSaving ? '저장 중...' : '프로필 저장'}
-                                                </button>
-                                                <button className="mypage-logout-link" onClick={handleLogout}>Log out</button>
-                                            </>
-                                        ) : (
-                                            <button className="mypage-primary-btn mypage-edit-cta" type="button" onClick={() => setIsEditingProfile(true)}>
-                                                프로필 편집
-                                            </button>
+                                        )}
+                                        {!isEditingProfile && (
+                                            <nav className="mypage-nav-grid mypage-nav-under-id">
+                                                <a href="#" className={relationView === 'created' ? 'mypage-nav-btn active' : 'mypage-nav-btn'} onClick={e => { e.preventDefault(); openCreatedDetail(); }}>내 설문</a>
+                                                <a href="#" className={relationView === 'lists' ? 'mypage-nav-btn active' : 'mypage-nav-btn'} onClick={e => { e.preventDefault(); openListOverviewDetail(); }}>내 리스트</a>
+                                                <a href="#" className={relationView === 'responses' ? 'mypage-nav-btn active' : 'mypage-nav-btn'} onClick={e => { e.preventDefault(); openManageDetail('responses'); }}>참여한 설문 관리</a>
+                                                <a href="#" className={relationView === 'comments' ? 'mypage-nav-btn active' : 'mypage-nav-btn'} onClick={e => { e.preventDefault(); openManageDetail('comments'); }}>댓글 관리</a>
+                                            </nav>
                                         )}
                                     </div>
-                                )}
-                            </div>
-                        </div>
-                        </div>
-                    </aside>
+
+                                        <div className="mypage-profile-fields">
+                                            {profileLoading ? (
+                                                <p className="mypage-loading-text">프로필을 불러오는 중...</p>
+                                            ) : (
+                                                isEditingProfile ? (
+                                                    <div className="mypage-edit-grid">
+                                                        <label className="mypage-field">
+                                                            <span>아이디</span>
+                                                            <div className="mypage-id-check-row">
+                                                                <input
+                                                                    type="text"
+                                                                    value={profileDraft.userId || ''}
+                                                                    maxLength={20}
+                                                                    onChange={(event) => handleDraftChange('userId', event.target.value)}
+                                                                    placeholder="아이디"
+                                                                />
+                                                                <button type="button" className="mypage-id-check-btn" onClick={handleUserIdDuplicateCheck}>
+                                                                    중복확인
+                                                                </button>
+                                                            </div>
+                                                            {userIdCheck.message ? (
+                                                                <p className={`mypage-id-check-message mypage-id-check-message--${userIdCheck.status}`}>
+                                                                    {userIdCheck.message}
+                                                                </p>
+                                                            ) : null}
+                                                        </label>
+                                                        <label className="mypage-field">
+                                                            <span>표시 이름</span>
+                                                            <input
+                                                                type="text"
+                                                                value={profileDraft.displayName}
+                                                                maxLength={24}
+                                                                onChange={(event) => handleDraftChange('displayName', event.target.value)}
+                                                                placeholder="커뮤니티에서 보여질 이름"
+                                                            />
+                                                        </label>
+                                                    </div>
+                                                ) : (
+                                                    <></>
+                                                )
+                                            )}
+
+                                            {!profileLoading && (
+                                                <div className="mypage-profile-controls mypage-profile-controls--stack">
+                                                    {isEditingProfile ? (
+                                                        <button className="mypage-primary-btn" type="button" onClick={handleProfileSave} disabled={profileSaving}>
+                                                            {profileSaving ? '저장 중...' : '프로필 저장'}
+                                                        </button>
+                                                    ) : (
+                                                        <button className="mypage-primary-btn mypage-edit-cta" type="button" onClick={() => setIsEditingProfile(true)}>
+                                                            프로필 편집
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                        </aside>
                     )}
 
                     <section className={`mypage-right-column ${isCenterOnlyView ? 'mypage-right-column--center-only' : ''}`}>
@@ -1483,7 +1393,7 @@ function Mypage() {
                             <div className="mypage-survey-section">
                                 <div className="mypage-card-header mypage-card-header--detail">
                                     <div className="mypage-section-title-row">
-                                        <button type="button" className="mypage-back-arrow-btn" onClick={() => setRelationView('surveys')} aria-label="사용자 페이지로 돌아가기">&lt;</button>
+
                                         <div>
                                             <h2 className="mypage-section-title">{relationView === 'followers' ? '팔로워 목록' : '팔로잉 목록'}</h2>
                                             <span>사용자를 눌러 프로필을 볼 수 있습니다.</span>
@@ -1498,7 +1408,7 @@ function Mypage() {
                             <div className="mypage-survey-section">
                                 <div className="mypage-card-header mypage-card-header--detail">
                                     <div className="mypage-section-title-row">
-                                        <button type="button" className="mypage-back-arrow-btn" onClick={closeBookmarkListDetail} aria-label="리스트 목록으로 돌아가기">&lt;</button>
+
                                         <div>
                                             <h2 className="mypage-section-title">{selectedBookmarkList?.name || '리스트'}</h2>
                                             <span>이 리스트에 저장된 설문만 보여줍니다.</span>
@@ -1519,7 +1429,7 @@ function Mypage() {
                                     ? <p className="mypage-loading-text">로딩 중...</p>
                                     : renderSurveyList(bookmarkSurveys, 'list', bookmarkListPage)}
                                 {!loading.bookmarkSurveys && bookmarkListTotalPages > 1 && (
-                                    <Pagination 
+                                    <Pagination
                                         currentPage={bookmarkListPage}
                                         totalPages={bookmarkListTotalPages}
                                         onPageChange={setBookmarkListPage}
@@ -1532,7 +1442,7 @@ function Mypage() {
                             <div className="mypage-survey-section">
                                 <div className="mypage-card-header mypage-card-header--detail">
                                     <div className="mypage-section-title-row">
-                                        <button type="button" className="mypage-back-arrow-btn" onClick={closeManageDetail} aria-label="마이페이지로 돌아가기">&lt;</button>
+
                                         <div>
                                             <h2 className="mypage-section-title">내 설문</h2>
                                             <span>내 설문 전체를 확인할 수 있습니다.</span>
@@ -1554,7 +1464,7 @@ function Mypage() {
                             <div className="mypage-survey-section">
                                 <div className="mypage-card-header mypage-card-header--detail">
                                     <div className="mypage-section-title-row">
-                                        <button type="button" className="mypage-back-arrow-btn" onClick={closeManageDetail} aria-label="마이페이지로 돌아가기">&lt;</button>
+
                                         <div>
                                             <h2 className="mypage-section-title">내 리스트</h2>
                                             <span>내 리스트 전체를 확인할 수 있습니다.</span>
@@ -1578,7 +1488,7 @@ function Mypage() {
                             <div className="mypage-survey-section">
                                 <div className="mypage-card-header mypage-card-header--detail">
                                     <div className="mypage-section-title-row">
-                                        <button type="button" className="mypage-back-arrow-btn" onClick={closeManageDetail} aria-label="마이페이지로 돌아가기">&lt;</button>
+
                                         <div>
                                             <h2 className="mypage-section-title">댓글 관리</h2>
                                             <span>내 댓글 전체를 관리할 수 있습니다.</span>
@@ -1620,7 +1530,7 @@ function Mypage() {
                             <div className="mypage-survey-section">
                                 <div className="mypage-card-header mypage-card-header--detail">
                                     <div className="mypage-section-title-row">
-                                        <button type="button" className="mypage-back-arrow-btn" onClick={closeManageDetail} aria-label="마이페이지로 돌아가기">&lt;</button>
+
                                         <div>
                                             <h2 className="mypage-section-title">참여한 설문 관리</h2>
                                             <span>내 참여 설문 전체를 확인하고 관리할 수 있습니다.</span>
@@ -1672,61 +1582,7 @@ function Mypage() {
                             </div>
                         )}
 
-                        {relationView === 'surveys' && (
-                        <div className="mypage-survey-section">
-                            <div className="mypage-card-header mypage-card-header--lists">
-                                <h2 className="mypage-section-title">내 설문</h2>
-                                <button type="button" className="mypage-detail-link-btn" aria-label="내 설문 전체 보기" onClick={openCreatedDetail}>
-                                    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
-                                        <path d="M7 17 17 7M9 7h8v8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                    </svg>
-                                </button>
-                            </div>
-                            {loading.created ? <p className="mypage-loading-text">로딩 중...</p> : renderSurveyList(previewCreatedSurveys, 'created-preview', 1)}
-                        </div>
-                        )}
-
-                        {relationView === 'surveys' && (
-                        <div className="mypage-survey-section">
-                            <div className="mypage-card-header mypage-card-header--lists">
-                                <h2 className="mypage-section-title">내 리스트</h2>
-                                <button type="button" className="mypage-detail-link-btn" aria-label="내 리스트 전체 보기" onClick={openListOverviewDetail}>
-                                    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
-                                        <path d="M7 17 17 7M9 7h8v8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                    </svg>
-                                </button>
-                            </div>
-                            {renderBookmarkListCards({ limit: ITEMS_PER_PAGE })}
-                        </div>
-                        )}
-
-                        {relationView === 'surveys' && (
-                        <div className="mypage-survey-section">
-                            <div className="mypage-card-header mypage-card-header--lists">
-                                <h2 className="mypage-section-title">참여한 설문 관리</h2>
-                                <button type="button" className="mypage-detail-link-btn" aria-label="참여한 설문 관리 전체 보기" onClick={() => openManageDetail('responses')}>
-                                    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
-                                        <path d="M7 17 17 7M9 7h8v8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                    </svg>
-                                </button>
-                            </div>
-                            {renderRespondedPreview()}
-                        </div>
-                        )}
-
-                        {relationView === 'surveys' && (
-                        <div className="mypage-survey-section">
-                            <div className="mypage-card-header mypage-card-header--lists">
-                                <h2 className="mypage-section-title">댓글 관리</h2>
-                                <button type="button" className="mypage-detail-link-btn" aria-label="댓글 관리 전체 보기" onClick={() => openManageDetail('comments')}>
-                                    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
-                                        <path d="M7 17 17 7M9 7h8v8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                    </svg>
-                                </button>
-                            </div>
-                            {renderCommentsPreview()}
-                        </div>
-                        )}
+                        {/* 대시보드 그리드 제거, 네비게이션에서 제어 */}
                     </section>
                 </div>
             </div>
@@ -1735,3 +1591,4 @@ function Mypage() {
 }
 
 export default Mypage;
+

@@ -1,3 +1,40 @@
+/* 네비게이션 버튼 active 상태 스타일 */
+.mypage-nav-btn.active {
+    background: linear-gradient(135deg, #8ad0ff 0%, #6bb8ff 100%);
+    color: #5695ec !important;
+    box-shadow: 0 4px 16px rgba(106, 185, 255, 0.13);
+    border-radius: 8px;
+    font-weight: 700;
+    border: none;
+    outline: none;
+    transition: background 0.18s, color 0.18s;
+}
+
+.mypage-nav-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 28px;
+    margin: 0;
+    padding: 0 6px;
+    border-radius: 7px;
+    background: transparent;
+    color: #35536d;
+    font-size: 13px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: background 0.18s, color 0.18s;
+    text-decoration: none;
+    min-width: 0;
+    min-height: 0;
+    text-align: center;
+}
+
+.mypage-nav-btn:not(.active):hover {
+    background: rgba(106, 185, 255, 0.10);
+    color: #459ff4;
+}
 .mypage-container {
     width: min(1200px, calc(100% - 32px));
     margin: 0 auto;
@@ -259,6 +296,11 @@
     flex-direction: column;
     gap: 18px;
     animation: popIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes popIn {
+    from { transform: scale(0.88); opacity: 0; }
+    to   { transform: scale(1);    opacity: 1; }
 }
 
 .mypage-modal-header {
@@ -1081,7 +1123,7 @@
     color: #8a9bae;
 }
 
-/* ���� ���� Ȯ�� ���?���� */
+/* Ȯ ? */
 .mypage-delete-modal-overlay {
     position: fixed;
     inset: 0;
@@ -1185,4 +1227,66 @@
 .mypage-delete-modal__confirm:hover {
     transform: translateY(-1px);
     box-shadow: 0 8px 20px rgba(224, 68, 68, 0.38);
+}
+
+.mypage-dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 32px;
+  margin: 40px 0 0 0;
+}
+.mypage-dashboard-card {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  padding: 36px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  cursor: pointer;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.mypage-dashboard-card:hover {
+  box-shadow: 0 4px 24px rgba(0,0,0,0.13);
+  transform: translateY(-4px) scale(1.03);
+}
+.mypage-dashboard-card-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+.mypage-dashboard-card-desc {
+  font-size: 1rem;
+  color: #888;
+}
+
+.mypage-nav-under-id {
+  margin: 12px 0 0 0;
+}
+.mypage-nav-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-bottom: 0;
+}
+.mypage-nav-btn {
+  display: block;
+  background: none;
+  border: none;
+  border-radius: 0;
+  padding: 8px 0;
+  text-align: center;
+  font-size: 0.98rem;
+  font-weight: 500;
+  color: #3a4a5a;
+  text-decoration: none;
+  transition: color 0.18s, font-weight 0.18s;
+}
+.mypage-nav-btn.active,
+.mypage-nav-btn:hover {
+  color: #2a4a7b;
+  font-weight: 700;
+  background: none;
+  border: none;
 }
