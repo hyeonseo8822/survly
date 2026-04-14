@@ -1,16 +1,16 @@
 /* 네비게이션 버튼 active 상태 스타일 */
 .mypage-nav-btn.active {
     background: linear-gradient(135deg, #8ad0ff 0%, #6bb8ff 100%);
-    color: #5695ec !important;
+    color: #1a5fd6 !important;
     box-shadow: 0 4px 16px rgba(106, 185, 255, 0.13);
     border-radius: 8px;
     font-weight: 700;
     border: none;
-    outline: none;
+    outline: none;  
     transition: background 0.18s, color 0.18s;
 }
 
-.mypage-nav-btn {
+ .mypage-nav-btn {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -19,7 +19,7 @@
     padding: 0 6px;
     border-radius: 7px;
     background: transparent;
-    color: #35536d;
+    color: #1a5fd6;
     font-size: 13px;
     font-weight: 600;
     border: none;
@@ -30,8 +30,7 @@
     min-height: 0;
     text-align: center;
 }
-
-.mypage-nav-btn:not(.active):hover {
+ .mypage-nav-btn:not(.active):hover {
     background: rgba(106, 185, 255, 0.10);
     color: #459ff4;
 }
