@@ -509,13 +509,24 @@ async function getSurveyResults(req, res) {
     const responses = await Response.find({ surveyId }).sort({ _id: 1 }).lean();
     const formatted = new Map();
 
+    // 내 응답만 따로 추출
+    const myAnswersByQid = new Map();
+    if (requesterUserId) {
+      responses.forEach((response) => {
+        if (String(response.userId) === String(requesterUserId)) {
+          myAnswersByQid.set(response.questionId.toString(), response.answer);
+        }
+      });
+    }
+
     questions.forEach((question) => {
       formatted.set(question._id.toString(), {
         questionId: question._id.toString(),
         question: question.question,
         type: question.type,
         summary: {},
-        comments: []
+        comments: [],
+        myAnswer: myAnswersByQid.get(question._id.toString()) || null
       });
     });
 
