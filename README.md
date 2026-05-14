@@ -1,70 +1,88 @@
-# Getting Started with Create React App
+# Survly 프로젝트 문서
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## 1. 프로젝트 개요
+- **Survly**는 설문 생성, 응답, 결과 공유, 북마크, 팔로우, 댓글 등 다양한 기능을 제공하는 설문 플랫폼입니다.
+- React(Vite) 프론트엔드와 Node.js(Express) + MongoDB 백엔드로 구성되어 있습니다.
 
-## Available Scripts
+## 2. 기술 스택
+- **Frontend:** React 19, Vite, React Router, Recharts
+- **Backend:** Node.js, Express 5, Mongoose 9, MongoDB Atlas
+- **기타:** JWT 인증, bcrypt, multer(파일 업로드), dotenv, cors
 
-In the project directory, you can run:
+## 3. 주요 기능 및 API 명세
 
-### `npm start`
+### 인증/회원
+- `POST /api/auth/register` : 회원가입 (email, password, userId, username)
+- `POST /api/auth/login` : 로그인 (userId, password)
+- `GET /api/auth/check-userid` : 아이디 중복 확인
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### 설문
+- `GET /api/surveys` : 설문 목록 조회 (검색, 정렬, 페이징)
+- `POST /api/surveys` : 설문 생성 (JWT 필요, 이미지 업로드 지원)
+- `GET /api/surveys/:surveyId` : 설문 상세 조회
+- `PUT /api/surveys/:surveyId` : 설문 수정 (JWT 필요)
+- `DELETE /api/surveys/:surveyId` : 설문 삭제 (JWT 필요)
+- `POST /api/surveys/:surveyId/responses` : 설문 응답 제출 (JWT 필요)
+- `GET /api/surveys/:surveyId/results` : 설문 결과 조회 (공개/참여자/작성자만)
+- `GET /api/surveys/:surveyId/comments` : 설문 댓글 목록
+- `POST /api/surveys/:surveyId/comments` : 설문 댓글 작성 (참여자만)
+- `GET /api/surveys/:surveyId/bookmark-status` : 북마크 여부
+- `POST /api/surveys/:surveyId/bookmark` : 북마크 추가
+- `DELETE /api/surveys/:surveyId/bookmark` : 북마크 해제
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### 마이페이지/팔로우/북마크
+- `GET /api/me` : 내 프로필
+- `GET /api/me/surveys` : 내가 만든 설문
+- `GET /api/me/responded-surveys` : 내가 참여한 설문
+- `GET /api/me/bookmark-lists` : 내 북마크 목록
+- `GET /api/me/comments` : 내가 쓴 댓글
+- `POST /api/users/:userId/follow` : 팔로우
+- `DELETE /api/users/:userId/follow` : 언팔로우
 
-### `npm test`
+## 4. DB 구조 (주요 컬렉션)
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### User
+- email, password, userId, displayName, headline, bio, avatarUrl, followerCount, followingCount
 
-### `npm run build`
+### Survey
+- title, description, embedUrl, isPublic, responseTabPublic, userId, link, img, participantCount
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### Question
+- surveyId, type, question, isRequired
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### Option
+- questionId, optionText
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Response
+- surveyId, questionId, answer, userId
 
-### `npm run eject`
+### Comment
+- surveyId, userId, parentCommentId, content
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+### BookmarkList
+- userId, name
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### SurveyBookmark
+- userId, surveyId, listId
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+### Follow
+- followerId, followingId
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+## 5. 설계/구현의 어려움 및 해결 방법
+- **동시성 문제:** 설문/응답/댓글/북마크 등 트랜잭션이 필요한 부분은 mongoose session을 활용해 데이터 정합성을 보장.
+- **설문 구조 동적 변경:** 설문 수정 시 질문/옵션 구조가 바뀌면 기존 응답/옵션/질문을 삭제 후 재생성하여 일관성 유지.
+- **권한 관리:** JWT 기반 인증, 참여자/작성자/공개 여부에 따라 설문 결과/댓글 접근 제어.
+- **이미지 업로드:** multer로 파일 업로드 처리, 업로드 경로를 정적으로 제공.
+- **검색/정렬/페이징:** aggregate, 정규식, 정렬, skip/limit 등 MongoDB 기능 적극 활용.
+- **API 일관성:** 모든 API는 success, message, error 필드로 응답, 예외 상황에 명확한 메시지 제공.
 
-## Learn More
+## 6. 환경 변수 예시 (.env)
+```
+MONGODB_URI=your_mongodb_uri
+MONGODB_DB_NAME=survly
+JWT_SECRET=your_jwt_secret
+PORT=5000
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+---
+자세한 API 파라미터/응답 예시는 각 컨트롤러 참고.
