@@ -17,33 +17,10 @@
     opacity: 0.72;
 }
 
-.brand-word {
-    font-family: 'Rubik Bubbles', 'RixInooAriDuri', 'Pretendard', sans-serif;
-    font-size: 31px;
-    line-height: 1;
-    color: #ffffff;
-    letter-spacing: 0.02em;
-    user-select: none;
-    position: relative;
-    isolation: isolate;
-    text-shadow: 0 2px 8px rgba(77, 146, 198, 0.3);
+.brandmark-logo {
+    width: 200px;
+    height: 200px;
 }
-
-.brand-word::before {
-    content: '';
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    width: calc(100% + 34px);
-    height: calc(100% + 18px);
-    transform: translate(-50%, -50%);
-    border-radius: 999px;
-    background: radial-gradient(circle at center, rgba(136, 207, 255, 0.72) 0%, rgba(136, 207, 255, 0.26) 56%, rgba(136, 207, 255, 0) 100%);
-    filter: blur(12px);
-    z-index: -1;
-    pointer-events: none;
-}
-
 /* =============================================
    NavBar  (main navigation)
    ============================================= */
@@ -86,7 +63,7 @@
 .navbar-search input {
     flex: 1;
     border: none;
-    border-bottom: 2px solid #82ccff;
+    border-bottom: 2px solid #82a4ff;
     outline: none;
     background: transparent;
     color: #355574;
@@ -196,7 +173,7 @@
 }
 
 .signUp:hover {
-    color: #8AD0FF;
+    color: #a1bbff;
 }
 
 .signUp:visited {
@@ -204,7 +181,7 @@
 }
 
 .active {
-    background: linear-gradient(135deg, #8AD0FF 0%, #6bb8ff 100%);
+    background: linear-gradient(135deg, #a2bcfa 0%, #80b1f9 100%);
     border-radius: 9px;
     color: #fff !important;
     box-shadow: 0 2px 10px rgba(106, 185, 255, 0.38);
@@ -246,7 +223,7 @@
 
 .logout-btn:hover {
     background: rgba(106, 185, 255, 0.1);
-    border-color: #8AD0FF;
+    border-color: #a1bbff;
     color: #2f6fa0;
 }
 
@@ -342,7 +319,7 @@
 }
 
 .navbar2-tab-active {
-    color: #3b8fda;
+    color: #5072cc;
 }
 
 .navbar2-tab-active::after {
@@ -352,7 +329,7 @@
     right: 0;
     bottom: 0;
     height: 3px;
-    background: #3b8fda;
+    background: #5072cc;
     border-radius: 4px 4px 0 0;
 }
 
@@ -369,7 +346,7 @@
     font-weight: 600;
     font-size: 14px;
     border-radius: 9px;
-    background: linear-gradient(135deg, #8AD0FF 0%, #6bb8ff 100%);
+    background: linear-gradient(135deg, #a1bbff 0%, #afb4ff 100%);
     color: #fff;
     box-shadow: 0 2px 10px rgba(106, 185, 255, 0.35);
     transition: opacity 0.2s ease, transform 0.1s ease;

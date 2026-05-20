@@ -42,7 +42,7 @@ function Setting() {
       try {
         setLoading(true);
         if (tab === 'comments') {
-          const response = await fetch(`http://localhost:5000/api/me/comments?page=${commentPage}&limit=${ITEMS_PER_PAGE}`, {
+          const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/me/comments?page=${commentPage}&limit=${ITEMS_PER_PAGE}`, {
             headers: { Authorization: `Bearer ${token}` }
           });
           const data = await response.json();
@@ -56,7 +56,7 @@ function Setting() {
             setCommentTotalPages(data.totalPages || 1);
           }
         } else {
-          const response = await fetch(`http://localhost:5000/api/me/responses/surveys?page=${surveyPage}&limit=${ITEMS_PER_PAGE}`, {
+          const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/me/responses/surveys?page=${surveyPage}&limit=${ITEMS_PER_PAGE}`, {
             headers: { Authorization: `Bearer ${token}` }
           });
           const data = await response.json();
@@ -102,7 +102,7 @@ function Setting() {
     if (!token) return;
 
     try {
-      const response = await fetch(`http://localhost:5000/api/me/comments/${comment.id}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/me/comments/${comment.id}`, {
         method: 'PATCH',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -133,7 +133,7 @@ function Setting() {
     if (!token) return;
 
     try {
-      const response = await fetch(`http://localhost:5000/api/me/comments/${commentId}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/me/comments/${commentId}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -162,7 +162,7 @@ function Setting() {
     if (!token) return;
 
     try {
-      const response = await fetch(`http://localhost:5000/api/me/responses/surveys/${surveyId}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/me/responses/surveys/${surveyId}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });

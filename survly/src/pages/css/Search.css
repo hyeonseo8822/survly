@@ -130,7 +130,7 @@
     padding: 0 18px;
     border: 1px solid #dde8f6;
     border-radius: 14px;
-    background: #f8fbff;
+    background: #f8f9ff;
     color: #5d7189;
 }
 
@@ -226,7 +226,7 @@
 .search-user-detail__profile-link {
     border: none;
     border-radius: 14px;
-    background: #8ad0ff;
+    background: #a1bbff;
     color: #fff;
     font-family: 'Pretendard';
     font-size: 14px;
@@ -271,7 +271,7 @@
     text-align: left;
     border: 1px solid #e6edf9;
     border-radius: 12px;
-    background: #f8fbff;
+    background: #f8f9ff;
     color: #233852;
     font-family: 'Pretendard';
     font-size: 14px;

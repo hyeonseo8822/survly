@@ -14,7 +14,7 @@ function Login() {
     const handleLogin = async () => {
         try {
             // 로그인 API에 POST 요청을 보냅니다.
-            const res = await fetch("http://localhost:5000/api/auth/login", {
+            const res = await fetch(`${import.meta.env.VITE_API_BASE}/api/auth/login`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -44,7 +44,7 @@ function Login() {
     return (
         <div className="auth-page">
             <div className="auth-brand-wrap">
-                <span className="auth-brand">Survly</span>
+                <img src={import.meta.env.BASE_URL + 'img/logo.svg'} alt="Survly" className="auth-brand-logo" />
             </div>
 
             <div className="auth-card">

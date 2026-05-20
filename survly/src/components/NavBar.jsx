@@ -35,7 +35,7 @@ function NavBar() {
     <div className='navbar'>
       <Link to="/">
         <div className="brandmark">
-          <span className="brand-word">Survly</span>
+          <img src={import.meta.env.BASE_URL + 'img/logo.svg'} alt="Survly" className="brandmark-logo" />
         </div>
       </Link>
 
@@ -49,7 +49,7 @@ function NavBar() {
           aria-label="통합 검색"
         />
         <button type="button" onClick={handleSearch} aria-label="검색 실행" className="navbar-search-btn">
-          <img src={'/img/magnifier.svg'} alt="" />
+          <img src={import.meta.env.BASE_URL + 'img/magnifier.svg'} alt="" />
         </button>
       </div>
 

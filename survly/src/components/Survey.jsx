@@ -26,7 +26,7 @@ function Surveys() {
     const { notify } = useNotification();
 
     const fetchSurveyBookmarkStatus = async (surveyId, token) => {
-        const response = await fetch(`http://localhost:5000/api/surveys/${surveyId}/bookmark-status`, {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/surveys/${surveyId}/bookmark-status`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         const data = await response.json();
@@ -95,7 +95,7 @@ function Surveys() {
             setError(null);   // 이전 에러 초기화
             try {
                 // API 요청: 공개(isPublic=true)된 설문 목록을 페이지에 맞게 요청
-                const response = await fetch(`http://localhost:5000/api/surveys?page=${pageNum}&limit=6&isPublic=true&sortBy=${sortBy}`);
+                const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/surveys?page=${pageNum}&limit=6&isPublic=true&sortBy=${sortBy}`);
                 if (!response.ok) {
                     throw new Error('서버에서 응답을 받지 못했습니다.');
                 }
@@ -138,7 +138,7 @@ function Surveys() {
 
             const summaryPairs = await Promise.all(candidates.map(async (survey) => {
                 try {
-                    const response = await fetch(`http://localhost:5000/api/surveys/${survey.id}/results`, { headers });
+                    const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/surveys/${survey.id}/results`, { headers });
                     const data = await response.json();
 
                     if (!response.ok || !data.success) {
@@ -247,7 +247,7 @@ function Surveys() {
 
             const prevIsBookmarked = Boolean(bookmarkState?.isBookmarked);
 
-            const response = await fetch(`http://localhost:5000/api/surveys/${surveyId}/bookmark`, {
+            const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/surveys/${surveyId}/bookmark`, {
                 method: targetList.isBookmarked ? 'DELETE' : 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -406,13 +406,13 @@ function Surveys() {
                             <div className="graph">
                                 {isResponseTabPrivate ? (
                                         <img
-                                            src={'/img/default_img.svg'}
+                                            src={import.meta.env.BASE_URL + 'img/default_img.svg'}
                                             alt="Survey Thumbnail"
                                             className="survey-thumbnail"
                                         />
                                 ) : hasThumbnail ? (
                                     <img
-                                        src={`http://localhost:5000/uploads/${survey.img}`}
+                                        src={`${import.meta.env.VITE_API_BASE}/uploads/${survey.img}`}
                                         alt="Survey Thumbnail"
                                         className="survey-thumbnail"
                                     />
@@ -449,7 +449,7 @@ function Surveys() {
                             {/* 화살표 아이콘 */}
                             <img
                                 className="part"
-                                src={'/img/arrow.svg'}
+                                src={import.meta.env.BASE_URL + 'img/arrow.svg'}
                                 alt="arrow"
                             />
                                     </>

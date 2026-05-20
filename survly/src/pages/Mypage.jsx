@@ -130,7 +130,7 @@ function Mypage() {
     const resolveAvatarUrl = (avatarUrl = '') => {
         if (!avatarUrl) return '';
         if (avatarUrl.startsWith('http://') || avatarUrl.startsWith('https://') || avatarUrl.startsWith('data:')) return avatarUrl;
-        return avatarUrl.startsWith('/') ? `http://localhost:5000${avatarUrl}` : `http://localhost:5000/${avatarUrl}`;
+        return avatarUrl.startsWith('/') ? `${import.meta.env.VITE_API_BASE}${avatarUrl}` : `${import.meta.env.VITE_API_BASE}/${avatarUrl}`;
     };
 
     const safeParseJson = useCallback(async (response) => {
@@ -159,7 +159,7 @@ function Mypage() {
             throw new Error('로그인이 필요합니다.');
         }
 
-        const response = await fetch(`http://localhost:5000/api/me/comments?page=${page}&limit=${limit}`, {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/me/comments?page=${page}&limit=${limit}`, {
             headers: { Authorization: `Bearer ${token}` }
         });
         const data = await safeParseJson(response);
@@ -177,7 +177,7 @@ function Mypage() {
             throw new Error('로그인이 필요합니다.');
         }
 
-        const response = await fetch(`http://localhost:5000/api/me/responses/surveys?page=${page}&limit=${limit}`, {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/me/responses/surveys?page=${page}&limit=${limit}`, {
             headers: { Authorization: `Bearer ${token}` }
         });
         const data = await safeParseJson(response);
@@ -283,7 +283,7 @@ function Mypage() {
 
             try {
                 const token = localStorage.getItem('token');
-                const response = await fetch('http://localhost:5000/api/me/profile', {
+                const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/me/profile`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const data = await safeParseJson(response);
@@ -333,7 +333,7 @@ function Mypage() {
             throw new Error('로그인이 필요합니다.');
         }
 
-        const response = await fetch('http://localhost:5000/api/me/bookmark-lists', {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/me/bookmark-lists`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         const data = await safeParseJson(response);
@@ -383,7 +383,7 @@ function Mypage() {
         setLoading((prev) => ({ ...prev, created: true }));
 
         fetchApi(
-            `http://localhost:5000/api/me/surveys?page=${createdPage}&limit=${DETAIL_PER_PAGE}`,
+            `${import.meta.env.VITE_API_BASE}/api/me/surveys?page=${createdPage}&limit=${DETAIL_PER_PAGE}`,
             setCreatedSurveys,
             setCreatedTotalPages,
             'created'
@@ -458,7 +458,7 @@ function Mypage() {
             setLoading((prev) => ({ ...prev, bookmarkSurveys: true }));
 
             const response = await fetch(
-                `http://localhost:5000/api/me/bookmark-lists/${selectedBookmarkListId}/surveys?page=${bookmarkListPage}&limit=${DETAIL_PER_PAGE}`,
+                `${import.meta.env.VITE_API_BASE}/api/me/bookmark-lists/${selectedBookmarkListId}/surveys?page=${bookmarkListPage}&limit=${DETAIL_PER_PAGE}`,
                 { headers: { 'Authorization': `Bearer ${token}` } }
             );
             const data = await safeParseJson(response);
@@ -511,7 +511,7 @@ function Mypage() {
         }
 
         try {
-            const response = await fetch(`http://localhost:5000/api/auth/check-userid?userId=${encodeURIComponent(candidate)}`);
+            const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/auth/check-userid?userId=${encodeURIComponent(candidate)}`);
             const data = await response.json();
 
             if (!response.ok || !data.success) {
@@ -613,7 +613,7 @@ function Mypage() {
                 formData.append('avatar', selectedAvatarFile);
             }
 
-            const response = await fetch('http://localhost:5000/api/me/profile', {
+            const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/me/profile`, {
                 method: 'PUT',
                 headers: { 'Authorization': `Bearer ${token}` },
                 body: formData
@@ -689,7 +689,7 @@ function Mypage() {
                 navigate('/login');
                 return;
             }
-            const response = await fetch(`http://localhost:5000/api/surveys/${id}`, {
+            const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/surveys/${id}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -742,7 +742,7 @@ function Mypage() {
             setRelationLoading(true);
             const token = localStorage.getItem('token');
             const headers = token ? { Authorization: `Bearer ${token}` } : {};
-            const response = await fetch(`http://localhost:5000/api/users/${encodeURIComponent(loggedInUserId)}/${nextType}`, { headers });
+            const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/users/${encodeURIComponent(loggedInUserId)}/${nextType}`, { headers });
             const data = await safeParseJson(response);
             if (!response.ok || !data.success) {
                 throw new Error(data.message || '사용자 목록을 불러오지 못했습니다.');
@@ -766,7 +766,7 @@ function Mypage() {
 
         try {
             const method = targetUser.isFollowing ? 'DELETE' : 'POST';
-            const response = await fetch(`http://localhost:5000/api/users/${encodeURIComponent(targetUser.userId)}/follow`, {
+            const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/users/${encodeURIComponent(targetUser.userId)}/follow`, {
                 method,
                 headers: { Authorization: `Bearer ${token}` }
             });
@@ -858,7 +858,7 @@ function Mypage() {
         }
 
         try {
-            const response = await fetch(`http://localhost:5000/api/me/responses/surveys/${surveyId}`, {
+            const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/me/responses/surveys/${surveyId}`, {
                 method: 'DELETE',
                 headers: { Authorization: `Bearer ${token}` }
             });
@@ -927,7 +927,7 @@ function Mypage() {
         }
 
         try {
-            const response = await fetch(`http://localhost:5000/api/surveys/${surveyId}/bookmark`, {
+            const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/surveys/${surveyId}/bookmark`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -973,8 +973,8 @@ function Mypage() {
             const isRename = bookmarkModalMode === 'rename';
             const response = await fetch(
                 isRename
-                    ? `http://localhost:5000/api/me/bookmark-lists/${selectedBookmarkListId}`
-                    : 'http://localhost:5000/api/me/bookmark-lists',
+                    ? `${import.meta.env.VITE_API_BASE}/api/me/bookmark-lists/${selectedBookmarkListId}`
+                    : `${import.meta.env.VITE_API_BASE}/api/me/bookmark-lists`,
                 {
                     method: isRename ? 'PATCH' : 'POST',
                     headers: {
@@ -1027,7 +1027,7 @@ function Mypage() {
         }
 
         try {
-            const response = await fetch(`http://localhost:5000/api/me/bookmark-lists/${selectedBookmarkListId}`, {
+            const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/me/bookmark-lists/${selectedBookmarkListId}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -1171,8 +1171,8 @@ function Mypage() {
                                 {!survey.isPublic && (
                                     <button onClick={() => copyLink(survey.link)} className="mypage-copyLinkBtn">링크 복사</button>
                                 )}
-                                <img src={"/img/edit.svg"} alt="Edit Survey" className="mypage-edit-icon" onClick={() => handleEditClick(survey.id)} />
-                                <img src={"/img/delete.svg"} alt="Delete Survey" className="mypage-delete-icon" onClick={() => handleDeleteClick(survey.id)} />
+                                <img src={import.meta.env.BASE_URL + 'img/edit.svg'} alt="Edit Survey" className="mypage-edit-icon" onClick={() => handleEditClick(survey.id)} />
+                                <img src={import.meta.env.BASE_URL + 'img/delete.svg'} alt="Delete Survey" className="mypage-delete-icon" onClick={() => handleDeleteClick(survey.id)} />
                             </div>
                         )}
 
@@ -1294,7 +1294,7 @@ function Mypage() {
                                         <div className={`mypage-avatar-shell ${isEditingProfile ? 'mypage-avatar-shell--editable' : ''}`} onClick={isEditingProfile ? openAvatarPicker : undefined}>
                                             {displayedAvatar ? (
                                                 <img
-                                                    src={displayedAvatar.startsWith('/uploads/') ? `http://localhost:5000${displayedAvatar}` : displayedAvatar}
+                                                    src={displayedAvatar.startsWith('/uploads/') ? `${import.meta.env.VITE_API_BASE}${displayedAvatar}` : displayedAvatar}
                                                     alt="Profile avatar"
                                                     className="mypage-avatar-image"
                                                 />
@@ -1555,13 +1555,13 @@ function Mypage() {
                                                 </div>
                                                 <div className="mypage-actions">
                                                     <img
-                                                        src={"/img/edit.svg"}
+                                                        src={"/survly/img/edit.svg"}
                                                         alt="Edit Response"
                                                         className="mypage-edit-icon"
                                                         onClick={() => handleEditRespondedSurvey(survey.id)}
                                                     />
                                                     <img
-                                                        src={"/img/delete.svg"}
+                                                        src={"/survly/img/delete.svg"}
                                                         alt="Delete Response"
                                                         className="mypage-delete-icon"
                                                         onClick={() => handleDeleteRespondedSurvey(survey.id)}

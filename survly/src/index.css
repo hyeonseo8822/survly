@@ -63,11 +63,10 @@
     font-display: swap;
 }
 
-@font-face {
-    font-family: 'RixInooAriDuri';
-    src: url('./assets/fonts/RixInooAriDuri-Regular.ttf') format('truetype');
-    font-weight: 400;
-    font-display: swap;
+.modak-regular {
+  font-family: "Modak", system-ui;
+  font-weight: 400;
+  font-style: normal;
 }
 
 body {

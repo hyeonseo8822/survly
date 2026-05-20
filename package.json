@@ -1,7 +1,15 @@
 {
+  "name": "survly-root",
+  "private": true,
+  "scripts": {
+    "deploy": "npm --prefix survly run build && npx gh-pages -d survly/dist"
+  },
   "dependencies": {
     "@vitejs/plugin-react": "^6.0.1",
     "react-router-dom": "^7.13.2",
     "recharts": "^3.8.1"
+  },
+  "devDependencies": {
+    "gh-pages": "^5.0.0"
   }
 }

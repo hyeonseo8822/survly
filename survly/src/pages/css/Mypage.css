@@ -1,8 +1,8 @@
 /* 네비게이션 버튼 active 상태 스타일 */
 .mypage-nav-btn.active {
-    background: linear-gradient(135deg, #8ad0ff 0%, #6bb8ff 100%);
-    color: #1a5fd6 !important;
-    box-shadow: 0 4px 16px rgba(106, 185, 255, 0.13);
+    background: linear-gradient(135deg, #B8C9FF 0%, #C3B5FF 100%);
+    color: #5B5DD6 !important;
+    box-shadow: 0 4px 16px rgba(179, 181, 255, 0.13);
     border-radius: 8px;
     font-weight: 700;
     border: none;
@@ -18,8 +18,8 @@
     margin: 0;
     padding: 0 6px;
     border-radius: 7px;
-    background: transparent;
-    color: #1a5fd6;
+    background: rgba(179, 181, 255, 0.08);
+    color: #5B5DD6;
     font-size: 13px;
     font-weight: 600;
     border: none;
@@ -31,8 +31,8 @@
     text-align: center;
 }
  .mypage-nav-btn:not(.active):hover {
-    background: rgba(106, 185, 255, 0.10);
-    color: #459ff4;
+    background: rgba(179, 181, 255, 0.10);
+    color: #7B7DE5;
 }
 .mypage-container {
     width: min(1200px, calc(100% - 32px));
@@ -163,7 +163,7 @@
 }
 
 .mypage-list-menu button:hover {
-    background: rgba(106, 185, 255, 0.12);
+    background: rgba(179, 181, 255, 0.12);
 }
 
 .mypage-add-list-btn {
@@ -176,18 +176,18 @@
     justify-content: center;
     border: none;
     border-radius: 12px;
-    background: linear-gradient(135deg, #8ad0ff 0%, #6bb8ff 100%);
+    background: linear-gradient(135deg, #B8C9FF 0%, #C3B5FF 100%);
     color: #ffffff;
     font-size: 24px;
     line-height: 1;
     cursor: pointer;
-    box-shadow: 0 10px 20px rgba(106, 185, 255, 0.22);
+    box-shadow: 0 10px 20px rgba(179, 181, 255, 0.22);
     transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
 }
 
 .mypage-add-list-btn:hover {
     transform: translateY(-1px);
-    box-shadow: 0 14px 24px rgba(106, 185, 255, 0.3);
+    box-shadow: 0 14px 24px rgba(179, 181, 255, 0.3);
     filter: saturate(1.05);
 }
 .mypage-back-chip {
@@ -205,8 +205,8 @@
 }
 
 .mypage-back-chip:hover {
-    background: rgba(106, 185, 255, 0.14);
-    border-color: rgba(106, 185, 255, 0.6);
+    background: rgba(179, 181, 255, 0.14);
+    border-color: rgba(179, 181, 255, 0.6);
     transform: translateY(-1px);
 }
 
@@ -222,7 +222,7 @@
     padding: 18px;
     border: 1px solid rgba(181, 202, 226, 0.28);
     border-radius: 20px;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(241, 248, 255, 0.92) 100%);
+    background: rgba(255, 255, 255, 0.92);
     box-shadow: 0 12px 28px rgba(142, 168, 196, 0.14);
     cursor: pointer;
     text-align: left;
@@ -234,8 +234,8 @@
 
 .mypage-list-card:hover {
     transform: translateY(-2px);
-    border-color: rgba(106, 185, 255, 0.48);
-    box-shadow: 0 18px 32px rgba(126, 160, 196, 0.2);
+    border-color: rgba(179, 181, 255, 0.48);
+    box-shadow: 0 18px 32px rgba(179, 181, 255, 0.2);
 }
 
 .mypage-list-card-index {
@@ -245,8 +245,8 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: rgba(106, 185, 255, 0.12);
-    color: #58a7ef;
+    background: rgba(179, 181, 255, 0.12);
+    color: #A3B5FF;
     font-size: 15px;
     font-weight: 700;
     flex: 0 0 auto;
@@ -354,8 +354,8 @@
 }
 
 .mypage-modal-field input:focus {
-    border-color: rgba(94, 171, 241, 0.9);
-    box-shadow: 0 0 0 4px rgba(106, 185, 255, 0.16);
+    border-color: rgba(163, 181, 255, 0.9);
+    box-shadow: 0 0 0 4px rgba(179, 181, 255, 0.16);
 }
 
 .mypage-modal-actions {
@@ -372,7 +372,7 @@
     font-size: 12px;
     font-weight: 700;
     letter-spacing: 0.18em;
-    color: #65aeea;
+    color: #A3B5FF;
 }
 
 .mypage-userid-title {
@@ -400,15 +400,15 @@
     height: 42px;
     padding: 0 18px;
     border-radius: 12px;
-    border: 1px solid rgba(106, 185, 255, 0.45);
+    border: 1px solid rgba(179, 181, 255, 0.45);
     background: rgba(255, 255, 255, 0.72);
-    color: #346089;
+    color: #5B5DD6;
 }
 
 .mypage-logout-btn:hover,
 .mypage-secondary-btn:hover {
     transform: translateY(-1px);
-    background: rgba(106, 185, 255, 0.12);
+    background: rgba(179, 181, 255, 0.12);
 }
 
 .mypage-primary-btn {
@@ -416,14 +416,14 @@
     height: 44px;
     padding: 0 18px;
     border-radius: 14px;
-    background: linear-gradient(135deg, #67b8ff 0%, #459ff4 100%);
-    box-shadow: 0 12px 24px rgba(79, 158, 236, 0.28);
+    background: linear-gradient(135deg, #A3B5FF 0%, #9BA8FF 100%);
+    box-shadow: 0 12px 24px rgba(163, 181, 255, 0.28);
     color: #fff;
 }
 
 .mypage-primary-btn:hover {
     transform: translateY(-1px);
-    box-shadow: 0 14px 28px rgba(79, 158, 236, 0.34);
+    box-shadow: 0 14px 28px rgba(163, 181, 255, 0.34);
 }
 
 .mypage-primary-btn:disabled,
@@ -470,8 +470,8 @@
     aspect-ratio: 1 / 1;
     margin: 0 auto;
     border-radius: 999px;
-    background: linear-gradient(135deg, #8ad0ff 0%, #9bd7ff 100%);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 20px 36px rgba(90, 152, 214, 0.28);
+    background: linear-gradient(135deg, #B8C9FF 0%, #C3D5FF 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 20px 36px rgba(179, 181, 255, 0.28);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -670,6 +670,8 @@
 
 .mypage-survey-section {
     padding: 24px;
+    background: rgba(179, 181, 255, 0.08);
+    border-radius: 12px;
 }
 
 .mypage-card-header h2,
@@ -740,8 +742,8 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: rgba(106, 185, 255, 0.12);
-    color: #58a7ef;
+    background: rgba(179, 181, 255, 0.12);
+    color: #A3B5FF;
     font-size: 15px;
     font-weight: 700;
     flex: 0 0 auto;
@@ -786,7 +788,7 @@
     height: 36px;
     padding: 0 14px;
     border-radius: 11px;
-    background: linear-gradient(135deg, #8ad0ff 0%, #6bb8ff 100%);
+    background: linear-gradient(135deg, #a1bbff 0%, #afb4ff 100%);
     color: #fff;
 }
 
@@ -1068,7 +1070,7 @@
     height: 36px;
     border-radius: 50%;
     overflow: hidden;
-    background: linear-gradient(135deg, #8ad0ff 0%, #6bb8ff 100%);
+    background: linear-gradient(135deg, #a1bbff 0%, #afb4ff 100%);
     color: #fff;
     display: inline-flex;
     align-items: center;

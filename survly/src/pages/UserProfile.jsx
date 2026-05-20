@@ -40,9 +40,9 @@ function UserProfile() {
         const token = localStorage.getItem('token');
         const headers = token ? { Authorization: `Bearer ${token}` } : {};
         const [profileResponse, createdResponse, respondedResponse] = await Promise.all([
-          fetch(`http://localhost:5000/api/users/${encodeURIComponent(userId)}/profile`, { headers }),
-          fetch(`http://localhost:5000/api/users/${encodeURIComponent(userId)}/surveys`, { headers }),
-          fetch(`http://localhost:5000/api/users/${encodeURIComponent(userId)}/responded-surveys`, { headers })
+          fetch(`${import.meta.env.VITE_API_BASE}/api/users/${encodeURIComponent(userId)}/profile`, { headers }),
+          fetch(`${import.meta.env.VITE_API_BASE}/api/users/${encodeURIComponent(userId)}/surveys`, { headers }),
+          fetch(`${import.meta.env.VITE_API_BASE}/api/users/${encodeURIComponent(userId)}/responded-surveys`, { headers })
         ]);
 
         const profileData = await safeParseJson(profileResponse);
@@ -70,7 +70,7 @@ function UserProfile() {
   const avatarSrc = profile?.avatarUrl
     ? (profile.avatarUrl.startsWith('http://') || profile.avatarUrl.startsWith('https://')
       ? profile.avatarUrl
-      : `http://localhost:5000${profile.avatarUrl.startsWith('/') ? '' : '/'}${profile.avatarUrl}`)
+      : `${import.meta.env.VITE_API_BASE}${profile.avatarUrl.startsWith('/') ? '' : '/'}${profile.avatarUrl}`)
     : '';
 
   const handleFollowToggle = async () => {
@@ -87,7 +87,7 @@ function UserProfile() {
     try {
       setFollowLoading(true);
       const method = profile.isFollowing ? 'DELETE' : 'POST';
-      const response = await fetch(`http://localhost:5000/api/users/${encodeURIComponent(profile.userId)}/follow`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/users/${encodeURIComponent(profile.userId)}/follow`, {
         method,
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -121,7 +121,7 @@ function UserProfile() {
       setRelationLoading(true);
       const token = localStorage.getItem('token');
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
-      const response = await fetch(`http://localhost:5000/api/users/${encodeURIComponent(profile.userId)}/${nextType}`, { headers });
+      const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/users/${encodeURIComponent(profile.userId)}/${nextType}`, { headers });
       const data = await safeParseJson(response);
       if (!response.ok || !data.success) {
         throw new Error(data.message || '사용자 목록을 불러오지 못했습니다.');
@@ -144,7 +144,7 @@ function UserProfile() {
 
     try {
       const method = targetUser.isFollowing ? 'DELETE' : 'POST';
-      const response = await fetch(`http://localhost:5000/api/users/${encodeURIComponent(targetUser.userId)}/follow`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/users/${encodeURIComponent(targetUser.userId)}/follow`, {
         method,
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -181,7 +181,7 @@ function UserProfile() {
           const avatarSrc = user.avatarUrl
             ? (user.avatarUrl.startsWith('http://') || user.avatarUrl.startsWith('https://')
               ? user.avatarUrl
-              : `http://localhost:5000${user.avatarUrl.startsWith('/') ? '' : '/'}${user.avatarUrl}`)
+              : `${import.meta.env.VITE_API_BASE}${user.avatarUrl.startsWith('/') ? '' : '/'}${user.avatarUrl}`)
             : '';
 
           return (

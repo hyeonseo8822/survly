@@ -43,7 +43,7 @@
     height: 56px;
     border: none;
     border-radius: 15px;
-    background: linear-gradient(135deg, #8ad0ff 0%, #6bb8ff 100%);
+    background: linear-gradient(135deg, #a1bbff 0%, #afb4ff 100%);
     color: #fff;
     font-size: 19px;
     font-weight: 800;
@@ -85,7 +85,7 @@
     left: 0;
     right: 0;
     height: 4px;
-    background: linear-gradient(90deg, #8AD0FF, #6bb8ff);
+    background: linear-gradient(90deg, #a1bbff, #afb4ff);
     border-radius: 18px 18px 0 0;
 }
 
@@ -120,7 +120,7 @@
     height: 38px;
     border: 1px solid rgba(143, 164, 188, 0.45);
     border-radius: 10px;
-    background: #f8fbff;
+    background: #f8f9ff;
     color: #2d4a60;
     font-size: 13px;
     font-weight: 600;
@@ -203,7 +203,7 @@
     gap: 12px;
     padding: 11px 14px;
     border-radius: 12px;
-    background: #f8fbff;
+    background: #f8f9ff;
     border: 1px solid rgba(143, 164, 188, 0.22);
     cursor: pointer;
     transition: border-color 0.2s ease, background 0.2s ease;
@@ -215,7 +215,7 @@
 }
 
 .answer-container .radio-option-container input[type='radio'] {
-    accent-color: #8AD0FF;
+    accent-color: #a1bbff;
     width: 16px;
     height: 16px;
     flex-shrink: 0;
@@ -223,7 +223,7 @@
 }
 
 .answer-container .radio-option-container input[type='checkbox'] {
-    accent-color: #8AD0FF;
+    accent-color: #a1bbff;
     width: 16px;
     height: 16px;
     flex-shrink: 0;
@@ -252,7 +252,7 @@
     padding: 12px 16px;
     border: 1px solid rgba(143, 164, 188, 0.35);
     border-radius: 12px;
-    background: #f8fbff;
+    background: #f8f9ff;
     outline: none;
     color: #1a2d40;
     box-sizing: border-box;
@@ -268,7 +268,7 @@
     padding: 12px 16px;
     border: 1px solid rgba(143, 164, 188, 0.35);
     border-radius: 12px;
-    background: #f8fbff;
+    background: #f8f9ff;
     outline: none;
     color: #1a2d40;
     box-sizing: border-box;
@@ -285,14 +285,14 @@
 }
 
 .answer-container .subjectiveInput input[type='text']:focus {
-    border-color: #8AD0FF;
+    border-color: #a1bbff;
     box-shadow: 0 0 0 4px rgba(106, 185, 255, 0.15);
     background: #fff;
 }
 
 .answer-container .subjectiveInput textarea:focus,
 .answer-container .subjectiveInput input[type='date']:focus {
-    border-color: #8AD0FF;
+    border-color: #a1bbff;
     box-shadow: 0 0 0 4px rgba(106, 185, 255, 0.15);
     background: #fff;
 }
@@ -308,7 +308,7 @@
     height: 42px;
     border-radius: 999px;
     border: 1px solid rgba(143, 164, 188, 0.45);
-    background: #f8fbff;
+    background: #f8f9ff;
     color: #2f5578;
     font-size: 15px;
     font-weight: 700;
@@ -316,8 +316,8 @@
 }
 
 .answer-rating-btn.is-active {
-    border-color: #6bb8ff;
-    background: linear-gradient(180deg, #8ad0ff 0%, #6bb8ff 100%);
+    border-color: #afb4ff;
+    background: linear-gradient(180deg, #a1bbff 0%, #afb4ff 100%);
     color: #fff;
 }
 
@@ -388,7 +388,7 @@
 }
 
 .answer-comment-input-wrap textarea:focus {
-    border-color: #8ad0ff;
+    border-color: #a1bbff;
     box-shadow: 0 0 0 4px rgba(106, 185, 255, 0.15);
     background: #fff;
 }
@@ -406,8 +406,8 @@
 }
 
 .answer-comment-input-meta button {
-    border: 1px solid #6bb8ff;
-    background: linear-gradient(180deg, #8ad0ff 0%, #6bb8ff 100%);
+    border: 1px solid #afb4ff;
+    background: linear-gradient(180deg, #a1bbff 0%, #afb4ff 100%);
     color: #fff;
     border-radius: 10px;
     height: 38px;
@@ -434,7 +434,7 @@
 .answer-comment-item {
     border: 1px solid rgba(143, 164, 188, 0.22);
     border-radius: 12px;
-    background: #eef6ff;
+    background: #eef1ff;
     padding: 12px 14px;
 }
 
@@ -473,7 +473,7 @@
     height: 32px;
     border-radius: 50%;
     overflow: hidden;
-    background: linear-gradient(135deg, #8ad0ff 0%, #6bb8ff 100%);
+    background: linear-gradient(135deg, #a1bbff 0%, #afb4ff 100%);
     color: #fff;
     display: inline-flex;
     align-items: center;
@@ -594,7 +594,7 @@
     box-sizing: border-box;
     border: 1px solid rgba(143, 164, 188, 0.35);
     border-radius: 10px;
-    background: #f7fbff;
+    background: #f7f9ff;
     outline: none;
     resize: vertical;
     font-size: 14px;
@@ -660,7 +660,7 @@
     box-sizing: border-box;
     border: 1px solid rgba(143, 164, 188, 0.35);
     border-radius: 10px;
-    background: #f7fbff;
+    background: #f7f9ff;
     outline: none;
     resize: vertical;
     font-size: 14px;
@@ -737,8 +737,8 @@
 }
 
 .answer-modal-btn--primary {
-    border: 1px solid #6bb8ff;
-    background: linear-gradient(180deg, #8ad0ff 0%, #6bb8ff 100%);
+    border: 1px solid #afb4ff;
+    background: linear-gradient(180deg, #a1bbff 0%, #afb4ff 100%);
     color: #ffffff;
 }
 

@@ -33,7 +33,7 @@ function NavBar2({
         {/* 로고: 클릭 시 메인 페이지로 이동 */}
         <Link to="/">
           <div className="brandmark">
-            <span className="brand-word">Survly</span>
+            <img src={import.meta.env.BASE_URL + 'img/logo.svg'} alt="Survly" className="brandmark-logo" />
           </div>
         </Link>
         

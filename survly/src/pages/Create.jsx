@@ -125,7 +125,7 @@ function Create() {
       const fetchSurveyForEdit = async () => {
         setLoading(true);
         try {
-          const response = await fetch(`http://localhost:5000/api/surveys/${id}`);
+          const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/surveys/${id}`);
           if (!response.ok) throw new Error('설문 데이터를 불러오는데 실패했습니다.');
           
           const result = await response.json();
@@ -146,7 +146,7 @@ function Create() {
               question: q.question,
             })));
             if (fetchedSurvey.img && fetchedSurvey.img !== 'default_img') {
-              setExistingImage(`http://localhost:5000/uploads/${fetchedSurvey.img}`);
+              setExistingImage(`${import.meta.env.VITE_API_BASE}/uploads/${fetchedSurvey.img}`);
             }
           } else {
             throw new Error(result.message || '설문 데이터를 불러오는데 실패했습니다.');
@@ -327,11 +327,11 @@ function Create() {
 
       // 4. API 요청 정보 설정 (생성 vs 수정)
       let method = 'POST';
-      let url = 'http://localhost:5000/api/surveys';
+      let url = `${import.meta.env.VITE_API_BASE}/api/surveys`;
 
       if (currentSurveyId) { // 수정 모드
         method = 'PUT';
-        url = `http://localhost:5000/api/surveys/${currentSurveyId}`;
+        url = `${import.meta.env.VITE_API_BASE}/api/surveys/${currentSurveyId}`;
       }
 
       // 5. API 호출
@@ -615,7 +615,7 @@ function Create() {
                   <div className='lineBox'></div>
                   <div className='contentBottom'>
                     <div className='delImg'>
-                      <img src={'/img/delete.svg'} alt='delete'
+                      <img src={import.meta.env.BASE_URL + 'img/delete.svg'} alt='delete'
                         onClick={() => {
                           if (questions.length > 1) {
                             const newQ = questions.filter((_, i) => i !== qIdx);

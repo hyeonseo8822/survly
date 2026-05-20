@@ -75,11 +75,11 @@ function Answer() {
     }
 
     if (avatarUrl.startsWith('/uploads/')) {
-      return `http://localhost:5000${avatarUrl}`;
+      return `${import.meta.env.VITE_API_BASE}${avatarUrl}`;
     }
 
     if (avatarUrl.startsWith('uploads/')) {
-      return `http://localhost:5000/${avatarUrl}`;
+      return `${import.meta.env.VITE_API_BASE}/${avatarUrl}`;
     }
 
     return avatarUrl;
@@ -125,9 +125,9 @@ function Answer() {
       setError(null);
       let url = '';
       if (link) { // 비공개 링크로 접근한 경우
-        url = `http://localhost:5000/api/s/${link}`;
+        url = `${import.meta.env.VITE_API_BASE}/api/s/${link}`;
       } else if (id) { // 설문 ID로 접근한 경우
-        url = `http://localhost:5000/api/surveys/${id}`;
+        url = `${import.meta.env.VITE_API_BASE}/api/surveys/${id}`;
       } else {
         setLoading(false);
         return; // id와 link 모두 없으면 실행 중단
@@ -172,7 +172,7 @@ function Answer() {
       }
 
       try {
-        const response = await fetch(`http://localhost:5000/api/surveys/${survey.id}/my-participation-status`, {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/surveys/${survey.id}/my-participation-status`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         const data = await response.json();
@@ -197,10 +197,10 @@ function Answer() {
         setLoading(true);
         setError(null);
         const [resultResponse, commentResponse] = await Promise.all([
-          fetch(`http://localhost:5000/api/surveys/${survey.id}/results`, {
+          fetch(`${import.meta.env.VITE_API_BASE}/api/surveys/${survey.id}/results`, {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } // 결과 조회는 인증 필요
           }),
-          fetch(`http://localhost:5000/api/surveys/${survey.id}/comments`)
+          fetch(`${import.meta.env.VITE_API_BASE}/api/surveys/${survey.id}/comments`)
         ]);
 
         const data = await resultResponse.json();
@@ -233,7 +233,7 @@ function Answer() {
 
     try {
       setCommentsLoading(true);
-      const response = await fetch(`http://localhost:5000/api/surveys/${survey.id}/comments`);
+      const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/surveys/${survey.id}/comments`);
       const data = await response.json();
 
       if (response.ok && data.success) {
@@ -314,7 +314,7 @@ function Answer() {
 
     try {
       setEditCommentSaving(true);
-      const response = await fetch(`http://localhost:5000/api/me/comments/${editingCommentId}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/me/comments/${editingCommentId}`, {
         method: 'PATCH',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -356,7 +356,7 @@ function Answer() {
     }
 
     try {
-      const response = await fetch(`http://localhost:5000/api/me/comments/${commentId}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/me/comments/${commentId}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -402,7 +402,7 @@ function Answer() {
 
     try {
       setCommentSaving(true);
-      const response = await fetch(`http://localhost:5000/api/surveys/${survey.id}/comments`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/surveys/${survey.id}/comments`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -462,7 +462,7 @@ function Answer() {
 
     try {
       setReplySavingByCommentId((prev) => ({ ...prev, [parentCommentId]: true }));
-      const response = await fetch(`http://localhost:5000/api/surveys/${survey.id}/comments`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/surveys/${survey.id}/comments`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -530,7 +530,7 @@ function Answer() {
       headers['Authorization'] = `Bearer ${token}`;
     }
 
-    const response = await fetch(`http://localhost:5000/api/surveys/${survey.id}/responses`, {
+    const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/surveys/${survey.id}/responses`, {
       method: 'POST',
       headers,
       body: JSON.stringify({ answers: answersToSubmit, overwrite })

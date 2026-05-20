@@ -48,7 +48,7 @@ function Search() {
     };
 
     const fetchSurveyBookmarkStatus = async (surveyId, token) => {
-        const response = await fetch(`http://localhost:5000/api/surveys/${surveyId}/bookmark-status`, {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/surveys/${surveyId}/bookmark-status`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         const data = await response.json();
@@ -90,7 +90,7 @@ function Search() {
             setError(null);
             try {
                 // 기본 API URL에 페이지 번호와 공개 설문 필터를 추가합니다.
-                let url = `http://localhost:5000/api/surveys?page=${pageNum}&limit=6&isPublic=true`;
+                let url = `${import.meta.env.VITE_API_BASE}/api/surveys?page=${pageNum}&limit=6&isPublic=true`;
                 if (keyword) {
                     // 검색어가 있으면 URL에 keyword 파라미터를 추가합니다.
                     url += `&keyword=${encodeURIComponent(keyword)}`;
@@ -100,7 +100,7 @@ function Search() {
                 const headers = token ? { Authorization: `Bearer ${token}` } : {};
                 const surveyPromise = fetch(url);
                 const userPromise = (!isSurveyOnlyMode && keyword.trim())
-                    ? fetch(`http://localhost:5000/api/users/search?keyword=${encodeURIComponent(keyword)}&limit=12`, { headers })
+                    ? fetch(`${import.meta.env.VITE_API_BASE}/api/users/search?keyword=${encodeURIComponent(keyword)}&limit=12`, { headers })
                     : null;
 
                 const [surveyResponse, usersResponse] = await Promise.all([surveyPromise, userPromise]);
@@ -222,7 +222,7 @@ function Search() {
 
         try {
             setBookmarkBusyBySurveyId((prev) => ({ ...prev, [surveyId]: true }));
-            const response = await fetch(`http://localhost:5000/api/surveys/${surveyId}/bookmark`, {
+            const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/surveys/${surveyId}/bookmark`, {
                 method: targetList.isBookmarked ? 'DELETE' : 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -273,7 +273,7 @@ function Search() {
         if (avatarUrl.startsWith('http://') || avatarUrl.startsWith('https://')) {
             return avatarUrl;
         }
-        return `http://localhost:5000${avatarUrl.startsWith('/') ? '' : '/'}${avatarUrl}`;
+        return `${import.meta.env.VITE_API_BASE}${avatarUrl.startsWith('/') ? '' : '/'}${avatarUrl}`;
     };
 
     const openUserDetail = async (userId) => {
@@ -290,9 +290,9 @@ function Search() {
             const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
             const [profileResponse, createdResponse, respondedResponse] = await Promise.all([
-                fetch(`http://localhost:5000/api/users/${encodeURIComponent(userId)}/profile`, { headers }),
-                fetch(`http://localhost:5000/api/users/${encodeURIComponent(userId)}/surveys?limit=10`, { headers }),
-                fetch(`http://localhost:5000/api/users/${encodeURIComponent(userId)}/responded-surveys?limit=10`, { headers })
+                fetch(`${import.meta.env.VITE_API_BASE}/api/users/${encodeURIComponent(userId)}/profile`, { headers }),
+                fetch(`${import.meta.env.VITE_API_BASE}/api/users/${encodeURIComponent(userId)}/surveys?limit=10`, { headers }),
+                fetch(`${import.meta.env.VITE_API_BASE}/api/users/${encodeURIComponent(userId)}/responded-surveys?limit=10`, { headers })
             ]);
 
             const profileData = await safeParseJson(profileResponse);
@@ -510,15 +510,15 @@ function Search() {
                                 <div className="graph">
                                     <img 
                                         src={survey.img && survey.img !== 'default_img' 
-                                            ? `http://localhost:5000/uploads/${survey.img}` 
-                                            : `${process.env.PUBLIC_URL}/img/default_img.svg`}
+                                            ? `${import.meta.env.VITE_API_BASE}/uploads/${survey.img}` 
+                                            : `${import.meta.env.BASE_URL}img/default_img.svg`}
                                         alt="Survey Thumbnail"
                                         className="survey-thumbnail"
                                     />
                                 </div>
                                 <img
                                     className="part"
-                                    src={`${process.env.PUBLIC_URL}/img/arrow.svg`}
+                                    src={`${import.meta.env.BASE_URL}img/arrow.svg`}
                                     alt="arrow"
                                 />
                             </div>

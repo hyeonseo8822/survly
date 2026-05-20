@@ -3,14 +3,13 @@
 }
 
 .surveyText {
-    font-family: 'Rubik Bubbles', 'Pretendard', sans-serif;
-    font-weight: 400;
+    font-family:'Pretendard', sans-serif;
+    font-weight: 800;
     margin-left: 5%;
-    font-size: 48px;
-    color: #ffffff;
+    font-size: 40px;
+    color: hsl(240, 6%, 40%);
     letter-spacing: 0.02em;
     line-height: 1;
-    text-shadow: 0 0 10px rgba(141, 205, 255, 0.95), 0 0 24px rgba(77, 163, 245, 0.65);
 }
 
 .surveyExplain {
@@ -46,7 +45,7 @@
 
 .survey-sort-select:hover,
 .survey-sort-select:focus {
-    border-color: #6bb8ff;
+    border-color: #afb4ff;
     box-shadow: 0 0 0 3px rgba(77, 163, 245, 0.15);
 }
 
@@ -289,7 +288,7 @@
     height: 100%;
     border-radius: 14px;
     border: 1px solid rgba(148, 172, 196, 0.34);
-    background: linear-gradient(180deg, #f8fbff 0%, #eef5fd 100%);
+    background: linear-gradient(180deg, #f8f9ff 0%, #eef5fd 100%);
     padding: 18px;
     box-sizing: border-box;
     display: flex;
@@ -367,7 +366,7 @@
 .survey-summary-chart__fill {
     height: 100%;
     border-radius: 999px;
-    background: linear-gradient(90deg, #8ad0ff, #6bb8ff);
+    background: linear-gradient(90deg, #a1bbff, #afb4ff);
 }
 
 .survey-summary-chat {

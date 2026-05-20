@@ -10,6 +10,8 @@
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^9.3.0",
-    "multer": "^2.0.2"
+    "multer": "^2.0.2",
+    "aws-sdk": "^2.1360.0",
+    "multer-s3": "^2.10.0"
   }
 }

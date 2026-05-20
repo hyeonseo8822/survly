@@ -41,7 +41,7 @@
 }
 
 .select>div.selectActive {
-    color: #65B7FF;
+    color: #A3B5FF;
 }
 
 .select>div.selectActive::after {
@@ -51,7 +51,7 @@
     left: 0;
     width: 100%;
     height: 4px;
-    background-color: #65B7FF;
+    background-color: #A3B5FF;
     border-radius: 8px 8px 0 0;
 }
 
@@ -65,7 +65,7 @@
     transform: translateX(-50%);
     margin-top: 2%;
     box-shadow: 0 4px 10px rgba(133, 133, 133, 0.15);
-    border-top: 15px solid #7BBCF5;
+    border-top: 15px solid #B8C9FF;
     padding: 20px;
     box-sizing: border-box;
     height: auto;
@@ -73,7 +73,7 @@
 
 .content {
     border-top: none;
-    border-left: 10px solid #A0C8EC;
+    border-left: 10px solid #CEDBFF;
 }
 
 .titleInput {
@@ -276,7 +276,7 @@ textarea:focus,
 .titleInput .title textarea:focus,
 .titleInput .explain textarea:focus,
 input[type='text']:focus {
-    border-color: #65B7FF;
+    border-color: #A3B5FF;
     background-color: #ffffff;
     transition: all 0.2s ease;
 }
@@ -434,7 +434,7 @@ input[type='text']:focus {
 }
 
 .image-upload-button {
-    background-color: #7BBCF5;
+    background-color: #7b85f5;
     color: white;
     padding: 10px 20px;
     border-radius: 5px;
@@ -444,7 +444,7 @@ input[type='text']:focus {
 }
 
 .image-upload-button:hover {
-    background-color: #65B7FF;
+    background-color: #6363cf;
 }
 
 .image-preview-container {
@@ -503,9 +503,7 @@ input[type='text']:focus {
     position: relative;
     min-height: 100vh;
     padding: 160px 0 96px;
-    background:
-        radial-gradient(circle at top left, rgba(106, 185, 255, 0.14), transparent 32%),
-        linear-gradient(180deg, #f9fcff 0%, #eef5fd 100%);
+
     overflow-x: hidden;
 }
 
@@ -554,7 +552,7 @@ input[type='text']:focus {
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(145deg, rgba(106, 185, 255, 0.08), rgba(255, 255, 255, 0));
+    background: linear-gradient(145deg, rgb(106 113 255 / 8%), rgba(255, 255, 255, 0));
     pointer-events: none;
 }
 
@@ -572,7 +570,7 @@ input[type='text']:focus {
     gap: 12px;
     padding: 10px 12px;
     border-radius: 12px;
-    background: rgba(234, 245, 255, 0.8);
+    background: rgb(234 237 255 / 80%);
     border: 1px solid rgba(106, 185, 255, 0.26);
 }
 
@@ -601,8 +599,8 @@ input[type='text']:focus {
 }
 
 .createVisibilityToggle__btn.is-active {
-    border-color: #5baef5;
-    background: #8ad0ff;
+    border-color: #b2b2b2;
+    background: #a1bbff;
     color: #ffffff;
 }
 
@@ -615,7 +613,7 @@ input[type='text']:focus {
     border: 1px solid rgba(143, 164, 188, 0.35);
     border-bottom-width: 1px;
     border-radius: 20px;
-    background: #f8fbff;
+    background: #f8f9ff;
     transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 }
 
@@ -627,6 +625,9 @@ input[type='text']:focus {
     line-height: 1.15;
     letter-spacing: -0.04em;
 }
+ .create-page .titleInput .title textarea::placeholder {
+     color: #4f4f4f !important;
+ }
 
 .create-page .titleInput .explain textarea {
     min-height: 92px;
@@ -658,7 +659,7 @@ input[type='text']:focus {
     padding: 0 14px;
     border: 1px solid rgba(143, 164, 188, 0.35);
     border-radius: 12px;
-    background: #f8fbff;
+    background: #f8f9ff;
     color: #1a2d40;
     font-size: 14px;
     outline: none;
@@ -690,7 +691,7 @@ input[type='text']:focus {
     color: #7890a7;
 }
 
-.create-page .image-upload-section {
+.create-page .image-upload-section {    
     margin-top: 0;
 }
 
@@ -700,7 +701,7 @@ input[type='text']:focus {
     align-self: start;
     padding: 24px;
     border-radius: 20px;
-    background: linear-gradient(180deg, #f4faff 0%, #e8f3ff 100%);
+    background: linear-gradient(180deg, #f4faff 0%, #eaecff 100%);
     border: 1px solid rgba(119, 180, 240, 0.24);
     display: flex;
     flex-direction: column;
@@ -729,7 +730,7 @@ input[type='text']:focus {
     font-size: 12px;
     font-weight: 700;
     letter-spacing: 0.14em;
-    color: #1e6ea3;
+    color: #5a6590;
 }
 
 .createMediaPanel__copy p {
@@ -746,14 +747,14 @@ input[type='text']:focus {
     min-width: 120px;
     padding: 10px 16px;
     border-radius: 999px;
-    background: #8ad0ff;
+    background: #a1bbff;
     color: #fff;
     font-weight: 700;
     margin-top: auto;
 }
 
 .create-page .image-upload-button:hover {
-    background-color: #58aef9;
+    background-color: #778cff;
 }
 
 .create-page .image-preview-container {
@@ -810,7 +811,7 @@ input[type='text']:focus {
     width: 46px;
     height: 46px;
     border-radius: 14px;
-    background: linear-gradient(135deg, #7bc6ff, #8ad0ff);
+    background: linear-gradient(135deg, #7bc6ff, #a1bbff);
     color: #fff;
     font-weight: 800;
     font-size: 15px;
@@ -820,8 +821,8 @@ input[type='text']:focus {
 .createQuestionCard__type {
     padding: 10px 14px;
     border-radius: 999px;
-    background: #eef6ff;
-    color: #1e6ea3;
+    background: #eef1ff;
+    color: #5a6590;
     font-size: 13px;
     font-weight: 700;
 }
@@ -842,7 +843,7 @@ input[type='text']:focus {
     padding: 14px 16px;
     font-size: 20px;
     font-weight: 600;
-    background-color: #f7fbff;
+    background-color: #f7f9ff;
 }
 
 .create-page .selectType {
@@ -854,14 +855,14 @@ input[type='text']:focus {
     height: 48px;
     border-radius: 12px;
     border: 1px solid rgba(143, 164, 188, 0.45);
-    background: #f8fbff;
+    background: #f8f9ff;
     color: #10324b;
 }
 
 .create-page .selectType select:focus,
 .create-page textarea:focus,
 .create-page input[type='text']:focus {
-    border-color: #8ad0ff;
+    border-color: #a1bbff;
     box-shadow: 0 0 0 4px rgba(106, 185, 255, 0.15);
     background-color: #fff;
 }
@@ -886,20 +887,20 @@ input[type='text']:focus {
     padding: 10px 12px;
     padding-right: 14px;
     border-radius: 12px;
-    background: #f8fbff;
+    background: #f8f9ff;
     border: 1px solid rgba(143, 164, 188, 0.22);
     width: 100%;
 }
 
 .create-page .radioOptions input[type='radio'] {
-    accent-color: #8ad0ff;
+    accent-color: #a1bbff;
     width: 18px;
     height: 18px;
     flex-shrink: 0;
 }
 
 .create-page .radioOptions input[type='checkbox'] {
-    accent-color: #8ad0ff;
+    accent-color: #a1bbff;
     width: 20px;
     height: 20px;
     flex-shrink: 0;
@@ -943,7 +944,7 @@ input[type='text']:focus {
     border: 1px solid rgba(106, 185, 255, 0.45);
     border-radius: 999px;
     background: #ffffff;
-    color: #1e6ea3;
+    color: #5a6590;
     font-weight: 600;
     font-size: 13px;
     text-decoration: none;
@@ -972,7 +973,7 @@ input[type='text']:focus {
     min-height: 110px;
     border: 1px solid rgba(143, 164, 188, 0.35);
     border-radius: 14px;
-    background: #f8fbff;
+    background: #f8f9ff;
     color: #7890a7;
     padding: 12px 14px;
     box-sizing: border-box;
@@ -997,7 +998,7 @@ input[type='text']:focus {
     font-size: 14px;
     font-weight: 700;
     color: #376184;
-    background: #f8fbff;
+    background: #f8f9ff;
 }
 
 .createDatePreview {
@@ -1011,7 +1012,7 @@ input[type='text']:focus {
     padding: 0 12px;
     border: 1px solid rgba(143, 164, 188, 0.35);
     border-radius: 12px;
-    background: #f8fbff;
+    background: #f8f9ff;
     color: #7890a7;
 }
 
@@ -1065,7 +1066,7 @@ input[type='text']:focus {
 }
 
 .create-page .switch.on {
-    background-color: rgba(106, 185, 255, 0.38);
+    background-color: rgb(147 149 245 / 38%);
 }
 
 .create-page .switch .slider {
@@ -1078,7 +1079,7 @@ input[type='text']:focus {
 
 .create-page .switch .slider.on {
     left: 27px;
-    background-color: #8ad0ff;
+    background-color: #a1aaff;
 }
 
 .create-page .createAddQuestionButton {
@@ -1204,8 +1205,8 @@ input[type='text']:focus {
 }
 
 .create-modal-btn--primary {
-    border-color: #6bb8ff;
-    background: linear-gradient(180deg, #8ad0ff 0%, #6bb8ff 100%);
+    border-color: #afb4ff;
+    background: linear-gradient(180deg, #a1bbff 0%, #afb4ff 100%);
     color: #ffffff;
 }
 

@@ -26,17 +26,17 @@ function Main() {
       <div className="main-page">
         <section className="main-hero">
           <div className="main-hero__visual">
-            <img src={'/img/image 2.png'} alt="오브젝트1" className="main-hero__shape main-hero__shape--one" />
-            <img src={'/img/image 3.png'} alt="오브젝트2" className="main-hero__shape main-hero__shape--two" />
-            <img src={'/img/image 4 (1).png'} alt="오브젝트3" className="main-hero__shape main-hero__shape--three" />
+            <img src={import.meta.env.BASE_URL + 'img/image 2.png'} alt="오브젝트1" className="main-hero__shape main-hero__shape--one" />
+            <img src={import.meta.env.BASE_URL + 'img/image 3.png'} alt="오브젝트2" className="main-hero__shape main-hero__shape--two" />
+            <img src={import.meta.env.BASE_URL + 'img/image 4 (1).png'} alt="오브젝트3" className="main-hero__shape main-hero__shape--three" />
           </div>
           <div className="main-hero__content">
-            <div className="main-hero__brand">Survly</div>
-            <h1 className="main-hero__title">세상 모든 설문, 쉽고 빠르게</h1>
-            <div className="main-hero__subtitle">원하는 설문을 검색하고, 직접 만들어보세요!</div>
+            <img src={import.meta.env.BASE_URL + 'img/logo.svg'} alt="Survly" className="main-hero__brand" />
+            <h3 className="main-hero__title">당신이 궁금한 것, 설문으로 알아보세요</h3>
+            <div className="main-hero__subtitle">Find out what people are curious about through a survey</div>
             <div className="main-hero__search">
               <img
-                src={'/img/magnifier.svg'}
+                src={import.meta.env.BASE_URL + 'img/magnifier.svg'}
                 alt="magnifier"
               />
               <input
