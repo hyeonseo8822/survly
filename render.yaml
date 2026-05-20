@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: survly-backend
+    env: node
+    plan: free
+    branch: main
+    root: backend
+    buildCommand: npm install
+    startCommand: npm start
+    autoDeploy: true
