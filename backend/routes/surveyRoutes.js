@@ -21,7 +21,7 @@ const {
 
 const router = express.Router();
 
-router.get('/', listSurveys);
+router.get('/', softVerifyToken, listSurveys);
 router.post('/', verifyToken, upload.single('surveyImage'), createSurvey);
 router.get('/:surveyId', getSurveyById);
 router.put('/:surveyId', verifyToken, upload.single('surveyImage'), updateSurvey);

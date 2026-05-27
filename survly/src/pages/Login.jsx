@@ -9,6 +9,7 @@ function Login() {
     const [password, setPassword] = useState(""); // 사용자가 입력한 비밀번호
     const [isSubmitting, setIsSubmitting] = useState(false);
     const submitLockRef = useRef(false);
+    const passwordInputRef = useRef(null);
     
     const navigate = useNavigate();
     const { notify } = useNotification();
@@ -53,13 +54,27 @@ function Login() {
         }
     };
 
+    const handleUserIdKeyDown = (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            passwordInputRef.current?.focus();
+        }
+    };
+
+    const handlePasswordKeyDown = (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            handleLogin();
+        }
+    };
+
     return (
         <div className="auth-page">
             <div className="auth-brand-wrap">
                 <img src={import.meta.env.BASE_URL + 'img/logo.svg'} alt="Survly" className="auth-brand-logo" />
             </div>
 
-            <div className="auth-card">
+            <form className="auth-card" onSubmit={(event) => { event.preventDefault(); handleLogin(); }}>
                 <div className='auth-switch'>
                     <span className='auth-switch-text'>회원이 아니신가요?</span>
                     <Link className='auth-switch-link' to="/signup">회원가입</Link>
@@ -72,20 +87,23 @@ function Login() {
                         placeholder='아이디'
                         value={userId}
                         onChange={(e) => setUserId(e.target.value)}
+                        onKeyDown={handleUserIdKeyDown}
                     />
                     <input
+                        ref={passwordInputRef}
                         className='auth-input'
                         type='password'
                         placeholder='비밀번호'
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
+                        onKeyDown={handlePasswordKeyDown}
                     />
                 </div>
 
-                <button className='auth-submit' onClick={handleLogin} disabled={isSubmitting} aria-disabled={isSubmitting}>
+                <button className='auth-submit' type="submit" disabled={isSubmitting} aria-disabled={isSubmitting}>
                     로그인
                 </button>
-            </div>
+            </form>
         </div>
     );
 }

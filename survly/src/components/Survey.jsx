@@ -25,6 +25,7 @@ function Surveys() {
     const [bookmarkModalLoading, setBookmarkModalLoading] = useState(false);
     const navigate = useNavigate();
     const { notify } = useNotification();
+    const token = localStorage.getItem('token');
 
     const fetchSurveyBookmarkStatus = async (surveyId, token) => {
         const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/surveys/${surveyId}/bookmark-status`, {
@@ -96,7 +97,8 @@ function Surveys() {
             setError(null);   // 이전 에러 초기화
             try {
                 // API 요청: 공개(isPublic=true)된 설문 목록을 페이지에 맞게 요청
-                const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/surveys?page=${pageNum}&limit=6&isPublic=true&sortBy=${sortBy}`);
+                const headers = sortBy === 'following' && token ? { Authorization: `Bearer ${token}` } : {};
+                const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/surveys?page=${pageNum}&limit=6&isPublic=true&sortBy=${sortBy}`, { headers });
                 if (!response.ok) {
                     throw new Error('서버에서 응답을 받지 못했습니다.');
                 }
@@ -115,7 +117,7 @@ function Surveys() {
         };
 
         fetchSurveys(page);
-    }, [page, sortBy]); // 'page' 또는 'sortBy'가 변경될 때마다 이 함수를 다시 실행합니다.
+    }, [page, sortBy, token]); // 'page' 또는 'sortBy'가 변경될 때마다 이 함수를 다시 실행합니다.
 
     useEffect(() => {
         const token = localStorage.getItem('token');
@@ -344,10 +346,19 @@ function Surveys() {
                     </button>
                     <button
                         type="button"
-                        className={`survey-sort-chip ${sortBy === 'oldest' ? 'is-active' : ''}`}
-                        onClick={() => { setSortBy('oldest'); setPage(1); }}
+                        className={`survey-sort-chip ${sortBy === 'following' ? 'is-active' : ''}`}
+                        onClick={() => {
+                            if (!token) {
+                                notify('팔로우한 사람의 설문을 보려면 로그인이 필요합니다.', 'warning');
+                                navigate('/login');
+                                return;
+                            }
+
+                            setSortBy('following');
+                            setPage(1);
+                        }}
                     >
-                        오래된순
+                        팔로우한 사람
                     </button>
                 </div>
             </div>

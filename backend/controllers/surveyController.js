@@ -7,6 +7,7 @@ const Option = require('../models/Option');
 const Response = require('../models/Response');
 const Comment = require('../models/Comment');
 const User = require('../models/User');
+const Follow = require('../models/Follow');
 const {
   isValidObjectId,
   parseQuestionsPayload,
@@ -275,6 +276,7 @@ async function listSurveys(req, res) {
   const normalizedPage = Number(page) || 1;
   const normalizedLimit = Number(limit) || DEFAULT_PAGE_SIZE;
   const filter = {};
+  const requesterUserId = req.user ? req.user.userId : null;
 
   if (isPublic !== undefined) {
     filter.isPublic = normalizeBoolean(isPublic);
@@ -284,10 +286,25 @@ async function listSurveys(req, res) {
     filter.title = { $regex: keyword, $options: 'i' };
   }
 
+  if (sortBy === 'following') {
+    if (!requesterUserId) {
+      return res.json({ success: true, surveys: [], totalSurveys: 0, page: normalizedPage, totalPages: 0 });
+    }
+
+    const followingRows = await Follow.find({ followerId: requesterUserId }).select({ _id: 0, followingId: 1 }).lean();
+    const followingIds = followingRows.map((row) => row.followingId);
+
+    if (followingIds.length === 0) {
+      return res.json({ success: true, surveys: [], totalSurveys: 0, page: normalizedPage, totalPages: 0 });
+    }
+
+    filter.userId = { $in: followingIds };
+  }
+
   const sortOptions = {
     newest: { _id: -1 },
-    oldest: { _id: 1 },
-    popular: { bookmarkCount: -1, _id: -1 }
+    popular: { bookmarkCount: -1, _id: -1 },
+    following: { _id: -1 }
   };
   const sort = sortOptions[sortBy] || sortOptions.popular;
 
