@@ -19,11 +19,13 @@ app.use(express.json());
 // a comma-separated list (e.g. ALLOWED_ORIGINS=https://hyeonseo8822.github.io,https://your-deployed-backend.example)
 const rawAllowed = process.env.ALLOWED_ORIGINS || 'https://hyeonseo8822.github.io';
 const allowedOrigins = rawAllowed.split(',').map(s => s.trim()).filter(Boolean);
-console.log('Allowed origins:', allowedOrigins);
+if (process.env.NODE_ENV !== 'production') {
+  console.log('Allowed origins:', allowedOrigins);
+}
+
 app.use((req, res, next) => {
   const origin = req.headers.origin;
-  console.log('CORS check origin:', origin);
-  // Allow non-browser (curl, server-to-server) requests with no origin
+
   if (!origin) return next();
 
   if (allowedOrigins.includes(origin)) {
