@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import './css/Pagination.css';
 
 /**
  * @component Pagination
@@ -58,25 +59,44 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
     if (totalPages <= 1) return null;
 
     return (
-        <div className="pagination">
+        <nav className="pagination pagination-modern" aria-label="페이지 이동">
             {/* 이전 페이지로 가는 버튼. 첫 페이지에서는 비활성화됩니다. */}
-            <button onClick={handlePrev} disabled={currentPage === 1}>&lt;</button>
+            <button
+                type="button"
+                className="pagination-btn pagination-btn-arrow"
+                onClick={handlePrev}
+                disabled={currentPage === 1}
+                aria-label="이전 페이지"
+            >
+                &lt;
+            </button>
             
             {/* 계산된 페이지 번호들을 버튼으로 렌더링합니다. */}
             {pageNumbers.map(number => (
                 <button 
+                    type="button"
                     key={number} 
                     onClick={() => onPageChange(number)} 
                     // 현재 페이지와 일치하는 버튼에는 'active' 클래스를 적용합니다.
-                    className={currentPage === number ? 'active' : ''}
+                    className={`pagination-btn pagination-btn-page ${currentPage === number ? 'active' : ''}`}
+                    aria-label={`${number}페이지로 이동`}
+                    aria-current={currentPage === number ? 'page' : undefined}
                 >
                     {number}
                 </button>
             ))}
             
             {/* 다음 페이지로 가는 버튼. 마지막 페이지에서는 비활성화됩니다. */}
-            <button onClick={handleNext} disabled={currentPage === totalPages}>&gt;</button>
-        </div>
+            <button
+                type="button"
+                className="pagination-btn pagination-btn-arrow"
+                onClick={handleNext}
+                disabled={currentPage === totalPages}
+                aria-label="다음 페이지"
+            >
+                &gt;
+            </button>
+        </nav>
     );
 };
 

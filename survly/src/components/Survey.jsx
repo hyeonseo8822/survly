@@ -325,16 +325,30 @@ function Surveys() {
             <div className='surveyExplain'>여러가지 설문조사들을 확인해보세요!</div>
 
             {/* 정렬 선택 */}
-            <div className="survey-sort-bar">
-                <select
-                    className="survey-sort-select"
-                    value={sortBy}
-                    onChange={(e) => { setSortBy(e.target.value); setPage(1); }}
-                >
-                    <option value="popular">인기순</option>
-                    <option value="newest">최신순</option>
-                    <option value="oldest">오래된순</option>
-                </select>
+            <div className="survey-sort-bar" role="group" aria-label="설문 정렬 옵션">
+                <div className="survey-sort-options">
+                    <button
+                        type="button"
+                        className={`survey-sort-chip ${sortBy === 'popular' ? 'is-active' : ''}`}
+                        onClick={() => { setSortBy('popular'); setPage(1); }}
+                    >
+                        인기순
+                    </button>
+                    <button
+                        type="button"
+                        className={`survey-sort-chip ${sortBy === 'newest' ? 'is-active' : ''}`}
+                        onClick={() => { setSortBy('newest'); setPage(1); }}
+                    >
+                        최신순
+                    </button>
+                    <button
+                        type="button"
+                        className={`survey-sort-chip ${sortBy === 'oldest' ? 'is-active' : ''}`}
+                        onClick={() => { setSortBy('oldest'); setPage(1); }}
+                    >
+                        오래된순
+                    </button>
+                </div>
             </div>
 
             {bookmarkModalSurveyId && (

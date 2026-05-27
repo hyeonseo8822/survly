@@ -16,10 +16,6 @@ function Search() {
     const [usersLoading, setUsersLoading] = useState(false);
     const [userDetailLoading, setUserDetailLoading] = useState(false);
     const [error, setError] = useState(null); // 에러 상태
-    const [totalSearchResults, setTotalSearchResults] = useState(0); // 전체 검색 결과 개수
-    const [totalUserResults, setTotalUserResults] = useState(0); // 전체 사용자 검색 결과 개수
-        // 검색 결과 개수를 화면에 표시 (예시)
-        // <div>설문 결과: {totalSearchResults}개, 사용자 결과: {totalUserResults}개</div>
     const [bookmarkStateBySurveyId, setBookmarkStateBySurveyId] = useState({});
     const [bookmarkBusyBySurveyId, setBookmarkBusyBySurveyId] = useState({});
     const [bookmarkModalSurveyId, setBookmarkModalSurveyId] = useState(null);
@@ -37,12 +33,14 @@ function Search() {
     const keyword = queryParams.get('keyword') || '';
     const mode = queryParams.get('mode') || 'all';
     const isSurveyOnlyMode = mode === 'survey';
+    const hasSurveyResults = surveyList.length > 0;
+    const hasUserResults = userResults.length > 0;
 
     const safeParseJson = async (response) => {
         const text = await response.text();
         try {
             return JSON.parse(text);
-        } catch (error) {
+        } catch {
             return null;
         }
     };
@@ -113,7 +111,6 @@ function Search() {
                 if (surveyData.success) {
                     setSurveyList(surveyData.surveys);
                     setTotalPages(surveyData.totalPages);
-                    setTotalSearchResults(surveyData.totalSurveys); // 전체 결과 수 상태 업데이트
                 } else {
                     throw new Error(surveyData.message || '설문 검색에 실패했습니다.');
                 }
@@ -122,14 +119,11 @@ function Search() {
                     const usersData = await safeParseJson(usersResponse);
                     if (usersResponse.ok && usersData && usersData.success) {
                         setUserResults(usersData.users || []);
-                        setTotalUserResults(Number(usersData.totalUsers) || 0);
                     } else {
                         setUserResults([]);
-                        setTotalUserResults(0);
                     }
                 } else {
                     setUserResults([]);
-                    setTotalUserResults(0);
                 }
             } catch (error) {
                 setError(error.message);
@@ -157,7 +151,7 @@ function Search() {
             const entries = await Promise.all(surveyList.map(async (survey) => {
                 try {
                     return [survey.id, await fetchSurveyBookmarkStatus(survey.id, token)];
-                } catch (error) {
+                } catch {
                     return [survey.id, { lists: [], isBookmarked: false }];
                 }
             }));
@@ -411,16 +405,11 @@ function Search() {
                 {/* 검색 결과 제목 */}
                 <div className="surveyText">'{keyword}' 검색 결과</div>
 
-                {!isSurveyOnlyMode && (
+                {!isSurveyOnlyMode && (usersLoading || hasUserResults) && (
                     <section className="search-users-section">
-                        <div className="search-users-section__header">
-                            <h2>사용자 결과</h2>
-                        </div>
 
                         {usersLoading ? (
                             <div className="surveyExplain">사용자 검색 중...</div>
-                        ) : userResults.length === 0 ? (
-                            <div className="surveyExplain">사용자 검색 결과가 없습니다.</div>
                         ) : (
                             <div className="search-users-scroll" role="list" aria-label="사용자 검색 결과">
                                 {userResults.map((user) => {
@@ -449,7 +438,6 @@ function Search() {
                     </section>
                 )}
 
-                <div className="search-surveys-title">설문 검색 결과</div>
 
                 {bookmarkModalSurveyId && (
                     <div className="survey-bookmark-modal-overlay" onClick={closeBookmarkModal}>
@@ -487,51 +475,55 @@ function Search() {
                 
                 {loading ? (
                     <div className='surveyExplain'>Loading...</div>
-                ) : surveyList.length === 0 ? (
-                    // 검색 결과가 없을 때
-                    <div className='surveyExplain search-survey-empty'>검색 결과가 없습니다.</div>
                 ) : (
-                    // 검색 결과가 있을 때 목록을 렌더링
-                    <div className="rectList">
-                        {surveyList.map((survey, index) => (
-                            <div className="rect" key={survey.id || index} onClick={() => handleSurveyClick(survey.id)}>
-                                <button
-                                    type="button"
-                                    className={`survey-bookmark-btn ${bookmarkStateBySurveyId[survey.id]?.isBookmarked ? 'is-active' : ''}`}
-                                    onClick={(event) => handleBookmarkClick(event, survey.id)}
-                                    aria-label="설문 북마크"
-                                >
-                                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                                        <path d="M7 4.5h10a1 1 0 0 1 1 1V20l-6-3.8L6 20V5.5a1 1 0 0 1 1-1Z" />
-                                    </svg>
-                                </button>
-                                <p className='num'>{String((page - 1) * 6 + index + 1).padStart(2, '0')}</p>
-                                <p className="rectText">{survey.title}</p>
-                                <div className="graph">
-                                    <img 
-                                        src={survey.img && survey.img !== 'default_img' 
-                                            ? `${import.meta.env.VITE_API_BASE}/uploads/${survey.img}` 
-                                            : `${import.meta.env.BASE_URL}img/default_img.svg`}
-                                        alt="Survey Thumbnail"
-                                        className="survey-thumbnail"
-                                    />
-                                </div>
-                                <img
-                                    className="part"
-                                    src={`${import.meta.env.BASE_URL}img/arrow.svg`}
-                                    alt="arrow"
-                                />
+                    hasSurveyResults ? (
+                        <>
+                            {/* 검색 결과가 있을 때 목록을 렌더링 */}
+                            <div className="rectList">
+                                {surveyList.map((survey, index) => (
+                                    <div className="rect" key={survey.id || index} onClick={() => handleSurveyClick(survey.id)}>
+                                        <button
+                                            type="button"
+                                            className={`survey-bookmark-btn ${bookmarkStateBySurveyId[survey.id]?.isBookmarked ? 'is-active' : ''}`}
+                                            onClick={(event) => handleBookmarkClick(event, survey.id)}
+                                            aria-label="설문 북마크"
+                                        >
+                                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                                <path d="M7 4.5h10a1 1 0 0 1 1 1V20l-6-3.8L6 20V5.5a1 1 0 0 1 1-1Z" />
+                                            </svg>
+                                        </button>
+                                        <p className="survey-bookmark-count">{Number(survey.bookmarkCount) || 0}</p>
+                                        <p className='num'>{String((page - 1) * 6 + index + 1).padStart(2, '0')}</p>
+                                        <p className="rectText">{survey.title}</p>
+                                        <div className="graph">
+                                            <img 
+                                                src={survey.img && survey.img !== 'default_img' 
+                                                    ? `${import.meta.env.VITE_API_BASE}/uploads/${survey.img}` 
+                                                    : `${import.meta.env.BASE_URL}img/default_img.svg`}
+                                                alt="Survey Thumbnail"
+                                                className="survey-thumbnail"
+                                            />
+                                        </div>
+                                        <img
+                                            className="part"
+                                            src={`${import.meta.env.BASE_URL}img/arrow.svg`}
+                                            alt="arrow"
+                                        />
+                                    </div>
+                                ))}
                             </div>
-                        ))}
-                    </div>
-                )}
 
-                {/* 페이지네이션 컴포넌트 */}
-                <Pagination 
-                    currentPage={page}
-                    totalPages={totalPages}
-                    onPageChange={setPage}
-                />
+                            {/* 페이지네이션 컴포넌트 */}
+                            <Pagination 
+                                currentPage={page}
+                                totalPages={totalPages}
+                                onPageChange={setPage}
+                            />
+                        </>
+                    ) : hasUserResults ? null : (
+                        <div className="search-empty-state">검색 결과가 없습니다.</div>
+                    )
+                )}
 
                 <div className='box'></div>
             </div>

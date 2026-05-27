@@ -1,0 +1,96 @@
+.pagination.pagination-modern {
+    --pager-bg: #ffffff;
+    --pager-border: rgba(162, 184, 207, 0.35);
+    --pager-text: #4a637d;
+    --pager-hover-bg: rgba(184, 201, 255, 0.15);
+    --pager-hover-border: rgba(184, 201, 255, 0.58);
+    --pager-active-bg: linear-gradient(135deg, #b8c9ff 0%, #c3b5ff 100%);
+    --pager-active-text: #ffffff;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin: 42px 0;
+    padding: 8px 10px;
+    border: 1px solid var(--pager-border);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.86);
+    box-shadow: 0 12px 24px rgba(120, 149, 180, 0.14);
+    width: fit-content;
+    max-width: calc(100% - 24px);
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.pagination-modern .pagination-btn {
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--pager-text);
+    cursor: pointer;
+    font-family: 'Pretendard', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    min-width: 38px;
+    height: 38px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 10px;
+    transition: background-color 0.16s ease, border-color 0.16s ease, color 0.16s ease, transform 0.16s ease, box-shadow 0.16s ease;
+}
+
+.pagination-modern .pagination-btn:hover:not(:disabled) {
+    background: var(--pager-hover-bg);
+    border-color: var(--pager-hover-border);
+    transform: translateY(-1px);
+}
+
+.pagination-modern .pagination-btn:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.pagination-modern .pagination-btn-arrow {
+    font-size: 15px;
+    min-width: 34px;
+    width: 34px;
+    height: 34px;
+    color: #6b8198;
+}
+
+.pagination-modern .pagination-btn-page.active {
+    background: #b8c9ff;
+    color: var(--pager-active-text);
+    border-color: rgba(179, 181, 255, 0.65);
+    box-shadow: 0 8px 16px rgba(179, 181, 255, 0.3);
+    outline: none;
+}
+
+.pagination-modern .pagination-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.42;
+    transform: none;
+    box-shadow: none;
+}
+
+@media (max-width: 768px) {
+    .pagination.pagination-modern {
+        gap: 8px;
+        padding: 7px 8px;
+        margin: 30px auto;
+    }
+
+    .pagination-modern .pagination-btn {
+        min-width: 34px;
+        height: 34px;
+        font-size: 13px;
+        padding: 0 8px;
+    }
+
+    .pagination-modern .pagination-btn-arrow {
+        min-width: 30px;
+        width: 30px;
+        height: 30px;
+    }
+}

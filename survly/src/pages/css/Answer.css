@@ -49,13 +49,13 @@
     font-weight: 800;
     letter-spacing: 0.01em;
     cursor: pointer;
-    box-shadow: 0 14px 28px rgba(106, 185, 255, 0.26);
+    box-shadow: 0 14px 28px rgba(129, 147, 196, 0.26);
     transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
 }
 
 .answer-bottom-submit-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 18px 32px rgba(106, 185, 255, 0.34);
+    box-shadow: 0 14px 28px rgba(129, 147, 196, 0.26);
 }
 
 .answer-bottom-submit-btn:disabled {
@@ -407,7 +407,7 @@
 
 .answer-comment-input-meta button {
     border: 1px solid #afb4ff;
-    background: linear-gradient(180deg, #a1bbff 0%, #afb4ff 100%);
+    background: #a1bbff ;
     color: #fff;
     border-radius: 10px;
     height: 38px;
@@ -506,21 +506,33 @@
     color: #7f96ad;
 }
 
+.answer-comment-time-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+}
+
+.answer-comment-time-wrap--reply {
+    align-items: flex-start;
+}
+
 .answer-comment-menu-wrap {
     position: relative;
 }
 
 .answer-comment-menu-btn {
-    width: 28px;
-    height: 28px;
+    width: 30px;
+    height: 30px;
     border: none;
     border-radius: 8px;
     background: transparent;
     color: #6f88a2;
     cursor: pointer;
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 700;
     line-height: 1;
+    letter-spacing: 1px;
 }
 
 .answer-comment-menu-btn:hover {
@@ -539,6 +551,29 @@
     box-shadow: 0 10px 20px rgba(28, 56, 84, 0.16);
     overflow: hidden;
     z-index: 20;
+}
+
+.answer-reply-edit-wrap {
+    margin-top: 8px;
+    margin-left: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.answer-reply-edit-wrap textarea {
+    width: 100%;
+    min-height: 64px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    border: 1px solid rgba(143,164,188,0.35);
+    background: #f7f9ff;
+    font-size: 14px;
+}
+
+.answer-reply-edit-actions {
+    display: inline-flex;
+    gap: 8px;
 }
 
 .answer-comment-menu button {
@@ -738,7 +773,7 @@
 
 .answer-modal-btn--primary {
     border: 1px solid #afb4ff;
-    background: linear-gradient(180deg, #a1bbff 0%, #afb4ff 100%);
+    background: #a1bbff;
     color: #ffffff;
 }
 

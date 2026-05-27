@@ -26,9 +26,67 @@ const parseStoredAnswer = (questionType, value) => {
   try {
     const parsed = JSON.parse(String(value || '[]'));
     return Array.isArray(parsed) ? parsed : [];
-  } catch (error) {
+  } catch {
     return [];
   }
+};
+
+const escapeCsvValue = (value) => {
+  const text = String(value ?? '');
+  return `"${text.replace(/"/g, '""')}"`;
+};
+
+const toResponseDownloadRows = (survey, responses) => {
+  const rows = [
+    ['설문 제목', survey?.title || ''],
+    ['질문유형', '질문', '내용', '응답수']
+  ];
+
+  responses.forEach((result) => {
+    let myAnswers = result.myAnswer;
+    if (typeof myAnswers === 'string') {
+      try {
+        const parsed = JSON.parse(myAnswers);
+        if (Array.isArray(parsed)) {
+          myAnswers = parsed;
+        }
+      } catch {
+        // ignore
+      }
+    }
+    if (!Array.isArray(myAnswers)) {
+      myAnswers = myAnswers ? [myAnswers] : [];
+    }
+
+    const summaryEntries = result.summary && Object.keys(result.summary).length > 0
+      ? Object.entries(result.summary)
+      : [];
+
+    if (summaryEntries.length > 0) {
+      summaryEntries.forEach(([answer, count]) => {
+        rows.push([
+          result.type || '',
+          result.question || '',
+          answer,
+          count
+        ]);
+      });
+      return;
+    }
+
+    if (Array.isArray(result.comments) && result.comments.length > 0) {
+      result.comments.forEach((comment) => {
+        rows.push([
+          result.type || '',
+          result.question || '',
+          comment,
+          ''
+        ]);
+      });
+    }
+  });
+
+  return rows;
 };
 
 
@@ -55,15 +113,19 @@ function Answer() {
   const [editingCommentId, setEditingCommentId] = useState(null);
   const [editingCommentText, setEditingCommentText] = useState('');
   const [editCommentSaving, setEditCommentSaving] = useState(false);
-  const [commentMenuOpenId, setCommentMenuOpenId] = useState('');
   const [commentDeleteConfirm, setCommentDeleteConfirm] = useState({ open: false, commentId: null });
   const [focusTargetCommentId, setFocusTargetCommentId] = useState('');
+  const [openCommentActionMenuKey, setOpenCommentActionMenuKey] = useState('');
 
   const { id, link } = useParams(); // URL 파라미터에서 id 또는 link 추출
   const navigate = useNavigate();
   const location = useLocation();
   const { notify } = useNotification();
   const currentUserId = localStorage.getItem('userId') || '';
+
+  const [editingReplyId, setEditingReplyId] = useState(null);
+  const [editingReplyText, setEditingReplyText] = useState('');
+  const [editReplySaving, setEditReplySaving] = useState(false);
 
   const resolveAvatarUrl = (avatarUrl) => {
     if (!avatarUrl) {
@@ -181,7 +243,7 @@ function Answer() {
           setIsCreator(Boolean(data.isCreator));
           setHasParticipated(Boolean(data.hasParticipated));
         }
-      } catch (err) {
+      } catch {
         setHasParticipated(false);
       }
     };
@@ -239,7 +301,7 @@ function Answer() {
       if (response.ok && data.success) {
         setComments(data.comments || []);
       }
-    } catch (err) {
+    } catch {
       // 댓글은 보조 기능이므로 조용히 실패 처리
     } finally {
       setCommentsLoading(false);
@@ -264,12 +326,30 @@ function Answer() {
     setFocusTargetCommentId('');
   }, [active, comments, focusTargetCommentId]);
 
-  const toggleCommentMenu = (commentId) => {
-    setCommentMenuOpenId((prev) => (String(prev) === String(commentId) ? '' : String(commentId)));
+  useEffect(() => {
+    const handleOutsideClick = (event) => {
+      if (!(event.target instanceof Element)) {
+        return;
+      }
+
+      if (!event.target.closest('.answer-comment-menu-wrap')) {
+        setOpenCommentActionMenuKey('');
+      }
+    };
+
+    document.addEventListener('click', handleOutsideClick);
+
+    return () => {
+      document.removeEventListener('click', handleOutsideClick);
+    };
+  }, []);
+
+  const toggleCommentActionMenu = (menuKey) => {
+    setOpenCommentActionMenuKey((prev) => (prev === menuKey ? '' : menuKey));
   };
 
   const openCommentDeleteConfirm = (commentId) => {
-    setCommentMenuOpenId('');
+    setOpenCommentActionMenuKey('');
     setCommentDeleteConfirm({ open: true, commentId });
   };
 
@@ -284,9 +364,9 @@ function Answer() {
       return;
     }
 
-    setCommentMenuOpenId('');
     setEditingCommentId(comment.id);
     setEditingCommentText(comment.content || '');
+    setOpenCommentActionMenuKey('');
   };
 
   const cancelEditComment = () => {
@@ -331,12 +411,54 @@ function Answer() {
       notify('댓글이 수정되었습니다.', 'success');
       setEditingCommentId(null);
       setEditingCommentText('');
-      setCommentMenuOpenId('');
       await loadComments();
     } catch (err) {
       notify(err.message || '댓글 수정에 실패했습니다.', 'error');
     } finally {
       setEditCommentSaving(false);
+    }
+  };
+
+  const startEditReply = (reply) => {
+    if (!reply?.id) return;
+    const currentUser = localStorage.getItem('userId');
+    if (!currentUser || String(reply.userId) !== String(currentUser)) {
+      notify('본인 답글만 수정할 수 있습니다.', 'warning');
+      return;
+    }
+    setEditingReplyId(reply.id);
+    setEditingReplyText(reply.content || '');
+    setOpenCommentActionMenuKey('');
+  };
+
+  const cancelEditReply = () => {
+    setEditingReplyId(null);
+    setEditingReplyText('');
+  };
+
+  const saveEditedReply = async () => {
+    if (!editingReplyId || editReplySaving) return;
+    const token = localStorage.getItem('token');
+    if (!token) { notify('로그인이 필요합니다.', 'warning'); navigate('/login'); return; }
+    const trimmed = String(editingReplyText || '').trim();
+    if (!trimmed) { notify('내용을 입력해주세요.', 'warning'); return; }
+    try {
+      setEditReplySaving(true);
+      const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/me/comments/${editingReplyId}`, {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: trimmed })
+      });
+      const result = await response.json();
+      if (!response.ok || !result.success) throw new Error(result.message || '답글 수정에 실패했습니다.');
+      notify('답글이 수정되었습니다.', 'success');
+      setEditingReplyId(null);
+      setEditingReplyText('');
+      await loadComments();
+    } catch (err) {
+      notify(err.message || '답글 수정에 실패했습니다.', 'error');
+    } finally {
+      setEditReplySaving(false);
     }
   };
 
@@ -434,6 +556,35 @@ function Answer() {
     } finally {
       setCommentSaving(false);
     }
+  };
+
+  const handleCommentKeyDown = (event) => {
+    if (event.key !== 'Enter') {
+      return;
+    }
+
+    if (event.nativeEvent?.isComposing) {
+      return;
+    }
+
+    if (event.shiftKey) {
+      event.preventDefault();
+      const textarea = event.currentTarget;
+      const start = textarea.selectionStart ?? commentText.length;
+      const end = textarea.selectionEnd ?? commentText.length;
+      const nextValue = `${commentText.slice(0, start)}\n${commentText.slice(end)}`;
+      setCommentText(nextValue);
+
+      requestAnimationFrame(() => {
+        textarea.selectionStart = start + 1;
+        textarea.selectionEnd = start + 1;
+        textarea.focus();
+      });
+      return;
+    }
+
+    event.preventDefault();
+    submitComment();
   };
 
   const submitReply = async (parentCommentId) => {
@@ -652,6 +803,26 @@ function Answer() {
     </div>
   );
 
+  const downloadResponseSheet = () => {
+    if (!survey) {
+      notify('설문 정보를 불러오지 못했습니다.', 'warning');
+      return;
+    }
+
+    const rows = toResponseDownloadRows(survey, responses);
+    const csv = `\ufeff${rows.map((row) => row.map(escapeCsvValue).join(',')).join('\n')}`;
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const linkElement = document.createElement('a');
+    const safeTitle = String(survey.title || 'survey').replace(/[\\/:*?"<>|]/g, '_');
+    linkElement.href = url;
+    linkElement.download = `${safeTitle}-responses.csv`;
+    document.body.appendChild(linkElement);
+    linkElement.click();
+    document.body.removeChild(linkElement);
+    URL.revokeObjectURL(url);
+  };
+
   // 초기 로딩 중일 때
   if (loading && !survey) return <div className='container'><p>로딩 중...</p></div>;
   // 에러 발생 시
@@ -666,6 +837,10 @@ function Answer() {
         tab1Text="답변"
         showResponseTab={showResponseTab}
         showButton={false}
+        showRightAction={active === 'responses' && Boolean(survey)}
+        rightActionText='시트 다운로드'
+        onRightAction={downloadResponseSheet}
+        rightActionDisabled={loading}
       />
       {/* '응답' 탭에서 발생한 에러는 탭 안에 표시 */}
       {error && active === 'responses' && <div className='error-message'>{error}</div>}
@@ -797,7 +972,7 @@ function Answer() {
                     // Try to parse JSON for checkboxes
                     const parsed = JSON.parse(myAnswers);
                     if (Array.isArray(parsed)) myAnswers = parsed;
-                  } catch (e) { /* ignore */ }
+                  } catch { /* ignore */ }
                 }
                 if (!Array.isArray(myAnswers)) myAnswers = myAnswers ? [myAnswers] : [];
 
@@ -902,18 +1077,20 @@ function Answer() {
                             <strong>{comment.displayName || comment.userId}</strong>
                           </button>
                           <div className='answer-comment-item__meta-right'>
-                            <span>{new Date(comment.created_at).toLocaleString('ko-KR')}</span>
+                            <div className='answer-comment-time-wrap'>
+                              <span>{new Date(comment.created_at).toLocaleString('ko-KR')}</span>
+                            </div>
                             {String(comment.userId) === String(currentUserId) && (
                               <div className='answer-comment-menu-wrap'>
                                 <button
                                   type='button'
                                   className='answer-comment-menu-btn'
-                                  onClick={() => toggleCommentMenu(comment.id)}
-                                  aria-label='댓글 옵션 열기'
+                                  aria-label='댓글 옵션'
+                                  onClick={() => toggleCommentActionMenu(`comment-${comment.id}`)}
                                 >
                                   ...
                                 </button>
-                                {String(commentMenuOpenId) === String(comment.id) && (
+                                {openCommentActionMenuKey === `comment-${comment.id}` && (
                                   <div className='answer-comment-menu'>
                                     <button type='button' onClick={() => startEditComment(comment)}>수정</button>
                                     <button type='button' onClick={() => openCommentDeleteConfirm(comment.id)}>삭제</button>
@@ -981,10 +1158,48 @@ function Answer() {
                                     </div>
                                     <strong>{reply.displayName || reply.userId}</strong>
                                   </button>
-                                  <span>{new Date(reply.created_at).toLocaleString('ko-KR')}</span>
+                                  <div className='answer-comment-item__meta-right'>
+                                    <div className='answer-comment-time-wrap answer-comment-time-wrap--reply'>
+                                      <span>{new Date(reply.created_at).toLocaleString('ko-KR')}</span>
+                                    </div>
+                                    {String(reply.userId) === String(currentUserId) && (
+                                      <div className='answer-comment-menu-wrap'>
+                                        <button
+                                          type='button'
+                                          className='answer-comment-menu-btn'
+                                          aria-label='답글 옵션'
+                                          onClick={() => toggleCommentActionMenu(`reply-${reply.id}`)}
+                                        >
+                                          ...
+                                        </button>
+                                        {openCommentActionMenuKey === `reply-${reply.id}` && (
+                                          <div className='answer-comment-menu'>
+                                            <button type='button' onClick={() => startEditReply(reply)}>수정</button>
+                                            <button type='button' onClick={() => openCommentDeleteConfirm(reply.id)}>삭제</button>
+                                          </div>
+                                        )}
+                                      </div>
+                                    )}
+                                  </div>
                                 </div>
                                 <p>{reply.content}</p>
-                              </li>
+                                    {String(editingReplyId) === String(reply.id) ? (
+                                      <div className='answer-reply-edit-wrap'>
+                                        <textarea
+                                          value={editingReplyText}
+                                          maxLength={COMMENT_MAX_LENGTH}
+                                          onChange={(e) => setEditingReplyText(e.target.value)}
+                                        />
+                                        <div className='answer-comment-input-meta'>
+                                          <span>{String(editingReplyText || '').length}/{COMMENT_MAX_LENGTH}</span>
+                                          <div className='answer-reply-edit-actions'>
+                                            <button type='button' className='answer-comment-edit-btn answer-comment-edit-btn--ghost' onClick={cancelEditReply}>취소</button>
+                                            <button type='button' className='answer-comment-edit-btn' onClick={saveEditedReply} disabled={editReplySaving}>{editReplySaving ? '저장 중...' : '저장'}</button>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    ) : null}
+                                  </li>
                             ))}
                           </ul>
                         )}
@@ -1018,6 +1233,7 @@ function Answer() {
                     placeholder={hasParticipated ? '응답에 대한 의견을 남겨보세요.' : '설문 참여자만 댓글을 작성할 수 있습니다.'}
                     disabled={!hasParticipated}
                     onChange={(e) => setCommentText(e.target.value)}
+                    onKeyDown={handleCommentKeyDown}
                   />
                   <div className='answer-comment-input-meta'>
                     <span>{commentText.length}/{COMMENT_MAX_LENGTH}</span>

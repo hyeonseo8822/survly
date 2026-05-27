@@ -3,7 +3,7 @@
 }
 
 .search-page .surveyText {
-    font-size: 58px;
+    font-size: 40px;
     margin-left: 4%;
     letter-spacing: 0.01em;
 }
@@ -132,6 +132,24 @@
     border-radius: 14px;
     background: #f8f9ff;
     color: #5d7189;
+}
+
+.search-empty-state {
+    width: calc(100% - 8%);
+    margin: 72px auto 0;
+    min-height: 280px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* removed rectangular background for a cleaner empty state */
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    color: #5d7189;
+    font-family: 'Pretendard';
+    font-size: 18px;
+    font-weight: 600;
+    box-shadow: none;
 }
 
 .search-users-section .surveyExplain {
@@ -331,6 +349,14 @@
 
     .search-users-section .surveyExplain {
         font-size: 18px;
+    }
+
+    .search-empty-state {
+        width: calc(100% - 8%);
+        min-height: 220px;
+        margin-top: 56px;
+        font-size: 16px;
+        border-radius: 0;
     }
 
     .search-user-detail__meta h2 {

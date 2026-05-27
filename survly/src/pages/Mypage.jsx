@@ -48,6 +48,11 @@ function Mypage() {
     const [bookmarkListCreating, setBookmarkListCreating] = useState(false);
     const [isBookmarkListMenuOpen, setIsBookmarkListMenuOpen] = useState(false);
     const [openSurveyMenuId, setOpenSurveyMenuId] = useState('');
+    const [openRespondedSurveyMenuId, setOpenRespondedSurveyMenuId] = useState('');
+    const [selectedCreatedSurveyIds, setSelectedCreatedSurveyIds] = useState([]);
+    const [selectedBookmarkListIds, setSelectedBookmarkListIds] = useState([]);
+    const [selectedBookmarkSurveyIds, setSelectedBookmarkSurveyIds] = useState([]);
+    const [selectedRespondedSurveyIds, setSelectedRespondedSurveyIds] = useState([]);
     const [loading, setLoading] = useState({ created: true, bookmarkLists: true, bookmarkSurveys: false }); // 각 목록의 로딩 상태
     const [error, setError] = useState(null); // 에러 메시지
     const [createdPage, setCreatedPage] = useState(1); // '생성한 설문'의 현재 페이지
@@ -64,13 +69,14 @@ function Mypage() {
     const [userIdCheck, setUserIdCheck] = useState({ status: 'idle', message: '', checkedValue: '' });
     const [deleteConfirm, setDeleteConfirm] = useState({ open: false, surveyId: null });
     const [responseDeleteConfirm, setResponseDeleteConfirm] = useState({ open: false, surveyId: null });
-    const [relationView, setRelationView] = useState('surveys');
+    const [relationView, setRelationView] = useState('created');
     const [relationUsers, setRelationUsers] = useState([]);
     const [relationLoading, setRelationLoading] = useState(false);
     // 미사용 프리뷰 상태 제거
     const [commentManagePage, setCommentManagePage] = useState(1);
     const [commentManageTotalPages, setCommentManageTotalPages] = useState(1);
     const [managedComments, setManagedComments] = useState([]);
+    const [selectedCommentIds, setSelectedCommentIds] = useState([]);
     const [responseManagePage, setResponseManagePage] = useState(1);
     const [responseManageTotalPages, setResponseManageTotalPages] = useState(1);
     const [managedRespondedSurveys, setManagedRespondedSurveys] = useState([]);
@@ -87,6 +93,38 @@ function Mypage() {
     const selectedBookmarkList = bookmarkLists.find((list) => list.id === selectedBookmarkListId) || null;
     // 왼쪽 프로필은 항상 고정, 상세(팔로워/팔로잉/리스트 상세)만 중앙 정렬
     const isCenterOnlyView = relationView === 'followers' || relationView === 'following' || relationView === 'bookmark-list';
+
+    const toStringId = (value) => String(value);
+
+    const isAllVisibleSelected = (visibleIds, selectedIds) => {
+        if (!visibleIds.length) {
+            return false;
+        }
+
+        return visibleIds.every((id) => selectedIds.includes(toStringId(id)));
+    };
+
+    const toggleSelectedIds = (setter, itemId) => {
+        const nextId = toStringId(itemId);
+        setter((prev) => (
+            prev.includes(nextId)
+                ? prev.filter((id) => id !== nextId)
+                : [...prev, nextId]
+        ));
+    };
+
+    const toggleSelectAllVisible = (visibleIds, selectedIds, setter) => {
+        const visibleStringIds = visibleIds.map(toStringId);
+        const allSelected = isAllVisibleSelected(visibleStringIds, selectedIds);
+
+        setter((prev) => {
+            if (allSelected) {
+                return prev.filter((id) => !visibleStringIds.includes(id));
+            }
+
+            return Array.from(new Set([...prev, ...visibleStringIds]));
+        });
+    };
 
     const persistLocalProfile = (userId, nextProfile) => {
         localStorage.setItem(getProfileStorageKey(userId), JSON.stringify(nextProfile));
@@ -105,13 +143,6 @@ function Mypage() {
         setProfileDraft(nextProfile);
         return nextProfile;
     };
-
-    // const handleLogout = () => {
-    //     localStorage.removeItem('token');
-    //     localStorage.removeItem('userId');
-    //     navigate('/');
-    //     window.location.reload();
-    // };
 
     const isAuthExpiredError = (error) => error?.code === AUTH_EXPIRED_ERROR;
 
@@ -482,7 +513,10 @@ function Mypage() {
     }, [bookmarkListPage, loggedInUserId, navigate, notify, safeParseJson, selectedBookmarkListId]);
 
     const handleSurveyClick = (id) => navigate(`/surveys/${id}`);
-    const handleEditClick = (id) => navigate(`/create/${id}`);
+    const handleEditClick = (id) => {
+        setOpenSurveyMenuId('');
+        navigate(`/create/${id}`);
+    };
 
     const handleDraftChange = (field, value) => {
         setProfileDraft((prev) => ({ ...prev, [field]: value }));
@@ -671,7 +705,107 @@ function Mypage() {
      * @param {number} id - 삭제할 설문의 ID
      */
     const handleDeleteClick = (id) => {
+        setOpenSurveyMenuId('');
         setDeleteConfirm({ open: true, surveyId: id });
+    };
+
+    const deleteSurveyById = useCallback(async (id) => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            throw new Error('로그인이 필요합니다.');
+        }
+
+        const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/surveys/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const result = await safeParseJson(response);
+
+        if (!response.ok || !result.success) {
+            throw new Error(result.message || '설문 삭제에 실패했습니다.');
+        }
+
+        return result;
+    }, [safeParseJson]);
+
+    const deleteRespondedSurveyById = useCallback(async (surveyId) => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            throw new Error('로그인이 필요합니다.');
+        }
+
+        const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/me/responses/surveys/${surveyId}`, {
+            method: 'DELETE',
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        const data = await safeParseJson(response);
+
+        if (!response.ok || !data.success) {
+            throw new Error(data.message || '참여 응답 삭제에 실패했습니다.');
+        }
+
+        return data;
+    }, [safeParseJson]);
+
+    const deleteBookmarkListById = useCallback(async (listId) => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            throw new Error('로그인이 필요합니다.');
+        }
+
+        const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/me/bookmark-lists/${listId}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await safeParseJson(response);
+
+        if (!response.ok || !data.success) {
+            throw new Error(data.message || '리스트 삭제에 실패했습니다.');
+        }
+
+        return data;
+    }, [safeParseJson]);
+
+    const deleteCommentById = useCallback(async (commentId) => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            throw new Error('로그인이 필요합니다.');
+        }
+
+        const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/me/comments/${commentId}`, {
+            method: 'DELETE',
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        const data = await safeParseJson(response);
+
+        if (!response.ok || !data.success) {
+            throw new Error(data.message || '댓글 삭제에 실패했습니다.');
+        }
+
+        return data;
+    }, [safeParseJson]);
+
+    const deleteSelectedComments = async () => {
+        if (selectedCommentIds.length === 0) {
+            return;
+        }
+
+        const confirmed = window.confirm(`선택한 댓글 ${selectedCommentIds.length}개를 삭제하시겠습니까?`);
+        if (!confirmed) {
+            return;
+        }
+
+        try {
+            await Promise.all(selectedCommentIds.map((commentId) => deleteCommentById(commentId)));
+            setManagedComments((prev) => prev.filter((item) => !selectedCommentIds.includes(String(item.id))));
+            setSelectedCommentIds([]);
+            notify('선택한 댓글이 삭제되었습니다.', 'success');
+        } catch (err) {
+            if (isAuthExpiredError(err)) {
+                return;
+            }
+            notify(err.message || '선택 삭제에 실패했습니다.', 'error');
+        }
     };
 
     /**
@@ -683,25 +817,16 @@ function Mypage() {
         const id = deleteConfirm.surveyId;
         setDeleteConfirm({ open: false, surveyId: null });
         try {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                notify('로그인이 필요합니다.', 'warning');
-                navigate('/login');
-                return;
-            }
-            const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/surveys/${id}`, {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const result = await safeParseJson(response);
-
-            if (!response.ok) throw new Error(result.message || '설문 삭제에 실패했습니다.');
+            const result = await deleteSurveyById(id);
 
             if (result.success) {
                 notify('설문이 성공적으로 삭제되었습니다.', 'success');
                 setCreatedPage(1);
                 setCreatedSurveys((prev) => prev.filter((survey) => String(survey.id) !== String(id)));
                 setBookmarkSurveys((prev) => prev.filter((survey) => String(survey.id) !== String(id)));
+                setSelectedCreatedSurveyIds((prev) => prev.filter((surveyId) => String(surveyId) !== String(id)));
+                setSelectedBookmarkSurveyIds((prev) => prev.filter((surveyId) => String(surveyId) !== String(id)));
+                setSelectedRespondedSurveyIds((prev) => prev.filter((surveyId) => String(surveyId) !== String(id)));
                 setOpenSurveyMenuId('');
                 fetchBookmarkLists().catch(() => { });
             } else {
@@ -713,6 +838,133 @@ function Mypage() {
             }
             setError(err.message);
             notify(`삭제 중 오류 발생: ${err.message}`, 'error');
+        }
+    };
+
+    const deleteSelectedCreatedSurveys = async () => {
+        if (selectedCreatedSurveyIds.length === 0) {
+            return;
+        }
+
+        const confirmed = window.confirm(`선택한 설문 ${selectedCreatedSurveyIds.length}개를 삭제하시겠습니까?`);
+        if (!confirmed) {
+            return;
+        }
+
+        try {
+            await Promise.all(selectedCreatedSurveyIds.map((surveyId) => deleteSurveyById(surveyId)));
+            setCreatedSurveys((prev) => prev.filter((survey) => !selectedCreatedSurveyIds.includes(String(survey.id))));
+            setBookmarkSurveys((prev) => prev.filter((survey) => !selectedCreatedSurveyIds.includes(String(survey.id))));
+            setSelectedCreatedSurveyIds([]);
+            fetchBookmarkLists().catch(() => { });
+            notify('선택한 설문이 삭제되었습니다.', 'success');
+        } catch (err) {
+            if (isAuthExpiredError(err)) {
+                return;
+            }
+            notify(err.message || '삭제에 실패했습니다.', 'error');
+        }
+    };
+
+    const deleteSelectedRespondedSurveys = async () => {
+        if (selectedRespondedSurveyIds.length === 0) {
+            return;
+        }
+
+        const confirmed = window.confirm(`선택한 참여 설문 ${selectedRespondedSurveyIds.length}개를 삭제하시겠습니까?`);
+        if (!confirmed) {
+            return;
+        }
+
+        try {
+            await Promise.all(selectedRespondedSurveyIds.map((surveyId) => deleteRespondedSurveyById(surveyId)));
+            setManagedRespondedSurveys((prev) => prev.filter((item) => !selectedRespondedSurveyIds.includes(String(item.id))));
+            setSelectedRespondedSurveyIds([]);
+            notify('선택한 참여 응답이 삭제되었습니다.', 'success');
+        } catch (err) {
+            if (isAuthExpiredError(err)) {
+                return;
+            }
+            notify(err.message || '삭제에 실패했습니다.', 'error');
+        }
+    };
+
+    const deleteSelectedBookmarkLists = async () => {
+        if (selectedBookmarkListIds.length === 0) {
+            return;
+        }
+
+        const confirmed = window.confirm(`선택한 리스트 ${selectedBookmarkListIds.length}개를 삭제하시겠습니까?`);
+        if (!confirmed) {
+            return;
+        }
+
+        try {
+            await Promise.all(selectedBookmarkListIds.map((listId) => deleteBookmarkListById(listId)));
+            await fetchBookmarkLists();
+            setSelectedBookmarkListIds([]);
+            if (selectedBookmarkListId && selectedBookmarkListIds.includes(String(selectedBookmarkListId))) {
+                setSelectedBookmarkListId('');
+                setBookmarkSurveys([]);
+                setRelationView('lists');
+            }
+            notify('선택한 리스트가 삭제되었습니다.', 'success');
+        } catch (err) {
+            if (isAuthExpiredError(err)) {
+                return;
+            }
+            notify(err.message || '삭제에 실패했습니다.', 'error');
+        }
+    };
+
+    const removeSurveyFromSelectedBookmarkListById = async (surveyId) => {
+        if (!selectedBookmarkListId) {
+            throw new Error('리스트를 찾을 수 없습니다.');
+        }
+
+        const token = localStorage.getItem('token');
+        if (!token) {
+            throw new Error('로그인이 필요합니다.');
+        }
+
+        const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/surveys/${surveyId}/bookmark`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ listId: selectedBookmarkListId })
+        });
+        const data = await safeParseJson(response);
+
+        if (!response.ok || !data.success) {
+            throw new Error(data.message || '리스트에서 제거하지 못했습니다.');
+        }
+
+        return data;
+    };
+
+    const deleteSelectedBookmarkSurveyItems = async () => {
+        if (selectedBookmarkSurveyIds.length === 0) {
+            return;
+        }
+
+        const confirmed = window.confirm(`선택한 설문 ${selectedBookmarkSurveyIds.length}개를 현재 리스트에서 제거하시겠습니까?`);
+        if (!confirmed) {
+            return;
+        }
+
+        try {
+            await Promise.all(selectedBookmarkSurveyIds.map((surveyId) => removeSurveyFromSelectedBookmarkListById(surveyId)));
+            setBookmarkSurveys((prev) => prev.filter((survey) => !selectedBookmarkSurveyIds.includes(String(survey.id))));
+            setSelectedBookmarkSurveyIds([]);
+            fetchBookmarkLists().catch(() => { });
+            notify('선택한 설문이 리스트에서 제거되었습니다.', 'success');
+        } catch (err) {
+            if (isAuthExpiredError(err)) {
+                return;
+            }
+            notify(err.message || '삭제에 실패했습니다.', 'error');
         }
     };
 
@@ -793,7 +1045,7 @@ function Mypage() {
     const closeBookmarkListDetail = () => {
         setIsBookmarkListMenuOpen(false);
         setOpenSurveyMenuId('');
-        setRelationView('surveys');
+        setRelationView('created');
         // 페이지 이동 제거: 오른쪽 화면만 변경
     };
 
@@ -820,10 +1072,6 @@ function Mypage() {
         // navigate('/mypage/lists'); // URL 이동 제거
     };
 
-    const closeManageDetail = () => {
-        setRelationView('surveys');
-        // 페이지 이동 제거: 오른쪽 화면만 변경
-    };
 
     const openCommentDetail = (comment) => {
         if (!comment?.surveyId || !comment?.id) {
@@ -835,10 +1083,12 @@ function Mypage() {
     };
 
     const handleEditRespondedSurvey = (surveyId) => {
+        setOpenRespondedSurveyMenuId('');
         navigate(`/surveys/${surveyId}`);
     };
 
     const handleDeleteRespondedSurvey = (surveyId) => {
+        setOpenRespondedSurveyMenuId('');
         setResponseDeleteConfirm({ open: true, surveyId });
     };
 
@@ -905,6 +1155,10 @@ function Mypage() {
 
     const toggleSurveyMenu = (surveyId) => {
         setOpenSurveyMenuId((prev) => (String(prev) === String(surveyId) ? '' : String(surveyId)));
+    };
+
+    const toggleRespondedSurveyMenu = (surveyId) => {
+        setOpenRespondedSurveyMenuId((prev) => (String(prev) === String(surveyId) ? '' : String(surveyId)));
     };
 
     const handleRemoveSurveyFromList = async (surveyId) => {
@@ -1040,7 +1294,7 @@ function Mypage() {
             await fetchBookmarkLists();
             setBookmarkSurveys([]);
             setBookmarkListPage(1);
-            setRelationView('surveys');
+            setRelationView('created');
             setIsBookmarkListMenuOpen(false);
             notify('리스트가 삭제되었습니다.', 'success');
         } catch (err) {
@@ -1063,19 +1317,31 @@ function Mypage() {
 
         return (
             <div className="mypage-list-card-grid">
-                {targetLists.map((list, index) => (
-                    <button
+                {targetLists.map((list) => (
+                    <div
                         key={list.id}
-                        type="button"
-                        className="mypage-list-card"
+                        className={`mypage-list-card ${selectedBookmarkListIds.includes(String(list.id)) ? 'is-selected' : ''}`}
                         onClick={() => handleBookmarkListSelect(list.id)}
+                        role="button"
+                        tabIndex={0}
                     >
-                        <span className="mypage-list-card-index">{String(start + index + 1).padStart(2, '0')}</span>
+                        <button
+                            type="button"
+                            className={`mypage-selection-box ${selectedBookmarkListIds.includes(String(list.id)) ? 'is-selected' : ''}`}
+                            onClick={(event) => {
+                                event.stopPropagation();
+                                toggleSelectedIds(setSelectedBookmarkListIds, list.id);
+                            }}
+                            aria-label={`${list.name} 선택`}
+                            aria-pressed={selectedBookmarkListIds.includes(String(list.id))}
+                        >
+                            {selectedBookmarkListIds.includes(String(list.id)) ? '✓' : ''}
+                        </button>
                         <div className="mypage-list-card-body">
                             <p className="mypage-list-card-title">{list.name}</p>
                             <p className="mypage-list-card-meta">저장된 설문 {list.bookmarkCount || 0}개</p>
                         </div>
-                    </button>
+                    </div>
                 ))}
             </div>
         );
@@ -1143,7 +1409,7 @@ function Mypage() {
      * @param {number} pageNum - 현재 페이지 번호 (항목 번호 계산용)
      * @returns {JSX.Element}
      */
-    const renderSurveyList = (surveys, type, pageNum) => {
+    const renderSurveyList = (surveys, type) => {
         if (surveys.length === 0) {
             if (type === 'created') {
                 return <p className="mypage-empty-text">아직 생성한 설문이 없습니다.</p>;
@@ -1151,13 +1417,27 @@ function Mypage() {
             return <p className="mypage-empty-text">이 리스트에 저장된 설문이 없습니다.</p>;
         }
 
+        const selectedIds = type === 'created' ? selectedCreatedSurveyIds : selectedBookmarkSurveyIds;
+        const setSelectedIds = type === 'created' ? setSelectedCreatedSurveyIds : setSelectedBookmarkSurveyIds;
+
         return (
             <div className="mypage-rectList">
-                {surveys.map((survey, index) => (
-                    <div className="mypage-rect" key={survey.id}>
+                {surveys.map((survey) => (
+                    <div className={`mypage-rect ${selectedIds.includes(String(survey.id)) ? 'is-selected' : ''}`} key={survey.id}>
                         <div className="mypage-survey-info" onClick={() => handleSurveyClick(survey.id)}>
-                            <p className='num'>{String((pageNum - 1) * DETAIL_PER_PAGE + index + 1).padStart(2, '0')}</p>
-                            <p className="mypage-rectText">{survey.title}</p>
+                            <button
+                                type="button"
+                                className={`mypage-selection-box ${selectedIds.includes(String(survey.id)) ? 'is-selected' : ''}`}
+                                onClick={(event) => {
+                                    event.stopPropagation();
+                                    toggleSelectedIds(setSelectedIds, survey.id);
+                                }}
+                                aria-label={`${survey.title} 선택`}
+                                aria-pressed={selectedIds.includes(String(survey.id))}
+                            >
+                                {selectedIds.includes(String(survey.id)) ? '✓' : ''}
+                            </button>
+                                                    <p className="mypage-rectText">{survey.title}</p>
                             {/* '생성한 설문' 목록에만 공개/비공개 상태 표시 */}
                             {(type === 'created' || type === 'created-preview') && (
                                 <span className={`mypage-survey-status ${survey.isPublic ? 'mypage-status-public' : 'mypage-status-private'}`}>
@@ -1168,11 +1448,25 @@ function Mypage() {
                         {/* '생성한 설문' 목록에만 수정/삭제/링크복사 버튼 표시 */}
                         {type === 'created' && (
                             <div className="mypage-actions">
-                                {!survey.isPublic && (
-                                    <button onClick={() => copyLink(survey.link)} className="mypage-copyLinkBtn">링크 복사</button>
-                                )}
-                                <img src={import.meta.env.BASE_URL + 'img/edit.svg'} alt="Edit Survey" className="mypage-edit-icon" onClick={() => handleEditClick(survey.id)} />
-                                <img src={import.meta.env.BASE_URL + 'img/delete.svg'} alt="Delete Survey" className="mypage-delete-icon" onClick={() => handleDeleteClick(survey.id)} />
+                                <div className="mypage-list-menu-wrap" onClick={(event) => event.stopPropagation()}>
+                                    <button
+                                        type="button"
+                                        className="mypage-list-menu-btn"
+                                        onClick={() => toggleSurveyMenu(survey.id)}
+                                        aria-label="설문 옵션 열기"
+                                    >
+                                        ...
+                                    </button>
+                                    {openSurveyMenuId === String(survey.id) && (
+                                        <div className="mypage-list-menu">
+                                            {!survey.isPublic && (
+                                                <button type="button" onClick={() => copyLink(survey.link)}>링크 복사</button>
+                                            )}
+                                            <button type="button" onClick={() => handleEditClick(survey.id)}>수정</button>
+                                            <button type="button" onClick={() => handleDeleteClick(survey.id)}>삭제</button>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         )}
 
@@ -1200,6 +1494,13 @@ function Mypage() {
             </div>
         );
     };
+
+    const createdVisibleIds = createdSurveys.map((survey) => String(survey.id));
+    const bookmarkListVisibleIds = bookmarkLists
+        .slice((bookmarkListOverviewPage - 1) * DETAIL_PER_PAGE, bookmarkListOverviewPage * DETAIL_PER_PAGE)
+        .map((list) => String(list.id));
+    const bookmarkSurveyVisibleIds = bookmarkSurveys.map((survey) => String(survey.id));
+    const respondedVisibleIds = managedRespondedSurveys.map((survey) => String(survey.id));
 
     return (
         <>
@@ -1393,6 +1694,14 @@ function Mypage() {
                             <div className="mypage-survey-section">
                                 <div className="mypage-card-header mypage-card-header--detail">
                                     <div className="mypage-section-title-row">
+                                        <button
+                                            type="button"
+                                            className="mypage-back-icon-btn"
+                                            onClick={() => { setRelationView('created'); setRelationUsers([]); }}
+                                            aria-label="뒤로가기"
+                                        >
+                                            <img src={import.meta.env.BASE_URL + 'img/ArrowLeftShort.svg'} alt="" aria-hidden="true" />
+                                        </button>
 
                                         <div>
                                             <h2 className="mypage-section-title">{relationView === 'followers' ? '팔로워 목록' : '팔로잉 목록'}</h2>
@@ -1408,20 +1717,44 @@ function Mypage() {
                             <div className="mypage-survey-section">
                                 <div className="mypage-card-header mypage-card-header--detail">
                                     <div className="mypage-section-title-row">
-
+                                        <button
+                                            type="button"
+                                            className="mypage-back-icon-btn"
+                                            onClick={closeBookmarkListDetail}
+                                            aria-label="리스트 목록으로 돌아가기"
+                                        >
+                                            <img src={import.meta.env.BASE_URL + 'img/ArrowLeftShort.svg'} alt="" aria-hidden="true" />
+                                        </button>
                                         <div>
                                             <h2 className="mypage-section-title">{selectedBookmarkList?.name || '리스트'}</h2>
                                             <span>이 리스트에 저장된 설문만 보여줍니다.</span>
                                         </div>
                                     </div>
-                                    <div className="mypage-list-menu-wrap">
-                                        <button type="button" className="mypage-list-menu-btn" onClick={toggleBookmarkListMenu} aria-label="리스트 옵션 열기">...</button>
-                                        {isBookmarkListMenuOpen && (
-                                            <div className="mypage-list-menu">
-                                                <button type="button" onClick={openBookmarkRenameModal}>리스트 수정</button>
-                                                <button type="button" onClick={handleDeleteBookmarkList}>리스트 삭제</button>
-                                            </div>
-                                        )}
+                                    <div className="mypage-card-header-actions">
+                                        <button
+                                            type="button"
+                                            className="mypage-section-action-btn"
+                                            onClick={() => toggleSelectAllVisible(bookmarkSurveyVisibleIds, selectedBookmarkSurveyIds, setSelectedBookmarkSurveyIds)}
+                                        >
+                                            {isAllVisibleSelected(bookmarkSurveyVisibleIds, selectedBookmarkSurveyIds) ? '선택 해제' : '전체 선택'}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="mypage-section-action-btn mypage-section-action-btn--danger"
+                                            onClick={deleteSelectedBookmarkSurveyItems}
+                                            disabled={selectedBookmarkSurveyIds.length === 0}
+                                        >
+                                            삭제
+                                        </button>
+                                        <div className="mypage-list-menu-wrap">
+                                            <button type="button" className="mypage-list-menu-btn" onClick={toggleBookmarkListMenu} aria-label="리스트 옵션 열기">...</button>
+                                            {isBookmarkListMenuOpen && (
+                                                <div className="mypage-list-menu">
+                                                    <button type="button" onClick={openBookmarkRenameModal}>리스트 수정</button>
+                                                    <button type="button" onClick={handleDeleteBookmarkList}>리스트 삭제</button>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
 
@@ -1448,6 +1781,23 @@ function Mypage() {
                                             <span>내 설문 전체를 확인할 수 있습니다.</span>
                                         </div>
                                     </div>
+                                    <div className="mypage-card-header-actions">
+                                        <button
+                                            type="button"
+                                            className="mypage-section-action-btn"
+                                            onClick={() => toggleSelectAllVisible(createdVisibleIds, selectedCreatedSurveyIds, setSelectedCreatedSurveyIds)}
+                                        >
+                                            {isAllVisibleSelected(createdVisibleIds, selectedCreatedSurveyIds) ? '선택 해제' : '전체 선택'}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="mypage-section-action-btn mypage-section-action-btn--danger"
+                                            onClick={deleteSelectedCreatedSurveys}
+                                            disabled={selectedCreatedSurveyIds.length === 0}
+                                        >
+                                            삭제
+                                        </button>
+                                    </div>
                                 </div>
                                 {loading.created ? <p className="mypage-loading-text">로딩 중...</p> : renderSurveyList(createdSurveys, 'created', createdPage)}
                                 {!loading.created && createdTotalPages > 1 && (
@@ -1470,7 +1820,24 @@ function Mypage() {
                                             <span>내 리스트 전체를 확인할 수 있습니다.</span>
                                         </div>
                                     </div>
-                                    <button type="button" className="mypage-add-list-btn" onClick={openBookmarkCreateModal} aria-label="새 리스트 만들기">+</button>
+                                    <div className="mypage-card-header-actions">
+                                        <button
+                                            type="button"
+                                            className="mypage-section-action-btn"
+                                            onClick={() => toggleSelectAllVisible(bookmarkListVisibleIds, selectedBookmarkListIds, setSelectedBookmarkListIds)}
+                                        >
+                                            {isAllVisibleSelected(bookmarkListVisibleIds, selectedBookmarkListIds) ? '선택 해제' : '전체 선택'}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="mypage-section-action-btn mypage-section-action-btn--danger"
+                                            onClick={deleteSelectedBookmarkLists}
+                                            disabled={selectedBookmarkListIds.length === 0}
+                                        >
+                                            삭제
+                                        </button>
+                                        <button type="button" className="mypage-add-list-btn" onClick={openBookmarkCreateModal} aria-label="새 리스트 만들기">+</button>
+                                    </div>
                                 </div>
 
                                 {renderBookmarkListCards({ page: bookmarkListOverviewPage })}
@@ -1494,6 +1861,23 @@ function Mypage() {
                                             <span>내 댓글 전체를 관리할 수 있습니다.</span>
                                         </div>
                                     </div>
+                                    <div className="mypage-card-header-actions">
+                                        <button
+                                            type="button"
+                                            className="mypage-section-action-btn"
+                                            onClick={() => toggleSelectAllVisible(managedComments.map((comment) => String(comment.id)), selectedCommentIds, setSelectedCommentIds)}
+                                        >
+                                            {isAllVisibleSelected(managedComments.map((comment) => String(comment.id)), selectedCommentIds) ? '선택 해제' : '전체 선택'}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="mypage-section-action-btn mypage-section-action-btn--danger"
+                                            onClick={deleteSelectedComments}
+                                            disabled={selectedCommentIds.length === 0}
+                                        >
+                                            삭제
+                                        </button>
+                                    </div>
                                 </div>
 
                                 {manageLoading ? (
@@ -1502,10 +1886,21 @@ function Mypage() {
                                     <p className="mypage-empty-text">관리할 댓글이 없습니다.</p>
                                 ) : (
                                     <div className="mypage-rectList">
-                                        {managedComments.map((comment, index) => (
+                                        {managedComments.map((comment) => (
                                             <div className="mypage-rect" key={comment.id}>
                                                 <div className="mypage-survey-info" onClick={() => openCommentDetail(comment)}>
-                                                    <p className='num'>{String((commentManagePage - 1) * DETAIL_PER_PAGE + index + 1).padStart(2, '0')}</p>
+                                                    <button
+                                                        type="button"
+                                                        className={`mypage-selection-box ${selectedCommentIds.includes(String(comment.id)) ? 'is-selected' : ''}`}
+                                                        onClick={(event) => {
+                                                            event.stopPropagation();
+                                                            toggleSelectedIds(setSelectedCommentIds, comment.id);
+                                                        }}
+                                                        aria-label={`${comment.surveyTitle || '댓글'} 선택`}
+                                                        aria-pressed={selectedCommentIds.includes(String(comment.id))}
+                                                    >
+                                                        {selectedCommentIds.includes(String(comment.id)) ? '✓' : ''}
+                                                    </button>
                                                     <div className="mypage-manage-preview-body">
                                                         <p className="mypage-rectText">{comment.surveyTitle}</p>
                                                         <p className="mypage-manage-preview-sub">{comment.content}</p>
@@ -1536,6 +1931,23 @@ function Mypage() {
                                             <span>내 참여 설문 전체를 확인하고 관리할 수 있습니다.</span>
                                         </div>
                                     </div>
+                                    <div className="mypage-card-header-actions">
+                                        <button
+                                            type="button"
+                                            className="mypage-section-action-btn"
+                                            onClick={() => toggleSelectAllVisible(respondedVisibleIds, selectedRespondedSurveyIds, setSelectedRespondedSurveyIds)}
+                                        >
+                                            {isAllVisibleSelected(respondedVisibleIds, selectedRespondedSurveyIds) ? '선택 해제' : '전체 선택'}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="mypage-section-action-btn mypage-section-action-btn--danger"
+                                            onClick={deleteSelectedRespondedSurveys}
+                                            disabled={selectedRespondedSurveyIds.length === 0}
+                                        >
+                                            삭제
+                                        </button>
+                                    </div>
                                 </div>
 
                                 {manageLoading ? (
@@ -1544,28 +1956,43 @@ function Mypage() {
                                     <p className="mypage-empty-text">참여한 설문이 없습니다.</p>
                                 ) : (
                                     <div className="mypage-rectList">
-                                        {managedRespondedSurveys.map((survey, index) => (
-                                            <div className="mypage-rect" key={survey.id}>
+                                        {managedRespondedSurveys.map((survey) => (
+                                            <div className={`mypage-rect ${selectedRespondedSurveyIds.includes(String(survey.id)) ? 'is-selected' : ''}`} key={survey.id}>
                                                 <div className="mypage-survey-info" onClick={() => navigate(`/surveys/${survey.id}`)}>
-                                                    <p className='num'>{String((responseManagePage - 1) * DETAIL_PER_PAGE + index + 1).padStart(2, '0')}</p>
+                                                    <button
+                                                        type="button"
+                                                        className={`mypage-selection-box ${selectedRespondedSurveyIds.includes(String(survey.id)) ? 'is-selected' : ''}`}
+                                                        onClick={(event) => {
+                                                            event.stopPropagation();
+                                                            toggleSelectedIds(setSelectedRespondedSurveyIds, survey.id);
+                                                        }}
+                                                        aria-label={`${survey.title} 선택`}
+                                                        aria-pressed={selectedRespondedSurveyIds.includes(String(survey.id))}
+                                                    >
+                                                        {selectedRespondedSurveyIds.includes(String(survey.id)) ? '✓' : ''}
+                                                    </button>
                                                     <div className="mypage-manage-preview-body">
                                                         <p className="mypage-rectText">{survey.title}</p>
                                                         <p className="mypage-manage-preview-sub">응답을 수정하거나 참여 기록을 삭제할 수 있습니다.</p>
                                                     </div>
                                                 </div>
                                                 <div className="mypage-actions">
-                                                    <img
-                                                        src={"/survly/img/edit.svg"}
-                                                        alt="Edit Response"
-                                                        className="mypage-edit-icon"
-                                                        onClick={() => handleEditRespondedSurvey(survey.id)}
-                                                    />
-                                                    <img
-                                                        src={"/survly/img/delete.svg"}
-                                                        alt="Delete Response"
-                                                        className="mypage-delete-icon"
-                                                        onClick={() => handleDeleteRespondedSurvey(survey.id)}
-                                                    />
+                                                    <div className="mypage-list-menu-wrap" onClick={(event) => event.stopPropagation()}>
+                                                        <button
+                                                            type="button"
+                                                            className="mypage-list-menu-btn"
+                                                            onClick={() => toggleRespondedSurveyMenu(survey.id)}
+                                                            aria-label="참여한 설문 옵션 열기"
+                                                        >
+                                                            ...
+                                                        </button>
+                                                        {openRespondedSurveyMenuId === String(survey.id) && (
+                                                            <div className="mypage-list-menu">
+                                                                <button type="button" onClick={() => handleEditRespondedSurvey(survey.id)}>수정</button>
+                                                                <button type="button" onClick={() => handleDeleteRespondedSurvey(survey.id)}>삭제</button>
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
                                         ))}

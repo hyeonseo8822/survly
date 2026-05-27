@@ -133,12 +133,65 @@
     transition: color 0.2s ease;
     text-decoration: none;
     font-size: 15px;
-    color: #111111;
+    color: #4a6480;
     letter-spacing: 0.01em;
 }
 
 .nav:hover {
-    color: #111111;
+    color: #a1bbff;
+}
+
+.mypage-menu {
+    position: relative;
+}
+
+.mypage-menu-trigger {
+    border: none;
+    background: transparent;
+    font: inherit;
+    padding: 0;
+}
+
+.mypage-menu-dropdown {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    min-width: 138px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 8px;
+    border-radius: 12px;
+    border: 1px solid rgba(158, 183, 209, 0.35);
+    background: rgba(255, 255, 255, 0.98);
+    box-shadow: 0 12px 26px rgba(53, 81, 110, 0.16);
+    z-index: 140;
+}
+
+.mypage-menu-item {
+    width: 100%;
+    height: 34px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: #3f5e79;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: left;
+    padding: 0 10px;
+    cursor: pointer;
+}
+
+.mypage-menu-item:hover {
+    background: rgba(179, 181, 255, 0.14);
+}
+
+.mypage-menu-item--logout {
+    color: #b44b4b;
+}
+
+.mypage-menu-item--logout:hover {
+    background: rgba(224, 92, 92, 0.12);
 }
 
 .login_signup {
@@ -263,6 +316,22 @@
     box-sizing: border-box;
 }
 
+.route-left,
+.route-right {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.route-left {
+    flex: 1;
+    min-width: 0;
+}
+
+.route-right {
+    justify-content: flex-end;
+}
+
 .navbar2 > .route {
     align-items: center;
     justify-content: space-between;
@@ -346,8 +415,7 @@
     font-weight: 600;
     font-size: 14px;
     border-radius: 9px;
-    background: linear-gradient(135deg, #a1bbff 0%, #afb4ff 100%);
-    color: #fff;
+    background: #a1bbff;
     box-shadow: 0 2px 10px rgba(106, 185, 255, 0.35);
     transition: opacity 0.2s ease, transform 0.1s ease;
     letter-spacing: 0.01em;
@@ -361,6 +429,19 @@
 
 .post:hover {
     opacity: 0.86;
+    transform: translateY(-1px);
+}
+
+.post--secondary {
+    background: linear-gradient(135deg, #eef4ff 0%, #dde8ff 100%);
+    color: #3f5e79;
+    border: 1px solid rgba(158, 183, 209, 0.35);
+    box-shadow: 0 2px 10px rgba(111, 141, 190, 0.18);
+    outline: none;
+}
+
+.post--secondary:hover {
+    opacity: 0.95;
     transform: translateY(-1px);
 }
 

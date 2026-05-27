@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import './css/NavBar.css';
 
 /**
@@ -10,13 +10,37 @@ import './css/NavBar.css';
 function NavBar() {
   const [user, setUser] = useState(null);
   const [keyword, setKeyword] = useState('');
+  const [isMypageMenuOpen, setIsMypageMenuOpen] = useState(false);
+  const mypageMenuRef = useRef(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const userId = localStorage.getItem('userId');
-    if (userId) {
-      setUser(userId);
-    }
+    const syncUser = () => {
+      const userId = localStorage.getItem('userId');
+      setUser(userId || null);
+    };
+
+    syncUser();
+    window.addEventListener('storage', syncUser);
+
+    return () => {
+      window.removeEventListener('storage', syncUser);
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleOutsideClick = (event) => {
+      if (!mypageMenuRef.current || mypageMenuRef.current.contains(event.target)) {
+        return;
+      }
+      setIsMypageMenuOpen(false);
+    };
+
+    document.addEventListener('mousedown', handleOutsideClick);
+
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+    };
   }, []);
 
   const handleSearch = () => {
@@ -29,6 +53,23 @@ function NavBar() {
     if (e.key === 'Enter') {
       handleSearch();
     }
+  };
+
+  const toggleMypageMenu = () => {
+    setIsMypageMenuOpen((prev) => !prev);
+  };
+
+  const handleGoToMypage = () => {
+    setIsMypageMenuOpen(false);
+    navigate('/mypage');
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('userId');
+    setUser(null);
+    setIsMypageMenuOpen(false);
+    navigate('/login');
   };
 
   return (
@@ -56,7 +97,29 @@ function NavBar() {
       <div className='navbar-right'>
         <div className="items">
           <Link to="/create" className='nav'>Create</Link>
-          {user && <Link to="/mypage" className='nav'>Mypage</Link>}
+          {user && (
+            <div className="mypage-menu" ref={mypageMenuRef}>
+              <button
+                type="button"
+                className="nav mypage-menu-trigger"
+                onClick={toggleMypageMenu}
+                aria-haspopup="menu"
+                aria-expanded={isMypageMenuOpen}
+              >
+                Mypage
+              </button>
+              {isMypageMenuOpen && (
+                <div className="mypage-menu-dropdown" role="menu">
+                  <button type="button" className="mypage-menu-item" role="menuitem" onClick={handleGoToMypage}>
+                    마이페이지
+                  </button>
+                  <button type="button" className="mypage-menu-item mypage-menu-item--logout" role="menuitem" onClick={handleLogout}>
+                    로그아웃
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         <div className='login_signup'>

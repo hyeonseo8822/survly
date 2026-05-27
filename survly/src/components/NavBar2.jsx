@@ -16,6 +16,10 @@ import './css/NavBar.css';
  * @param {string} [props.tab1Text='질문'] - 첫 번째 탭에 표시될 텍스트
  * @param {boolean} [props.showResponseTab=true] - '응답' 탭을 표시할지 여부
  * @param {boolean} [props.showButton=true] - 오른쪽 상단 액션 버튼을 표시할지 여부
+ * @param {boolean} [props.showRightAction=false] - 오른쪽 끝 보조 액션 버튼을 표시할지 여부
+ * @param {string} [props.rightActionText='시트 다운로드'] - 오른쪽 끝 버튼 텍스트
+ * @param {function} [props.onRightAction] - 오른쪽 끝 버튼 클릭 시 실행할 함수
+ * @param {boolean} [props.rightActionDisabled=false] - 오른쪽 끝 버튼 비활성화 여부
  */
 function NavBar2({
   active,
@@ -25,27 +29,46 @@ function NavBar2({
   buttonText = '게시',
   tab1Text = '질문',
   showResponseTab = true,
-  showButton = true
+  showButton = true,
+  showRightAction = false,
+  rightActionText = '시트 다운로드',
+  onRightAction,
+  rightActionDisabled = false
 }) {
   return (
     <div className='navbar2'>
       <div className='route'>
-        {/* 로고: 클릭 시 메인 페이지로 이동 */}
-        <Link to="/">
-          <div className="brandmark">
-            <img src={import.meta.env.BASE_URL + 'img/logo.svg'} alt="Survly" className="brandmark-logo" />
-          </div>
-        </Link>
-        
-        {/* showButton prop이 true일 때만 액션 버튼을 렌더링합니다. */}
-        {showButton && (
-          <div 
-            // 로딩 중일 때는 'disabled' 클래스를 추가하여 시각적으로 비활성화하고, 클릭 이벤트를 막습니다.
-            className={`post active ${loading ? 'disabled' : ''}`}
-            onClick={!loading ? onButtonClick : null}  
-          >
-            {/* 로딩 상태에 따라 버튼 텍스트를 '처리 중...' 또는 전달받은 buttonText로 표시합니다. */}
-            <p>{loading ? '처리 중...' : buttonText}</p>
+        <div className='route-left'>
+          {/* 로고: 클릭 시 메인 페이지로 이동 */}
+          <Link to="/">
+            <div className="brandmark">
+              <img src={import.meta.env.BASE_URL + 'img/logo.svg'} alt="Survly" className="brandmark-logo" />
+            </div>
+          </Link>
+
+          {/* showButton prop이 true일 때만 액션 버튼을 렌더링합니다. */}
+          {showButton && (
+            <div
+              // 로딩 중일 때는 'disabled' 클래스를 추가하여 시각적으로 비활성화하고, 클릭 이벤트를 막습니다.
+              className={`post active ${loading ? 'disabled' : ''}`}
+              onClick={!loading ? onButtonClick : null}
+            >
+              {/* 로딩 상태에 따라 버튼 텍스트를 '처리 중...' 또는 전달받은 buttonText로 표시합니다. */}
+              <p>{loading ? '처리 중...' : buttonText}</p>
+            </div>
+          )}
+        </div>
+
+        {showRightAction && (
+          <div className='route-right'>
+            <button
+              type='button'
+              className={`post post--secondary ${rightActionDisabled ? 'disabled' : ''}`}
+              onClick={!rightActionDisabled ? onRightAction : undefined}
+              disabled={rightActionDisabled}
+            >
+              <p>{rightActionText}</p>
+            </button>
           </div>
         )}
       </div>
