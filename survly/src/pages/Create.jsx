@@ -6,32 +6,32 @@ import { useNotification } from '../components/NotificationProvider';
 
 const QUESTION_TYPE_META = {
   objective: {
-    label: '객관식 질문',
+    label: '객관식',
     apiType: 'multiple-choice',
     hasOptions: true
   },
   checkbox: {
-    label: '객관식(중복가능) 질문',
+    label: '객관식(중복선택)',
     apiType: 'checkboxes',
     hasOptions: true
   },
   subjective: {
-    label: '단답형 질문',
+    label: '단답형',
     apiType: 'text',
     hasOptions: false
   },
   longtext: {
-    label: '장문형 질문',
+    label: '장문형',
     apiType: 'long-text',
     hasOptions: false
   },
   rating: {
-    label: '평점 질문',
+    label: '평점',
     apiType: 'rating',
     hasOptions: false
   },
   date: {
-    label: '날짜 질문',
+    label: '날짜',
     apiType: 'date',
     hasOptions: false
   }
@@ -370,11 +370,12 @@ function Create() {
       if (result.success) {
         setSurveyId(result.surveyId || currentSurveyId);
         if (method === 'POST') { // 생성 성공
-          if (surveyIsPublic) {
+            if (surveyIsPublic) {
             setSuccess('설문지가 성공적으로 게시되었습니다!');
             navigate('/');
           } else {
-            const shareableLink = `${window.location.origin}/s/${result.link}`;
+            const base = (import.meta.env.BASE_URL || '/').replace(/\/$/, '');
+            const shareableLink = `${window.location.origin}${base}/s/${result.link}`;
             setSuccess(`비공개 설문이 생성되었습니다! 다음 링크를 공유하세요: ${shareableLink}`);
             navigate('/');
           }

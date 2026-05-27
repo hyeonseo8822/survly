@@ -91,8 +91,8 @@ function Mypage() {
     const displayedAvatar = avatarPreview || profileDraft.avatarUrl || profile.avatarUrl;
     const avatarFallback = (profileDraft.displayName || profile.displayName || loggedInUserId || 'SV').slice(0, 2).toUpperCase();
     const selectedBookmarkList = bookmarkLists.find((list) => list.id === selectedBookmarkListId) || null;
-    // 왼쪽 프로필은 항상 고정, 상세(팔로워/팔로잉/리스트 상세)만 중앙 정렬
-    const isCenterOnlyView = relationView === 'followers' || relationView === 'following' || relationView === 'bookmark-list';
+    // 왼쪽 프로필은 팔로워/팔로잉에서도 유지하고, 리스트 상세만 중앙 정렬
+    const isCenterOnlyView = relationView === 'bookmark-list';
 
     const toStringId = (value) => String(value);
 
@@ -974,7 +974,8 @@ function Mypage() {
      * @param {string} link - 복사할 고유 링크 문자열
      */
     const copyLink = (link) => {
-        const fullLink = `${window.location.origin}/s/${link}`;
+        const base = (import.meta.env.BASE_URL || '/').replace(/\/$/, '');
+        const fullLink = `${window.location.origin}${base}/s/${link}`;
         navigator.clipboard.writeText(fullLink).then(() => {
             notify('링크가 클립보드에 복사되었습니다!', 'success');
         }).catch(() => {
@@ -1024,7 +1025,7 @@ function Mypage() {
             });
             const data = await safeParseJson(response);
             if (!response.ok || !data.success) {
-                throw new Error(data.message || '팔로우 상태 변경에 실패했습니다.');
+                throw new Error(data.message || 'follow 상태 변경에 실패했습니다.');
             }
 
             setRelationUsers((prev) => prev.map((user) =>
@@ -1032,7 +1033,7 @@ function Mypage() {
             ));
             setProfile((prev) => ({ ...prev, followingCount: Number(data.followingCount) || prev.followingCount }));
         } catch (err) {
-            notify(err.message || '팔로우 상태 변경에 실패했습니다.', 'error');
+            notify(err.message || 'follow 상태 변경에 실패했습니다.', 'error');
         }
     };
 
