@@ -204,7 +204,10 @@ async function listBookmarkedSurveysInList(req, res) {
       ? await Survey.find({ _id: { $in: surveyIds } }).lean()
       : [];
 
-    const surveyMap = new Map(surveys.map((survey) => [survey._id.toString(), toSurveyResponse(survey)]));
+    const surveyMap = new Map(
+      (await Promise.all(surveys.map(async (survey) => [survey._id.toString(), await toSurveyResponse(survey)])))
+        .filter(Boolean)
+    );
 
     return res.json({
       success: true,

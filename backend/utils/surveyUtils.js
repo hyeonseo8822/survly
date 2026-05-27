@@ -24,7 +24,7 @@ function normalizeBoolean(value) {
   return value === true || value === 'true' || value === '1' || value === 1;
 }
 
-function toSurveyResponse(survey) {
+async function toSurveyResponse(survey) {
   return {
     id: survey._id.toString(),
     title: survey.title,
@@ -34,7 +34,7 @@ function toSurveyResponse(survey) {
     responseTabPublic: survey.responseTabPublic,
     userId: survey.userId,
     link: survey.link,
-    img: survey.img === 'default_img' ? 'default_img' : resolveUploadDataUrl(survey.img || ''),
+    img: survey.img === 'default_img' ? 'default_img' : await resolveUploadDataUrl(survey.img || ''),
     participantCount: survey.participantCount || 0,
     created_at: survey.created_at
   };
@@ -67,7 +67,7 @@ async function getSurveyDetails(surveyDoc) {
   });
 
   return {
-    ...toSurveyResponse(surveyDoc),
+    ...await toSurveyResponse(surveyDoc),
     questions: questions.map((question) => toQuestionResponse(
       question,
       optionsByQuestionId.get(question._id.toString()) || []

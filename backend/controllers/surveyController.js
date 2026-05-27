@@ -338,10 +338,10 @@ async function listSurveys(req, res) {
 
     res.json({
       success: true,
-      surveys: surveys.map((survey) => ({
-        ...toSurveyResponse(survey),
+      surveys: await Promise.all(surveys.map(async (survey) => ({
+        ...await toSurveyResponse(survey),
         bookmarkCount: Number(survey.bookmarkCount) || 0
-      })),
+      }))),
       totalSurveys,
       page: normalizedPage,
       totalPages: Math.ceil(totalSurveys / normalizedLimit)
@@ -407,7 +407,7 @@ async function getMySurveys(req, res) {
 
     res.json({
       success: true,
-      surveys: surveys.map(toSurveyResponse),
+      surveys: await Promise.all(surveys.map(async (survey) => toSurveyResponse(survey))),
       totalSurveys,
       page: normalizedPage,
       totalPages: Math.ceil(totalSurveys / normalizedLimit)
@@ -439,7 +439,7 @@ async function getMyRespondedSurveys(req, res) {
 
     res.json({
       success: true,
-      surveys: surveys.map(toSurveyResponse),
+      surveys: await Promise.all(surveys.map(async (survey) => toSurveyResponse(survey))),
       totalSurveys,
       page: normalizedPage,
       totalPages: Math.ceil(totalSurveys / normalizedLimit)

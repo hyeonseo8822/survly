@@ -22,26 +22,26 @@ function escapeRegExp(value) {
   return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-function serializeProfile(user) {
+async function serializeProfile(user) {
   return {
     userId: user.userId,
     email: user.email,
     displayName: user.displayName || user.userId,
     headline: user.headline || '',
     bio: user.bio || '',
-    avatarUrl: resolveUploadDataUrl(user.avatarUrl || ''),
+    avatarUrl: await resolveUploadDataUrl(user.avatarUrl || ''),
     followerCount: Number.isFinite(user.followerCount) ? user.followerCount : 0,
     followingCount: Number.isFinite(user.followingCount) ? user.followingCount : 0
   };
 }
 
-function serializePublicProfile(user) {
+async function serializePublicProfile(user) {
   return {
     userId: user.userId,
     displayName: user.displayName || user.userId,
     headline: user.headline || '',
     bio: user.bio || '',
-    avatarUrl: resolveUploadDataUrl(user.avatarUrl || ''),
+    avatarUrl: await resolveUploadDataUrl(user.avatarUrl || ''),
     followerCount: Number.isFinite(user.followerCount) ? user.followerCount : 0,
     followingCount: Number.isFinite(user.followingCount) ? user.followingCount : 0
   };
@@ -59,7 +59,7 @@ async function getMyProfile(req, res) {
 
     return res.json({
       success: true,
-      profile: serializeProfile({
+      profile: await serializeProfile({
         ...user.toObject(),
         ...stats
       })
@@ -109,7 +109,7 @@ async function updateMyProfile(req, res) {
 
     await user.save();
 
-    const response = { success: true, profile: serializeProfile(user) };
+    const response = { success: true, profile: await serializeProfile(user) };
     if (nextUserId !== req.user.userId) {
       response.token = jwt.sign({ userId: user.userId }, process.env.JWT_SECRET, { expiresIn: TOKEN_EXPIRES_IN });
     }
@@ -143,7 +143,7 @@ async function getUserProfile(req, res) {
     return res.json({
       success: true,
       profile: {
-        ...serializePublicProfile({
+        ...await serializePublicProfile({
           ...user.toObject(),
           ...stats
         }),
@@ -331,14 +331,16 @@ async function listFollowers(req, res) {
       followingSet = new Set(rows.map((row) => row.followingId));
     }
 
-    const usersOrdered = followerIds
-      .map((id) => userById.get(id))
-      .filter(Boolean)
-      .map((user) => ({
-        ...serializePublicProfile(user),
-        isMe: requesterUserId === user.userId,
-        isFollowing: requesterUserId ? followingSet.has(user.userId) : false
-      }));
+    const usersOrdered = await Promise.all(
+      followerIds
+        .map((id) => userById.get(id))
+        .filter(Boolean)
+        .map(async (user) => ({
+          ...await serializePublicProfile(user),
+          isMe: requesterUserId === user.userId,
+          isFollowing: requesterUserId ? followingSet.has(user.userId) : false
+        }))
+    );
 
     return res.json({ success: true, users: usersOrdered });
   } catch (error) {
@@ -368,14 +370,16 @@ async function listFollowing(req, res) {
       followingSet = new Set(rows.map((row) => row.followingId));
     }
 
-    const usersOrdered = followingIds
-      .map((id) => userById.get(id))
-      .filter(Boolean)
-      .map((user) => ({
-        ...serializePublicProfile(user),
-        isMe: requesterUserId === user.userId,
-        isFollowing: requesterUserId ? followingSet.has(user.userId) : false
-      }));
+    const usersOrdered = await Promise.all(
+      followingIds
+        .map((id) => userById.get(id))
+        .filter(Boolean)
+        .map(async (user) => ({
+          ...await serializePublicProfile(user),
+          isMe: requesterUserId === user.userId,
+          isFollowing: requesterUserId ? followingSet.has(user.userId) : false
+        }))
+    );
 
     return res.json({ success: true, users: usersOrdered });
   } catch (error) {
@@ -410,11 +414,11 @@ async function searchUsers(req, res) {
       followingSet = new Set(rows.map((row) => row.followingId));
     }
 
-    const normalizedUsers = users.map((user) => ({
-      ...serializePublicProfile(user),
+    const normalizedUsers = await Promise.all(users.map(async (user) => ({
+      ...await serializePublicProfile(user),
       isMe: requesterUserId === user.userId,
       isFollowing: requesterUserId ? followingSet.has(user.userId) : false
-    }));
+    })));
 
     return res.json({ success: true, users: normalizedUsers, totalUsers: normalizedUsers.length });
   } catch (error) {
