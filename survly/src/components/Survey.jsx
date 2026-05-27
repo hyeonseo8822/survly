@@ -437,7 +437,7 @@ function Surveys() {
                                             className="survey-thumbnail"
                                         />
                                 ) : hasThumbnail ? (
-                                    <img src={resolveUploadUrl(`uploads/${survey.img}`)} alt="Survey Thumbnail" className="survey-thumbnail" />
+                                    <img src={resolveUploadUrl(survey.img)} alt="Survey Thumbnail" className="survey-thumbnail" />
                                 ) : (
                                     <div className="survey-summary-thumb" aria-label="설문 요약 썸네일">
                                         <p className="survey-summary-thumb__title">{survey.title}</p>

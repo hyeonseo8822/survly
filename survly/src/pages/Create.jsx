@@ -148,7 +148,7 @@ function Create() {
               question: q.question,
             })));
             if (fetchedSurvey.img && fetchedSurvey.img !== 'default_img') {
-              setExistingImage(resolveUploadUrl(`uploads/${fetchedSurvey.img}`));
+              setExistingImage(resolveUploadUrl(fetchedSurvey.img));
             }
           } else {
             throw new Error(result.message || '설문 데이터를 불러오는데 실패했습니다.');

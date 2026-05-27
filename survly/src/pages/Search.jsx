@@ -371,7 +371,7 @@ function Search() {
                                         <div className="graph">
                                             <img 
                                                 src={survey.img && survey.img !== 'default_img' 
-                                                    ? resolveUploadUrl(`uploads/${survey.img}`) 
+                                                    ? resolveUploadUrl(survey.img) 
                                                     : `${import.meta.env.BASE_URL}img/default_img.svg`}
                                                 alt="Survey Thumbnail"
                                                 className="survey-thumbnail"
