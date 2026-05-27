@@ -1,6 +1,6 @@
 import './css/Login.css'; 
 import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useNotification } from '../components/NotificationProvider';
 
 function SignUp() {
@@ -8,12 +8,18 @@ function SignUp() {
     const [password, setPassword] = useState(""); // 사용자가 입력한 비밀번호
     const [email, setEmail] = useState(""); // 사용자가 입력한 이메일
     const [username, setUsername] = useState(""); // 사용자가 입력한 사용자 이름
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const submitLockRef = useRef(false);
     
     // React Router의 navigate 함수를 사용하여 페이지 이동을 처리합니다.
     const navigate = useNavigate();
     const { notify } = useNotification();
 
     const handleSignUp = async () => {
+        if (submitLockRef.current) {
+            return;
+        }
+
         // 1. 클라이언트 측 유효성 검사
         if (!userId || !password || !email || !username) {
             notify("모든 필드를 입력해주세요!", 'warning');
@@ -29,6 +35,9 @@ function SignUp() {
         }
 
         try {
+            submitLockRef.current = true;
+            setIsSubmitting(true);
+
             // 2. 회원가입 API에 POST 요청
             const res = await fetch(`${import.meta.env.VITE_API_BASE}/api/auth/register`, {
                 method: "POST",
@@ -51,6 +60,9 @@ function SignUp() {
             // 서버 연결 실패 등 네트워크 오류 발생 시
             console.error(err);
             notify("서버 오류 발생", 'error');
+        } finally {
+            submitLockRef.current = false;
+            setIsSubmitting(false);
         }
     };
 
@@ -97,7 +109,7 @@ function SignUp() {
                     />
                 </div>
 
-                <button className='auth-submit' onClick={handleSignUp}>
+                <button className='auth-submit' onClick={handleSignUp} disabled={isSubmitting} aria-disabled={isSubmitting}>
                     회원가입
                 </button>
             </div>

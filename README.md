@@ -1,7 +1,7 @@
 # Survly 프로젝트 문서
 
 ## 1. 프로젝트 개요
-- **Survly**는 설문 생성, 응답, 결과 공유, 북마크, 팔로우, 댓글 등 다양한 기능을 제공하는 설문 플랫폼입니다.
+- **Survly**는 설문 생성, 응답, 결과 공유, 북마크, follow, 댓글 등 다양한 기능을 제공하는 설문 플랫폼입니다.
 - React(Vite) 프론트엔드와 Node.js(Express) + MongoDB 백엔드로 구성되어 있습니다.
 
 ## 2. 기술 스택
@@ -69,14 +69,14 @@
 - `POST /api/surveys/:surveyId/bookmark` : 북마크 추가
 - `DELETE /api/surveys/:surveyId/bookmark` : 북마크 해제
 
-### 마이페이지/팔로우/북마크
+### 마이페이지/follow/북마크
 - `GET /api/me` : 내 프로필
 - `GET /api/me/surveys` : 내가 만든 설문
 - `GET /api/me/responded-surveys` : 내가 참여한 설문
 - `GET /api/me/bookmark-lists` : 내 북마크 목록
 - `GET /api/me/comments` : 내가 쓴 댓글
-- `POST /api/users/:userId/follow` : 팔로우
-- `DELETE /api/users/:userId/follow` : 언팔로우
+- `POST /api/users/:userId/follow` : follow
+- `DELETE /api/users/:userId/follow` : unfollow
 
 ## 4. DB 구조 (주요 컬렉션)
 

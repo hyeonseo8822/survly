@@ -14,15 +14,11 @@ function Search() {
     const [totalPages, setTotalPages] = useState(0); // 전체 페이지 수
     const [loading, setLoading] = useState(false); // 데이터 로딩 상태
     const [usersLoading, setUsersLoading] = useState(false);
-    const [userDetailLoading, setUserDetailLoading] = useState(false);
     const [error, setError] = useState(null); // 에러 상태
     const [bookmarkStateBySurveyId, setBookmarkStateBySurveyId] = useState({});
     const [bookmarkBusyBySurveyId, setBookmarkBusyBySurveyId] = useState({});
     const [bookmarkModalSurveyId, setBookmarkModalSurveyId] = useState(null);
     const [bookmarkModalLoading, setBookmarkModalLoading] = useState(false);
-    const [selectedUserProfile, setSelectedUserProfile] = useState(null);
-    const [selectedUserCreatedSurveys, setSelectedUserCreatedSurveys] = useState([]);
-    const [selectedUserRespondedSurveys, setSelectedUserRespondedSurveys] = useState([]);
     
     const navigate = useNavigate();
     const location = useLocation(); // 현재 URL 정보를 담고 있는 객체
@@ -67,9 +63,6 @@ function Search() {
     // 이렇게 함으로써 새로운 검색 시 항상 첫 페이지부터 결과를 보여줍니다.
     useEffect(() => {
         setPage(1);
-        setSelectedUserProfile(null);
-        setSelectedUserCreatedSurveys([]);
-        setSelectedUserRespondedSurveys([]);
     }, [keyword, mode]);
 
     // Effect 2: 페이지 번호나 검색어가 변경될 때마다 검색 결과를 다시 불러옵니다.
@@ -270,133 +263,12 @@ function Search() {
         return `${import.meta.env.VITE_API_BASE}${avatarUrl.startsWith('/') ? '' : '/'}${avatarUrl}`;
     };
 
-    const openUserDetail = async (userId) => {
-        if (!userId || userDetailLoading) {
-            return;
-        }
-
-        try {
-            setBookmarkModalSurveyId(null);
-            setUserDetailLoading(true);
-            setError(null);
-
-            const token = localStorage.getItem('token');
-            const headers = token ? { Authorization: `Bearer ${token}` } : {};
-
-            const [profileResponse, createdResponse, respondedResponse] = await Promise.all([
-                fetch(`${import.meta.env.VITE_API_BASE}/api/users/${encodeURIComponent(userId)}/profile`, { headers }),
-                fetch(`${import.meta.env.VITE_API_BASE}/api/users/${encodeURIComponent(userId)}/surveys?limit=10`, { headers }),
-                fetch(`${import.meta.env.VITE_API_BASE}/api/users/${encodeURIComponent(userId)}/responded-surveys?limit=10`, { headers })
-            ]);
-
-            const profileData = await safeParseJson(profileResponse);
-            const createdData = await safeParseJson(createdResponse);
-            const respondedData = await safeParseJson(respondedResponse);
-
-            if (!profileResponse.ok || !profileData.success) {
-                throw new Error(profileData.message || '사용자 상세 정보를 불러오지 못했습니다.');
-            }
-
-            setSelectedUserProfile(profileData.profile);
-            setSelectedUserCreatedSurveys(createdData.success ? (createdData.surveys || []) : []);
-            setSelectedUserRespondedSurveys(respondedData.success ? (respondedData.surveys || []) : []);
-        } catch (error) {
-            setError(error.message || '사용자 상세 정보를 불러오지 못했습니다.');
-        } finally {
-            setUserDetailLoading(false);
-        }
-    };
-
-    const closeUserDetail = () => {
-        setSelectedUserProfile(null);
-        setSelectedUserCreatedSurveys([]);
-        setSelectedUserRespondedSurveys([]);
-    };
-
-
     if (error) {
         return <div className="surveys"><div className="surveyText">Search Results</div><div className='surveyExplain'>Error: {error}</div></div>;
     }
 
     const bookmarkModalSurvey = surveyList.find((survey) => survey.id === bookmarkModalSurveyId);
     const bookmarkModalState = bookmarkModalSurveyId ? bookmarkStateBySurveyId[bookmarkModalSurveyId] : null;
-
-    if (selectedUserProfile) {
-        const detailAvatarSrc = resolveAvatarSrc(selectedUserProfile.avatarUrl);
-        return (
-            <>
-                <NavBar />
-                <div className="surveys search-page">
-                    <div className="search-user-detail">
-                        <button type="button" className="search-user-detail__back" onClick={closeUserDetail} aria-label="검색 결과 목록으로 돌아가기">←</button>
-
-                        <div className="search-user-detail__header">
-                            <div className="search-user-detail__avatar" aria-hidden="true">
-                                {detailAvatarSrc ? (
-                                    <img src={detailAvatarSrc} alt={`${selectedUserProfile.displayName || selectedUserProfile.userId} 프로필`} />
-                                ) : (
-                                    <span>{String(selectedUserProfile.displayName || selectedUserProfile.userId || 'SV').slice(0, 2).toUpperCase()}</span>
-                                )}
-                            </div>
-
-                            <div className="search-user-detail__meta">
-                                <h2>{selectedUserProfile.displayName || selectedUserProfile.userId}</h2>
-                                <p>@{selectedUserProfile.userId}</p>
-                                <div className="search-user-detail__counts">
-                                    <span>팔로워 {selectedUserProfile.followerCount || 0}</span>
-                                    <span>팔로잉 {selectedUserProfile.followingCount || 0}</span>
-                                </div>
-                            </div>
-
-                            <button
-                                type="button"
-                                className="search-user-detail__profile-link"
-                                onClick={() => navigate(`/profile/${encodeURIComponent(selectedUserProfile.userId)}`)}
-                            >
-                                프로필로 이동
-                            </button>
-                        </div>
-
-                        <div className="search-user-detail__lists">
-                            <section className="search-user-detail__list-card">
-                                <h3>작성한 설문</h3>
-                                {selectedUserCreatedSurveys.length === 0 ? (
-                                    <p className="search-user-detail__empty">작성한 설문이 없습니다.</p>
-                                ) : (
-                                    <ul>
-                                        {selectedUserCreatedSurveys.map((survey) => (
-                                            <li key={`created-${survey.id}`}>
-                                                <button type="button" onClick={() => handleSurveyClick(survey.id)}>
-                                                    {survey.title}
-                                                </button>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                )}
-                            </section>
-
-                            <section className="search-user-detail__list-card">
-                                <h3>응답한 설문</h3>
-                                {selectedUserRespondedSurveys.length === 0 ? (
-                                    <p className="search-user-detail__empty">응답한 설문이 없습니다.</p>
-                                ) : (
-                                    <ul>
-                                        {selectedUserRespondedSurveys.map((survey) => (
-                                            <li key={`responded-${survey.id}`}>
-                                                <button type="button" onClick={() => handleSurveyClick(survey.id)}>
-                                                    {survey.title}
-                                                </button>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                )}
-                            </section>
-                        </div>
-                    </div>
-                </div>
-            </>
-        );
-    }
 
     return (
         <>
@@ -419,7 +291,7 @@ function Search() {
                                             key={user.userId}
                                             type="button"
                                             className="search-user-card"
-                                            onClick={() => openUserDetail(user.userId)}
+                                            onClick={() => navigate(`/profile/${encodeURIComponent(user.userId)}`)}
                                             role="listitem"
                                         >
                                             <div className="search-user-card__avatar" aria-hidden="true">

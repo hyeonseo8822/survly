@@ -93,7 +93,7 @@ function UserProfile() {
       });
       const data = await safeParseJson(response);
       if (!response.ok || !data.success) {
-        throw new Error(data.message || '팔로우 상태를 변경하지 못했습니다.');
+        throw new Error(data.message || 'follow 상태를 변경하지 못했습니다.');
       }
 
       setProfile((prev) => ({
@@ -102,7 +102,7 @@ function UserProfile() {
         followerCount: Number(data.followerCount) || 0
       }));
     } catch (err) {
-      setError(err.message || '팔로우 상태를 변경하지 못했습니다.');
+      setError(err.message || 'follow 상태를 변경하지 못했습니다.');
     } finally {
       setFollowLoading(false);
     }
@@ -150,7 +150,7 @@ function UserProfile() {
       });
       const data = await safeParseJson(response);
       if (!response.ok || !data.success) {
-        throw new Error(data.message || '팔로우 상태 변경에 실패했습니다.');
+        throw new Error(data.message || 'follow 상태 변경에 실패했습니다.');
       }
 
       setRelationUsers((prev) => prev.map((user) =>
@@ -158,7 +158,7 @@ function UserProfile() {
       ));
       setProfile((prev) => ({ ...prev, followerCount: Number(data.followerCount) || prev.followerCount }));
     } catch (err) {
-      setError(err.message || '팔로우 상태 변경에 실패했습니다.');
+      setError(err.message || 'follow 상태 변경에 실패했습니다.');
     }
   };
 
@@ -276,7 +276,7 @@ function UserProfile() {
                     <button type='button' className='mypage-secondary-btn user-profile-back-btn' onClick={() => navigate(-1)}>이전으로</button>
                     {!loading && profile && !profile.isMe ? (
                       <button type='button' className='mypage-primary-btn' onClick={handleFollowToggle} disabled={followLoading}>
-                        {followLoading ? '처리 중...' : (profile.isFollowing ? '언팔로우' : 'follow')}
+                        {followLoading ? '처리 중...' : (profile.isFollowing ? 'unfollow' : 'follow')}
                       </button>
                     ) : null}
                   </div>

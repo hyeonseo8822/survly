@@ -6,6 +6,15 @@ const jwt = require('jsonwebtoken');
 
 const DEFAULT_PAGE_SIZE = 6;
 
+async function getFollowStats(userId) {
+  const [followerCount, followingCount] = await Promise.all([
+    Follow.countDocuments({ followingId: userId }),
+    Follow.countDocuments({ followerId: userId })
+  ]);
+
+  return { followerCount, followingCount };
+}
+
 function escapeRegExp(value) {
   return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
@@ -43,7 +52,15 @@ async function getMyProfile(req, res) {
       return res.status(404).json({ success: false, message: '사용자를 찾을 수 없습니다.' });
     }
 
-    return res.json({ success: true, profile: serializeProfile(user) });
+    const stats = await getFollowStats(user.userId);
+
+    return res.json({
+      success: true,
+      profile: serializeProfile({
+        ...user.toObject(),
+        ...stats
+      })
+    });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
   }
@@ -112,6 +129,8 @@ async function getUserProfile(req, res) {
       return res.status(404).json({ success: false, message: '사용자를 찾을 수 없습니다.' });
     }
 
+    const stats = await getFollowStats(targetUserId);
+
     let isFollowing = false;
     const requesterUserId = req.user ? req.user.userId : null;
     if (requesterUserId && requesterUserId !== targetUserId) {
@@ -121,7 +140,10 @@ async function getUserProfile(req, res) {
     return res.json({
       success: true,
       profile: {
-        ...serializePublicProfile(user),
+        ...serializePublicProfile({
+          ...user.toObject(),
+          ...stats
+        }),
         isFollowing,
         isMe: requesterUserId === targetUserId
       }
@@ -222,7 +244,7 @@ async function followUser(req, res) {
     }
 
     if (!targetUserId || targetUserId === followerId) {
-      return res.status(400).json({ success: false, message: '팔로우할 수 없는 사용자입니다.' });
+      return res.status(400).json({ success: false, message: 'follow할 수 없는 사용자입니다.' });
     }
 
     const targetUser = await User.findOne({ userId: targetUserId });
@@ -260,7 +282,7 @@ async function unfollowUser(req, res) {
     }
 
     if (!targetUserId || targetUserId === followerId) {
-      return res.status(400).json({ success: false, message: '언팔로우할 수 없는 사용자입니다.' });
+      return res.status(400).json({ success: false, message: 'unfollow할 수 없는 사용자입니다.' });
     }
 
     const targetUser = await User.findOne({ userId: targetUserId });

@@ -1,18 +1,27 @@
 import './css/Login.css';
 import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useNotification } from '../components/NotificationProvider';
 
 
 function Login() {
     const [userId, setUserId] = useState(""); // 사용자가 입력한 아이디
     const [password, setPassword] = useState(""); // 사용자가 입력한 비밀번호
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const submitLockRef = useRef(false);
     
     const navigate = useNavigate();
     const { notify } = useNotification();
 
     const handleLogin = async () => {
+        if (submitLockRef.current) {
+            return;
+        }
+
         try {
+            submitLockRef.current = true;
+            setIsSubmitting(true);
+
             // 로그인 API에 POST 요청을 보냅니다.
             const res = await fetch(`${import.meta.env.VITE_API_BASE}/api/auth/login`, {
                 method: "POST",
@@ -38,6 +47,9 @@ function Login() {
             // 서버 연결 실패 등 네트워크 오류 발생 시
             console.error(err);
             notify("서버 오류 발생", 'error');
+        } finally {
+            submitLockRef.current = false;
+            setIsSubmitting(false);
         }
     };
 
@@ -70,7 +82,7 @@ function Login() {
                     />
                 </div>
 
-                <button className='auth-submit' onClick={handleLogin}>
+                <button className='auth-submit' onClick={handleLogin} disabled={isSubmitting} aria-disabled={isSubmitting}>
                     로그인
                 </button>
             </div>
