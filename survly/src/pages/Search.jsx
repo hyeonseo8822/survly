@@ -42,7 +42,7 @@ function Search() {
         const text = await response.text();
         try {
             return JSON.parse(text);
-        } catch (error) {
+        } catch {
             return null;
         }
     };
@@ -157,7 +157,7 @@ function Search() {
             const entries = await Promise.all(surveyList.map(async (survey) => {
                 try {
                     return [survey.id, await fetchSurveyBookmarkStatus(survey.id, token)];
-                } catch (error) {
+                } catch {
                     return [survey.id, { lists: [], isBookmarked: false }];
                 }
             }));
