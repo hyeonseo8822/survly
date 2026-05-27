@@ -52,15 +52,6 @@ if (process.env.S3_BUCKET && process.env.USE_S3 === 'true') {
     const url = `https://${s3Host}/${encodeURIComponent(key)}`;
     return res.redirect(302, url);
   });
-} else if (process.env.GH_PAGES_BASE) {
-  // If GH_PAGES_BASE is set (e.g. https://hyeonseo8822.github.io/survly),
-  // redirect /uploads/* to the GH Pages static uploads folder.
-  const ghBase = process.env.GH_PAGES_BASE.replace(/\/$/, '');
-  app.use('/uploads', (req, res) => {
-    const key = req.path.replace(/^\//, '');
-    const url = `${ghBase}/uploads/${encodeURIComponent(key)}`;
-    return res.redirect(302, url);
-  });
 } else {
   app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 }
