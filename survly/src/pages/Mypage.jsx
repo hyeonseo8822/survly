@@ -4,7 +4,7 @@ import './css/Mypage.css';
 import NavBar from '../components/NavBar';
 import Pagination from '../components/Pagination';
 import { useNotification } from '../components/NotificationProvider';
-import { resolveBackendUploadUrl, resolveUploadUrl } from '../utils/uploadUrl';
+import { resolveUploadUrl } from '../utils/uploadUrl';
 
 // 미리보기에 보여줄 항목의 수
 const ITEMS_PER_PAGE = 4;
@@ -125,19 +125,6 @@ function Mypage() {
 
             return Array.from(new Set([...prev, ...visibleStringIds]));
         });
-    };
-
-    const handleAvatarImageError = (event) => {
-        const imageElement = event.currentTarget;
-        if (imageElement.dataset.fallbackUsed === 'true') {
-            return;
-        }
-
-        const fallbackUrl = resolveBackendUploadUrl(displayedAvatar);
-        if (fallbackUrl && imageElement.src !== fallbackUrl) {
-            imageElement.dataset.fallbackUsed = 'true';
-            imageElement.src = fallbackUrl;
-        }
     };
 
     const persistLocalProfile = (userId, nextProfile) => {
@@ -1606,7 +1593,7 @@ function Mypage() {
                                         />
                                         <div className={`mypage-avatar-shell ${isEditingProfile ? 'mypage-avatar-shell--editable' : ''}`} onClick={isEditingProfile ? openAvatarPicker : undefined}>
                                             {displayedAvatar ? (
-                                                <img src={resolveUploadUrl(displayedAvatar)} alt="Profile avatar" className="mypage-avatar-image" onError={handleAvatarImageError} />
+                                                <img src={resolveUploadUrl(displayedAvatar)} alt="Profile avatar" className="mypage-avatar-image" />
                                             ) : (
                                                 <span className="mypage-avatar-fallback">{avatarFallback}</span>
                                             )}
