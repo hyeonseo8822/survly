@@ -1178,15 +1178,6 @@
     min-width: 0;
 }
 
-.mypage-manage-preview-sub {
-    margin: 6px 0 0;
-    font-size: 14px;
-    color: #6f8295;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
 .mypage-follow-stats strong {
     color: #284863;
     font-weight: 700;

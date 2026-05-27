@@ -1973,7 +1973,6 @@ function Mypage() {
                                                     </button>
                                                     <div className="mypage-manage-preview-body">
                                                         <p className="mypage-rectText">{survey.title}</p>
-                                                        <p className="mypage-manage-preview-sub">응답을 수정하거나 참여 기록을 삭제할 수 있습니다.</p>
                                                     </div>
                                                 </div>
                                                 <div className="mypage-actions">
