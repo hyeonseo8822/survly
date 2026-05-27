@@ -53,7 +53,11 @@ if (process.env.S3_BUCKET && process.env.USE_S3 === 'true') {
     return res.redirect(302, url);
   });
 } else {
-  app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+  app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
+    setHeaders(res) {
+      res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+    }
+  }));
 }
 
 app.use('/api/auth', authRoutes);
