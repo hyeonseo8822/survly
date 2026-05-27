@@ -921,13 +921,13 @@
     height: 36px;
     padding: 0 14px;
     border-radius: 11px;
-    background: linear-gradient(135deg, #a1bbff 0%, #afb4ff 100%);
+    background: #a1bbff;
     color: #fff;
 }
 
 .mypage-copyLinkBtn:hover {
     transform: translateY(-1px);
-    box-shadow: 0 10px 20px rgba(106, 185, 255, 0.26);
+    box-shadow: 0 10px 20px rgba(130, 111, 217, 0.26);
 }
 
 .mypage-edit-icon,
