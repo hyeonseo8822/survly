@@ -82,6 +82,7 @@ function Mypage() {
     const [responseManageTotalPages, setResponseManageTotalPages] = useState(1);
     const [managedRespondedSurveys, setManagedRespondedSurveys] = useState([]);
     const [manageLoading, setManageLoading] = useState(false);
+    const [brokenAvatarKeys, setBrokenAvatarKeys] = useState({});
 
     const navigate = useNavigate();
     const { section } = useParams();
@@ -96,6 +97,10 @@ function Mypage() {
     const isCenterOnlyView = relationView === 'bookmark-list';
 
     const toStringId = (value) => String(value);
+
+    const markAvatarBroken = (key) => {
+        setBrokenAvatarKeys((prev) => ({ ...prev, [key]: true }));
+    };
 
     const isAllVisibleSelected = (visibleIds, selectedIds) => {
         if (!visibleIds.length) {
@@ -1592,8 +1597,13 @@ function Mypage() {
                                             onChange={handleAvatarChange}
                                         />
                                         <div className={`mypage-avatar-shell ${isEditingProfile ? 'mypage-avatar-shell--editable' : ''}`} onClick={isEditingProfile ? openAvatarPicker : undefined}>
-                                            {displayedAvatar ? (
-                                                <img src={resolveUploadUrl(displayedAvatar)} alt="Profile avatar" className="mypage-avatar-image" />
+                                            {displayedAvatar && !brokenAvatarKeys.profile ? (
+                                                <img
+                                                    src={resolveUploadUrl(displayedAvatar)}
+                                                    alt="Profile avatar"
+                                                    className="mypage-avatar-image"
+                                                    onError={() => markAvatarBroken('profile')}
+                                                />
                                             ) : (
                                                 <span className="mypage-avatar-fallback">{avatarFallback}</span>
                                             )}

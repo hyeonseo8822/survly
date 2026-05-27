@@ -8,6 +8,20 @@ const PUBLIC_UPLOAD_ORIGINS = [
 ];
 const uploadCache = new Map();
 
+// Ensure a fetch implementation exists in Node environments that lack global.fetch.
+let _fetch = (typeof fetch !== 'undefined') ? fetch : null;
+if (!_fetch) {
+  try {
+    // Use node-fetch@2 which supports CommonJS require()
+    _fetch = require('node-fetch');
+    global.fetch = _fetch;
+    console.debug('[uploadResolver] Using node-fetch polyfill');
+  } catch (err) {
+    console.warn('[uploadResolver] fetch not available and node-fetch not installed:', err.message);
+    // _fetch remains null; remote reads will fail later with clearer logs
+  }
+}
+
 function extractUploadFileName(value) {
   const rawValue = String(value || '').trim();
   if (!rawValue) {
@@ -71,21 +85,31 @@ async function readRemoteDataUrl(fileName) {
   for (const origin of PUBLIC_UPLOAD_ORIGINS) {
     const remoteUrl = `${origin}/uploads/${encodeURIComponent(fileName)}`;
 
+    if (!_fetch) {
+      console.debug(`[uploadResolver] No fetch available to read remote ${remoteUrl}`);
+      continue;
+    }
+
     try {
-      const response = await fetch(remoteUrl, { cache: 'no-store' });
+      console.debug(`[uploadResolver] Attempting to fetch remote upload: ${remoteUrl}`);
+      const response = await _fetch(remoteUrl, { cache: 'no-store' });
       if (!response.ok) {
+        console.debug(`[uploadResolver] Remote fetch returned ${response.status} for ${remoteUrl}`);
         continue;
       }
 
       const arrayBuffer = await response.arrayBuffer();
       if (!arrayBuffer || arrayBuffer.byteLength === 0) {
+        console.debug(`[uploadResolver] Remote fetch returned empty body for ${remoteUrl}`);
         continue;
       }
 
       const mimeType = getMimeType(fileName, response.headers.get('content-type') || '');
       const buffer = Buffer.from(arrayBuffer);
+      console.debug(`[uploadResolver] Successfully fetched and encoded ${remoteUrl} as data URL`);
       return `data:${mimeType};base64,${buffer.toString('base64')}`;
-    } catch {
+    } catch (err) {
+      console.warn(`[uploadResolver] Error fetching ${remoteUrl}: ${err && err.message ? err.message : err}`);
       // Try the next origin.
     }
   }
@@ -108,18 +132,26 @@ async function resolveUploadDataUrl(value) {
   if (!fs.existsSync(filePath)) {
     const cacheKey = String(value || '');
     if (uploadCache.has(cacheKey)) {
+      console.debug(`[uploadResolver] Cache hit for ${cacheKey}`);
       return uploadCache.get(cacheKey);
     }
 
+    console.debug(`[uploadResolver] Local file missing, attempting remote fetch for ${fileNameOrValue}`);
     const remoteDataUrl = await readRemoteDataUrl(fileNameOrValue);
     const resolvedValue = remoteDataUrl || '';
     uploadCache.set(cacheKey, resolvedValue);
+    if (resolvedValue) {
+      console.debug(`[uploadResolver] Resolved ${fileNameOrValue} from remote and cached result`);
+    } else {
+      console.debug(`[uploadResolver] Could not resolve ${fileNameOrValue} from any remote origin`);
+    }
     return resolvedValue;
   }
 
   const buffer = fs.readFileSync(filePath);
   const mimeType = getMimeType(fileNameOrValue);
 
+  console.debug(`[uploadResolver] Resolved ${fileNameOrValue} from local uploads directory`);
   return `data:${mimeType};base64,${buffer.toString('base64')}`;
 }
 
