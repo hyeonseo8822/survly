@@ -69,7 +69,7 @@ const normalizeEmbedUrl = (rawUrl) => {
         return `https://www.youtube.com/embed/${videoId}`;
       }
     }
-  } catch (error) {
+  } catch {
     return trimmed;
   }
 

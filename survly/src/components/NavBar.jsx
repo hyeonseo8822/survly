@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import './css/NavBar.css';
 
 /**
@@ -8,16 +8,11 @@ import './css/NavBar.css';
  *              사용자의 로그인 상태에 따라 다른 메뉴를 보여줍니다.
  */
 function NavBar() {
-  const [user, setUser] = useState(null);
+  const [user] = useState(() => localStorage.getItem('userId') || null);
   const [keyword, setKeyword] = useState('');
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const userId = localStorage.getItem('userId');
-    if (userId) {
-      setUser(userId);
-    }
-  }, []);
+  // user는 로컬스토리지에서 초기값을 읽어오도록 lazy initializer 사용
 
   const handleSearch = () => {
     const trimmed = keyword.trim();

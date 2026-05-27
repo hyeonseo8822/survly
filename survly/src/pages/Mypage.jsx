@@ -790,7 +790,7 @@ function Mypage() {
         setRelationView('bookmark-list');
     };
 
-    const closeBookmarkListDetail = () => {
+    const _closeBookmarkListDetail = () => {
         setIsBookmarkListMenuOpen(false);
         setOpenSurveyMenuId('');
         setRelationView('surveys');
@@ -820,7 +820,7 @@ function Mypage() {
         // navigate('/mypage/lists'); // URL 이동 제거
     };
 
-    const closeManageDetail = () => {
+    const _closeManageDetail = () => {
         setRelationView('surveys');
         // 페이지 이동 제거: 오른쪽 화면만 변경
     };

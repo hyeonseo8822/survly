@@ -42,7 +42,7 @@ function Search() {
         const text = await response.text();
         try {
             return JSON.parse(text);
-        } catch (error) {
+        } catch {
             return null;
         }
     };
@@ -157,7 +157,7 @@ function Search() {
             const entries = await Promise.all(surveyList.map(async (survey) => {
                 try {
                     return [survey.id, await fetchSurveyBookmarkStatus(survey.id, token)];
-                } catch (error) {
+                } catch {
                     return [survey.id, { lists: [], isBookmarked: false }];
                 }
             }));
@@ -410,6 +410,7 @@ function Search() {
             <div className="surveys search-page">
                 {/* 검색 결과 제목 */}
                 <div className="surveyText">'{keyword}' 검색 결과</div>
+                <div className='surveyExplain'>설문 결과: {totalSearchResults}개, 사용자 결과: {totalUserResults}개</div>
 
                 {!isSurveyOnlyMode && (
                     <section className="search-users-section">
