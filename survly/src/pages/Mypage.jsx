@@ -1042,7 +1042,7 @@ function Mypage() {
         setRelationView('bookmark-list');
     };
 
-    const closeBookmarkListDetail = () => {
+    const _closeBookmarkListDetail = () => {
         setIsBookmarkListMenuOpen(false);
         setOpenSurveyMenuId('');
         setRelationView('created');
@@ -1071,7 +1071,6 @@ function Mypage() {
         setBookmarkListOverviewPage(1);
         // navigate('/mypage/lists'); // URL 이동 제거
     };
-
 
     const openCommentDetail = (comment) => {
         if (!comment?.surveyId || !comment?.id) {

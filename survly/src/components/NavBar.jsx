@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import './css/NavBar.css';
 
 /**
@@ -8,40 +8,11 @@ import './css/NavBar.css';
  *              사용자의 로그인 상태에 따라 다른 메뉴를 보여줍니다.
  */
 function NavBar() {
-  const [user, setUser] = useState(null);
+  const [user] = useState(() => localStorage.getItem('userId') || null);
   const [keyword, setKeyword] = useState('');
-  const [isMypageMenuOpen, setIsMypageMenuOpen] = useState(false);
-  const mypageMenuRef = useRef(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const syncUser = () => {
-      const userId = localStorage.getItem('userId');
-      setUser(userId || null);
-    };
-
-    syncUser();
-    window.addEventListener('storage', syncUser);
-
-    return () => {
-      window.removeEventListener('storage', syncUser);
-    };
-  }, []);
-
-  useEffect(() => {
-    const handleOutsideClick = (event) => {
-      if (!mypageMenuRef.current || mypageMenuRef.current.contains(event.target)) {
-        return;
-      }
-      setIsMypageMenuOpen(false);
-    };
-
-    document.addEventListener('mousedown', handleOutsideClick);
-
-    return () => {
-      document.removeEventListener('mousedown', handleOutsideClick);
-    };
-  }, []);
+  // user는 로컬스토리지에서 초기값을 읽어오도록 lazy initializer 사용
 
   const handleSearch = () => {
     const trimmed = keyword.trim();
@@ -53,23 +24,6 @@ function NavBar() {
     if (e.key === 'Enter') {
       handleSearch();
     }
-  };
-
-  const toggleMypageMenu = () => {
-    setIsMypageMenuOpen((prev) => !prev);
-  };
-
-  const handleGoToMypage = () => {
-    setIsMypageMenuOpen(false);
-    navigate('/mypage');
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('userId');
-    setUser(null);
-    setIsMypageMenuOpen(false);
-    navigate('/login');
   };
 
   return (
@@ -97,29 +51,7 @@ function NavBar() {
       <div className='navbar-right'>
         <div className="items">
           <Link to="/create" className='nav'>Create</Link>
-          {user && (
-            <div className="mypage-menu" ref={mypageMenuRef}>
-              <button
-                type="button"
-                className="nav mypage-menu-trigger"
-                onClick={toggleMypageMenu}
-                aria-haspopup="menu"
-                aria-expanded={isMypageMenuOpen}
-              >
-                Mypage
-              </button>
-              {isMypageMenuOpen && (
-                <div className="mypage-menu-dropdown" role="menu">
-                  <button type="button" className="mypage-menu-item" role="menuitem" onClick={handleGoToMypage}>
-                    마이페이지
-                  </button>
-                  <button type="button" className="mypage-menu-item mypage-menu-item--logout" role="menuitem" onClick={handleLogout}>
-                    로그아웃
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
+          {user && <Link to="/mypage" className='nav'>Mypage</Link>}
         </div>
 
         <div className='login_signup'>

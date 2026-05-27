@@ -69,7 +69,7 @@ const normalizeEmbedUrl = (rawUrl) => {
         return `https://www.youtube.com/embed/${videoId}`;
       }
     }
-  } catch  {
+  } catch {
     return trimmed;
   }
 
@@ -96,8 +96,6 @@ function Create() {
   const { notify } = useNotification();
   const titleRef = useRef(null); // 제목 textarea 참조
   const explainRef = useRef(null); // 설명 textarea 참조
-  const typeMenuRefs = useRef([]);
-  const [openTypeMenuIndex, setOpenTypeMenuIndex] = useState(null);
 
   // 설문지 기본 정보 (제목, 설명)
   const [surveyInfo, setSurveyInfo] = useState({
@@ -180,21 +178,6 @@ function Create() {
       return () => clearTimeout(timer);
     }
   }, [error, success]);
-
-  // Close type dropdowns when clicking outside
-  useEffect(() => {
-    const handleOutsideClick = (event) => {
-      if (typeMenuRefs.current.some((el) => el && el.contains(event.target))) return;
-      setOpenTypeMenuIndex(null);
-    };
-
-    document.addEventListener('mousedown', handleOutsideClick);
-    return () => document.removeEventListener('mousedown', handleOutsideClick);
-  }, []);
-
-  const toggleTypeMenu = (idx) => {
-    setOpenTypeMenuIndex((prev) => (prev === idx ? null : idx));
-  };
 
 
   /**
@@ -358,16 +341,7 @@ function Create() {
         body: formData
       });
 
-      // 안전하게 응답을 파싱: JSON이 아니라 HTML(예: 배포된 index.html) 이 올 경우 전체 텍스트를 에러로 보여줍니다.
-      const text = await response.text();
-      let result;
-      try {
-        result = text ? JSON.parse(text) : {};
-      } catch {
-        // 서버가 JSON이 아닌 응답(예: HTML)을 보냈을 때, 내용 일부를 에러 메시지로 보여줍니다.
-        const snippet = text.slice(0, 1000);
-        throw new Error(`서버 응답이 JSON이 아닙니다: ${snippet}`);
-      }
+      const result = await response.json();
 
       // 6. 응답 처리
       if (response.status === 401 || response.status === 403) { // 인증 에러
@@ -566,46 +540,27 @@ function Create() {
                       />
                     </div>
                     <div className='selectType'>
-                      <div className='typeDropdown' ref={(el) => (typeMenuRefs.current[qIdx] = el)}>
-                        <button
-                          type='button'
-                          className='typeDropdownButton'
-                          onClick={() => toggleTypeMenu(qIdx)}
-                          aria-haspopup='menu'
-                          aria-expanded={openTypeMenuIndex === qIdx}
-                        >
-                          {(QUESTION_TYPE_META[q.questionType] || QUESTION_TYPE_META.subjective).label}
-                          <span className='typeDropdownChevron'>▾</span>
-                        </button>
-
-                        {openTypeMenuIndex === qIdx && (
-                          <div className='typeDropdownMenu' role='menu'>
-                            {Object.entries(QUESTION_TYPE_META).map(([key, meta]) => (
-                              <button
-                                key={key}
-                                type='button'
-                                className='typeDropdownItem'
-                                role='menuitem'
-                                onClick={() => {
-                                  const newQ = [...questions];
-                                  newQ[qIdx].questionType = key;
-                                  const selectedMeta = QUESTION_TYPE_META[key] || QUESTION_TYPE_META.subjective;
-                                  if (selectedMeta.hasOptions && (!newQ[qIdx].options || newQ[qIdx].options.length === 0)) {
-                                    newQ[qIdx].options = ['옵션 1', '옵션 2'];
-                                  }
-                                  if (!selectedMeta.hasOptions) {
-                                    newQ[qIdx].options = [];
-                                  }
-                                  setQuestions(newQ);
-                                  setOpenTypeMenuIndex(null);
-                                }}
-                              >
-                                {meta.label}
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                      </div>
+                      <select value={q.questionType}
+                        onChange={(e) => {
+                          const newQ = [...questions];
+                          newQ[qIdx].questionType = e.target.value;
+                          const selectedMeta = QUESTION_TYPE_META[e.target.value] || QUESTION_TYPE_META.subjective;
+                          if (selectedMeta.hasOptions && (!newQ[qIdx].options || newQ[qIdx].options.length === 0)) {
+                            newQ[qIdx].options = ['옵션 1', '옵션 2'];
+                          }
+                          if (!selectedMeta.hasOptions) {
+                            newQ[qIdx].options = [];
+                          }
+                          setQuestions(newQ);
+                        }}
+                      >
+                        <option value='objective'>객관식</option>
+                        <option value='checkbox'>객관식(중복가능)</option>
+                        <option value='subjective'>단답형</option>
+                        <option value='longtext'>장문형</option>
+                        <option value='rating'>평점(1~5)</option>
+                        <option value='date'>날짜</option>
+                      </select>
                     </div>
                   </div>
 
