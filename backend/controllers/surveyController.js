@@ -15,6 +15,7 @@ const {
   toSurveyResponse,
   getSurveyDetails
 } = require('../utils/surveyUtils');
+const { resolveUploadDataUrl } = require('../utils/uploadResolver');
 
 const DEFAULT_PAGE_SIZE = 6;
 
@@ -646,7 +647,7 @@ async function listSurveyComments(req, res) {
         surveyId: comment.surveyId.toString(),
         userId: comment.userId,
         displayName: profile.displayName || comment.userId,
-        avatarUrl: profile.avatarUrl || '',
+        avatarUrl: resolveUploadDataUrl(profile.avatarUrl || ''),
         parentCommentId: comment.parentCommentId ? comment.parentCommentId.toString() : null,
         content: comment.content,
         created_at: comment.created_at,
@@ -733,7 +734,7 @@ async function createSurveyComment(req, res) {
         surveyId: createdComment.surveyId.toString(),
         userId: createdComment.userId,
         displayName: profile?.displayName || createdComment.userId,
-        avatarUrl: profile?.avatarUrl || '',
+        avatarUrl: resolveUploadDataUrl(profile?.avatarUrl || ''),
         parentCommentId: createdComment.parentCommentId ? createdComment.parentCommentId.toString() : null,
         content: createdComment.content,
         created_at: createdComment.created_at

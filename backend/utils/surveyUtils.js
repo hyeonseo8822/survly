@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const Question = require('../models/Question');
 const Option = require('../models/Option');
+const { resolveUploadDataUrl } = require('./uploadResolver');
 
 function isValidObjectId(id) {
   return mongoose.Types.ObjectId.isValid(id);
@@ -33,7 +34,7 @@ function toSurveyResponse(survey) {
     responseTabPublic: survey.responseTabPublic,
     userId: survey.userId,
     link: survey.link,
-    img: survey.img,
+    img: survey.img === 'default_img' ? 'default_img' : resolveUploadDataUrl(survey.img || ''),
     participantCount: survey.participantCount || 0,
     created_at: survey.created_at
   };

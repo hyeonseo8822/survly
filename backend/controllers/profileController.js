@@ -3,6 +3,7 @@ const Survey = require('../models/Survey');
 const Response = require('../models/Response');
 const Follow = require('../models/Follow');
 const jwt = require('jsonwebtoken');
+const { resolveUploadDataUrl } = require('../utils/uploadResolver');
 
 const TOKEN_EXPIRES_IN = '7d';
 
@@ -28,7 +29,7 @@ function serializeProfile(user) {
     displayName: user.displayName || user.userId,
     headline: user.headline || '',
     bio: user.bio || '',
-    avatarUrl: user.avatarUrl || '',
+    avatarUrl: resolveUploadDataUrl(user.avatarUrl || ''),
     followerCount: Number.isFinite(user.followerCount) ? user.followerCount : 0,
     followingCount: Number.isFinite(user.followingCount) ? user.followingCount : 0
   };
@@ -40,7 +41,7 @@ function serializePublicProfile(user) {
     displayName: user.displayName || user.userId,
     headline: user.headline || '',
     bio: user.bio || '',
-    avatarUrl: user.avatarUrl || '',
+    avatarUrl: resolveUploadDataUrl(user.avatarUrl || ''),
     followerCount: Number.isFinite(user.followerCount) ? user.followerCount : 0,
     followingCount: Number.isFinite(user.followingCount) ? user.followingCount : 0
   };
