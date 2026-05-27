@@ -5,6 +5,7 @@ import NavBar2 from '../components/NavBar2';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from "recharts"; // 차트 라이브러리
 import './css/Answer.css';
 import { useNotification } from '../components/NotificationProvider';
+import { resolveUploadUrl } from '../utils/uploadUrl';
 
 const toStoredAnswer = (questionType, value) => {
   if (questionType === 'checkboxes') {
@@ -128,23 +129,7 @@ function Answer() {
   const [editReplySaving, setEditReplySaving] = useState(false);
 
   const resolveAvatarUrl = (avatarUrl) => {
-    if (!avatarUrl) {
-      return '';
-    }
-
-    if (avatarUrl.startsWith('http://') || avatarUrl.startsWith('https://') || avatarUrl.startsWith('data:')) {
-      return avatarUrl;
-    }
-
-    if (avatarUrl.startsWith('/uploads/')) {
-      return `${import.meta.env.VITE_API_BASE}${avatarUrl}`;
-    }
-
-    if (avatarUrl.startsWith('uploads/')) {
-      return `${import.meta.env.VITE_API_BASE}/${avatarUrl}`;
-    }
-
-    return avatarUrl;
+    return resolveUploadUrl(avatarUrl);
   };
 
   const goToProfile = (targetUserId) => {

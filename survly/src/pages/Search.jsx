@@ -4,6 +4,7 @@ import '../components/css/Surveys.css';
 import Pagination from '../components/Pagination';
 import NavBar from '../components/NavBar';
 import { useNotification } from '../components/NotificationProvider';
+import { resolveUploadUrl } from '../utils/uploadUrl';
 import './css/Search.css';
 
 
@@ -370,7 +371,7 @@ function Search() {
                                         <div className="graph">
                                             <img 
                                                 src={survey.img && survey.img !== 'default_img' 
-                                                    ? `${import.meta.env.VITE_API_BASE}/uploads/${survey.img}` 
+                                                    ? resolveUploadUrl(`uploads/${survey.img}`) 
                                                     : `${import.meta.env.BASE_URL}img/default_img.svg`}
                                                 alt="Survey Thumbnail"
                                                 className="survey-thumbnail"

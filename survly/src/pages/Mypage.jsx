@@ -4,6 +4,7 @@ import './css/Mypage.css';
 import NavBar from '../components/NavBar';
 import Pagination from '../components/Pagination';
 import { useNotification } from '../components/NotificationProvider';
+import { resolveBackendUploadUrl, resolveUploadUrl } from '../utils/uploadUrl';
 
 // 미리보기에 보여줄 항목의 수
 const ITEMS_PER_PAGE = 4;
@@ -126,6 +127,19 @@ function Mypage() {
         });
     };
 
+    const handleAvatarImageError = (event) => {
+        const imageElement = event.currentTarget;
+        if (imageElement.dataset.fallbackUsed === 'true') {
+            return;
+        }
+
+        const fallbackUrl = resolveBackendUploadUrl(displayedAvatar);
+        if (fallbackUrl && imageElement.src !== fallbackUrl) {
+            imageElement.dataset.fallbackUsed = 'true';
+            imageElement.src = fallbackUrl;
+        }
+    };
+
     const persistLocalProfile = (userId, nextProfile) => {
         localStorage.setItem(getProfileStorageKey(userId), JSON.stringify(nextProfile));
     };
@@ -157,12 +171,6 @@ function Mypage() {
         notify('로그인 정보가 만료되었습니다. 다시 로그인해주세요.', 'warning');
         navigate('/login', { replace: true });
     }, [navigate, notify]);
-
-    const resolveAvatarUrl = (avatarUrl = '') => {
-        if (!avatarUrl) return '';
-        if (avatarUrl.startsWith('http://') || avatarUrl.startsWith('https://') || avatarUrl.startsWith('data:')) return avatarUrl;
-        return avatarUrl.startsWith('/') ? `${import.meta.env.VITE_API_BASE}${avatarUrl}` : `${import.meta.env.VITE_API_BASE}/${avatarUrl}`;
-    };
 
     const safeParseJson = useCallback(async (response) => {
         const text = await response.text();
@@ -326,7 +334,10 @@ function Mypage() {
                 const nextProfile = {
                     ...fallbackProfile,
                     ...data.profile,
-                    displayName: data.profile.displayName || loggedInUserId
+                    displayName: data.profile.displayName || loggedInUserId,
+                    avatarUrl: fallbackProfile.avatarUrl?.startsWith('data:')
+                        ? fallbackProfile.avatarUrl
+                        : (data.profile.avatarUrl || fallbackProfile.avatarUrl || '')
                 };
 
                 if (!isMounted) {
@@ -660,7 +671,8 @@ function Mypage() {
 
             const nextProfile = {
                 ...trimmedProfile,
-                ...data.profile
+                ...data.profile,
+                avatarUrl: avatarPreview || data.profile.avatarUrl || profile.avatarUrl
             };
 
             setProfile(nextProfile);
@@ -1367,8 +1379,8 @@ function Mypage() {
                         <div className="mypage-survey-info" onClick={() => {/* 프로필은 새 창 이동 허용 */ navigate(`/profile/${user.userId}`); }}>
                             <div className="mypage-user-row">
                                 <div className="mypage-user-avatar">
-                                    {resolveAvatarUrl(user.avatarUrl) ? (
-                                        <img src={resolveAvatarUrl(user.avatarUrl)} alt="" className="mypage-user-avatar-image" />
+                                    {resolveUploadUrl(user.avatarUrl) ? (
+                                        <img src={resolveUploadUrl(user.avatarUrl)} alt="" className="mypage-user-avatar-image" />
                                     ) : (
                                         <span>{String(user.displayName || user.userId || 'SV').slice(0, 2).toUpperCase()}</span>
                                     )}
@@ -1594,11 +1606,7 @@ function Mypage() {
                                         />
                                         <div className={`mypage-avatar-shell ${isEditingProfile ? 'mypage-avatar-shell--editable' : ''}`} onClick={isEditingProfile ? openAvatarPicker : undefined}>
                                             {displayedAvatar ? (
-                                                <img
-                                                    src={displayedAvatar.startsWith('/uploads/') ? `${import.meta.env.VITE_API_BASE}${displayedAvatar}` : displayedAvatar}
-                                                    alt="Profile avatar"
-                                                    className="mypage-avatar-image"
-                                                />
+                                                <img src={resolveUploadUrl(displayedAvatar)} alt="Profile avatar" className="mypage-avatar-image" onError={handleAvatarImageError} />
                                             ) : (
                                                 <span className="mypage-avatar-fallback">{avatarFallback}</span>
                                             )}

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import './css/Surveys.css';
 import Pagination from './Pagination';
 import { useNotification } from './NotificationProvider';
+import { resolveUploadUrl } from '../utils/uploadUrl';
 
 /**
  * @component Surveys
@@ -425,11 +426,7 @@ function Surveys() {
                                             className="survey-thumbnail"
                                         />
                                 ) : hasThumbnail ? (
-                                    <img
-                                        src={`${import.meta.env.VITE_API_BASE}/uploads/${survey.img}`}
-                                        alt="Survey Thumbnail"
-                                        className="survey-thumbnail"
-                                    />
+                                    <img src={resolveUploadUrl(`uploads/${survey.img}`)} alt="Survey Thumbnail" className="survey-thumbnail" />
                                 ) : (
                                     <div className="survey-summary-thumb" aria-label="설문 요약 썸네일">
                                         <p className="survey-summary-thumb__title">{survey.title}</p>

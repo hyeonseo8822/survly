@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import NavBar from '../components/NavBar';
 import './css/Mypage.css';
 import './css/UserProfile.css';
+import { resolveUploadUrl } from '../utils/uploadUrl';
 
 function UserProfile() {
   const { userId } = useParams();
@@ -67,11 +68,7 @@ function UserProfile() {
   }, [userId]);
 
   const fallbackText = String(profile?.displayName || profile?.userId || 'SV').slice(0, 2).toUpperCase();
-  const avatarSrc = profile?.avatarUrl
-    ? (profile.avatarUrl.startsWith('http://') || profile.avatarUrl.startsWith('https://')
-      ? profile.avatarUrl
-      : `${import.meta.env.VITE_API_BASE}${profile.avatarUrl.startsWith('/') ? '' : '/'}${profile.avatarUrl}`)
-    : '';
+  const avatarSrc = resolveUploadUrl(profile?.avatarUrl);
 
   const handleFollowToggle = async () => {
     if (!profile || profile.isMe || followLoading) {

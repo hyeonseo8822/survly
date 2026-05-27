@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import './css/Create.css';
 import NavBar2 from '../components/NavBar2';
 import { useNotification } from '../components/NotificationProvider';
+import { resolveUploadUrl } from '../utils/uploadUrl';
 
 const QUESTION_TYPE_META = {
   objective: {
@@ -147,7 +148,7 @@ function Create() {
               question: q.question,
             })));
             if (fetchedSurvey.img && fetchedSurvey.img !== 'default_img') {
-              setExistingImage(`${import.meta.env.VITE_API_BASE}/uploads/${fetchedSurvey.img}`);
+              setExistingImage(resolveUploadUrl(`uploads/${fetchedSurvey.img}`));
             }
           } else {
             throw new Error(result.message || '설문 데이터를 불러오는데 실패했습니다.');
