@@ -13,7 +13,7 @@ export function resolveUploadUrl(value) {
       const uploadsIndex = parsedUrl.pathname.lastIndexOf('/uploads/');
       if (uploadsIndex !== -1) {
         const filePath = parsedUrl.pathname.slice(uploadsIndex + '/uploads/'.length).replace(/^\/+/, '');
-        return `${import.meta.env.BASE_URL}uploads/${filePath}`;
+        return `${import.meta.env.VITE_API_BASE}/uploads/${filePath}`;
       }
     } catch {
       // Fall back to the original value below.
@@ -24,8 +24,8 @@ export function resolveUploadUrl(value) {
 
   const normalizedPath = String(value).replace(/^\/+/, '');
   if (normalizedPath.startsWith('uploads/')) {
-    return `${import.meta.env.BASE_URL}${normalizedPath}`;
+    return `${import.meta.env.VITE_API_BASE}/${normalizedPath}`;
   }
 
-  return `${import.meta.env.BASE_URL}${normalizedPath}`;
+  return `${import.meta.env.VITE_API_BASE}/${normalizedPath}`;
 }
