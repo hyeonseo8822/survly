@@ -1,4 +1,5 @@
 const multer = require('multer');
+const fs = require('fs');
 const path = require('path');
 
 let storage;
@@ -23,9 +24,12 @@ if (process.env.S3_BUCKET && process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SE
     }
   });
 } else {
+  const uploadDir = path.join(__dirname, '..', 'uploads');
+  fs.mkdirSync(uploadDir, { recursive: true });
+
   storage = multer.diskStorage({
     destination(req, file, cb) {
-      cb(null, path.join(__dirname, '..', 'uploads'));
+      cb(null, uploadDir);
     },
     filename(req, file, cb) {
       const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;

@@ -4,6 +4,8 @@ const Response = require('../models/Response');
 const Follow = require('../models/Follow');
 const jwt = require('jsonwebtoken');
 
+const TOKEN_EXPIRES_IN = '7d';
+
 const DEFAULT_PAGE_SIZE = 6;
 
 async function getFollowStats(userId) {
@@ -108,7 +110,7 @@ async function updateMyProfile(req, res) {
 
     const response = { success: true, profile: serializeProfile(user) };
     if (nextUserId !== req.user.userId) {
-      response.token = jwt.sign({ userId: user.userId }, process.env.JWT_SECRET, { expiresIn: '1h' });
+      response.token = jwt.sign({ userId: user.userId }, process.env.JWT_SECRET, { expiresIn: TOKEN_EXPIRES_IN });
     }
 
     return res.json(response);

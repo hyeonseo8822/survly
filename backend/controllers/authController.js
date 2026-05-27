@@ -2,6 +2,8 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
+const TOKEN_EXPIRES_IN = '7d';
+
 async function register(req, res) {
   const { email, password, userId, username } = req.body;
 
@@ -53,7 +55,7 @@ async function login(req, res) {
       return res.status(401).json({ success: false, message: '비밀번호 불일치' });
     }
 
-    const token = jwt.sign({ userId: user.userId }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign({ userId: user.userId }, process.env.JWT_SECRET, { expiresIn: TOKEN_EXPIRES_IN });
     res.json({ token, userId: user.userId });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
