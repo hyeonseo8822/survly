@@ -410,6 +410,7 @@ function Search() {
             <div className="surveys search-page">
                 {/* 검색 결과 제목 */}
                 <div className="surveyText">'{keyword}' 검색 결과</div>
+                <div className='surveyExplain'>설문 결과: {totalSearchResults}개, 사용자 결과: {totalUserResults}개</div>
 
                 {!isSurveyOnlyMode && (
                     <section className="search-users-section">

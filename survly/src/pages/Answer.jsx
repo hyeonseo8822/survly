@@ -26,7 +26,7 @@ const parseStoredAnswer = (questionType, value) => {
   try {
     const parsed = JSON.parse(String(value || '[]'));
     return Array.isArray(parsed) ? parsed : [];
-  } catch (error) {
+  } catch {
     return [];
   }
 };
@@ -181,7 +181,7 @@ function Answer() {
           setIsCreator(Boolean(data.isCreator));
           setHasParticipated(Boolean(data.hasParticipated));
         }
-      } catch (err) {
+      } catch {
         setHasParticipated(false);
       }
     };
@@ -239,7 +239,7 @@ function Answer() {
       if (response.ok && data.success) {
         setComments(data.comments || []);
       }
-    } catch (err) {
+    } catch {
       // 댓글은 보조 기능이므로 조용히 실패 처리
     } finally {
       setCommentsLoading(false);
@@ -797,7 +797,7 @@ function Answer() {
                     // Try to parse JSON for checkboxes
                     const parsed = JSON.parse(myAnswers);
                     if (Array.isArray(parsed)) myAnswers = parsed;
-                  } catch (e) { /* ignore */ }
+                  } catch { /* ignore */ }
                 }
                 if (!Array.isArray(myAnswers)) myAnswers = myAnswers ? [myAnswers] : [];
 
