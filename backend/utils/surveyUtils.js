@@ -25,6 +25,10 @@ function normalizeBoolean(value) {
 }
 
 async function toSurveyResponse(survey) {
+  const resolvedImg = survey.img === 'default_img'
+    ? 'default_img'
+    : await resolveUploadDataUrl(survey.img || '');
+
   return {
     id: survey._id.toString(),
     title: survey.title,
@@ -34,7 +38,7 @@ async function toSurveyResponse(survey) {
     responseTabPublic: survey.responseTabPublic,
     userId: survey.userId,
     link: survey.link,
-    img: survey.img === 'default_img' ? 'default_img' : await resolveUploadDataUrl(survey.img || ''),
+    img: resolvedImg || 'default_img',
     participantCount: survey.participantCount || 0,
     created_at: survey.created_at
   };

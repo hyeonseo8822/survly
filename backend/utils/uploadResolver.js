@@ -112,7 +112,7 @@ async function resolveUploadDataUrl(value) {
     }
 
     const remoteDataUrl = await readRemoteDataUrl(fileNameOrValue);
-    const resolvedValue = remoteDataUrl || String(value || '');
+    const resolvedValue = remoteDataUrl || '';
     uploadCache.set(cacheKey, resolvedValue);
     return resolvedValue;
   }
