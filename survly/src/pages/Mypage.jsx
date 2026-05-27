@@ -1042,7 +1042,7 @@ function Mypage() {
         setRelationView('bookmark-list');
     };
 
-    const _closeBookmarkListDetail = () => {
+    const closeBookmarkListDetail = () => {
         setIsBookmarkListMenuOpen(false);
         setOpenSurveyMenuId('');
         setRelationView('created');

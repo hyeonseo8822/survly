@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import './css/NavBar.css';
 
 /**
@@ -9,8 +9,20 @@ import './css/NavBar.css';
  */
 function NavBar() {
   const [user] = useState(() => localStorage.getItem('userId') || null);
+  const [isMypageMenuOpen, setIsMypageMenuOpen] = useState(false);
   const [keyword, setKeyword] = useState('');
   const navigate = useNavigate();
+  const mypageMenuRef = useRef(null);
+
+  useEffect(() => {
+    const handleDocClick = (e) => {
+      if (isMypageMenuOpen && mypageMenuRef.current && !mypageMenuRef.current.contains(e.target)) {
+        setIsMypageMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleDocClick);
+    return () => document.removeEventListener('mousedown', handleDocClick);
+  }, [isMypageMenuOpen]);
 
   // user는 로컬스토리지에서 초기값을 읽어오도록 lazy initializer 사용
 
@@ -51,7 +63,19 @@ function NavBar() {
       <div className='navbar-right'>
         <div className="items">
           <Link to="/create" className='nav'>Create</Link>
-          {user && <Link to="/mypage" className='nav'>Mypage</Link>}
+          {user && (
+            <div className="mypage-menu" ref={mypageMenuRef}>
+              <button className="mypage-menu-trigger nav" type="button" onClick={() => setIsMypageMenuOpen((s) => !s)} aria-expanded={isMypageMenuOpen} aria-haspopup="true">
+                Mypage
+              </button>
+              {isMypageMenuOpen && (
+                <div className="mypage-menu-dropdown" role="menu">
+                  <Link to="/mypage" className="mypage-menu-item" onClick={() => setIsMypageMenuOpen(false)}>마이페이지</Link>
+                  <button type="button" className="mypage-menu-item mypage-menu-item--logout" onClick={() => { localStorage.removeItem('token'); localStorage.removeItem('userId'); localStorage.removeItem('userProfile'); setIsMypageMenuOpen(false); navigate('/login'); }}>로그아웃</button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         <div className='login_signup'>

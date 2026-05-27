@@ -45,22 +45,11 @@ function NavBar2({
               <img src={import.meta.env.BASE_URL + 'img/logo.svg'} alt="Survly" className="brandmark-logo" />
             </div>
           </Link>
-
-          {/* showButton prop이 true일 때만 액션 버튼을 렌더링합니다. */}
-          {showButton && (
-            <div
-              // 로딩 중일 때는 'disabled' 클래스를 추가하여 시각적으로 비활성화하고, 클릭 이벤트를 막습니다.
-              className={`post active ${loading ? 'disabled' : ''}`}
-              onClick={!loading ? onButtonClick : null}
-            >
-              {/* 로딩 상태에 따라 버튼 텍스트를 '처리 중...' 또는 전달받은 buttonText로 표시합니다. */}
-              <p>{loading ? '처리 중...' : buttonText}</p>
-            </div>
-          )}
         </div>
 
-        {showRightAction && (
-          <div className='route-right'>
+        {/* 오른쪽 영역: 보조 액션(선택) + 주요 액션 버튼(게시)을 오른쪽 끝에 배치 */}
+        <div className='route-right'>
+          {showRightAction && (
             <button
               type='button'
               className={`post post--secondary ${rightActionDisabled ? 'disabled' : ''}`}
@@ -69,8 +58,17 @@ function NavBar2({
             >
               <p>{rightActionText}</p>
             </button>
-          </div>
-        )}
+          )}
+
+          {showButton && (
+            <div
+              className={`post active ${loading ? 'disabled' : ''}`}
+              onClick={!loading ? onButtonClick : null}
+            >
+              <p>{loading ? '처리 중...' : buttonText}</p>
+            </div>
+          )}
+        </div>
       </div>
       
       {/* 탭 선택 영역 */}

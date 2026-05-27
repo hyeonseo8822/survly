@@ -108,6 +108,7 @@ function Create() {
   const [questions, setQuestions] = useState([
     createDefaultQuestion()
   ]);
+  const [openTypeDropdownIndex, setOpenTypeDropdownIndex] = useState(null);
 
 
   useEffect(() => {
@@ -178,6 +179,18 @@ function Create() {
       return () => clearTimeout(timer);
     }
   }, [error, success]);
+
+  // Close question-type dropdown when clicking outside
+  useEffect(() => {
+    const handleDocClick = (e) => {
+      if (openTypeDropdownIndex === null) return;
+      if (!e.target.closest || !e.target.closest('.typeDropdown')) {
+        setOpenTypeDropdownIndex(null);
+      }
+    };
+    document.addEventListener('mousedown', handleDocClick);
+    return () => document.removeEventListener('mousedown', handleDocClick);
+  }, [openTypeDropdownIndex]);
 
 
   /**
@@ -540,27 +553,38 @@ function Create() {
                       />
                     </div>
                     <div className='selectType'>
-                      <select value={q.questionType}
-                        onChange={(e) => {
-                          const newQ = [...questions];
-                          newQ[qIdx].questionType = e.target.value;
-                          const selectedMeta = QUESTION_TYPE_META[e.target.value] || QUESTION_TYPE_META.subjective;
-                          if (selectedMeta.hasOptions && (!newQ[qIdx].options || newQ[qIdx].options.length === 0)) {
-                            newQ[qIdx].options = ['옵션 1', '옵션 2'];
-                          }
-                          if (!selectedMeta.hasOptions) {
-                            newQ[qIdx].options = [];
-                          }
-                          setQuestions(newQ);
-                        }}
-                      >
-                        <option value='objective'>객관식</option>
-                        <option value='checkbox'>객관식(중복가능)</option>
-                        <option value='subjective'>단답형</option>
-                        <option value='longtext'>장문형</option>
-                        <option value='rating'>평점(1~5)</option>
-                        <option value='date'>날짜</option>
-                      </select>
+                      <div className='typeDropdown'>
+                        <button type='button' className='typeDropdownButton' onClick={() => setOpenTypeDropdownIndex(openTypeDropdownIndex === qIdx ? null : qIdx)} aria-expanded={openTypeDropdownIndex === qIdx}>
+                          <span>{(QUESTION_TYPE_META[q.questionType] || QUESTION_TYPE_META.subjective).label}</span>
+                          <span className='typeDropdownChevron'>▾</span>
+                        </button>
+                        {openTypeDropdownIndex === qIdx && (
+                          <div className='typeDropdownMenu'>
+                            {Object.entries(QUESTION_TYPE_META).map(([key, meta]) => (
+                              <button
+                                key={key}
+                                type='button'
+                                className='typeDropdownItem'
+                                onClick={() => {
+                                  const newQ = [...questions];
+                                  newQ[qIdx].questionType = key;
+                                  const selectedMeta = QUESTION_TYPE_META[key] || QUESTION_TYPE_META.subjective;
+                                  if (selectedMeta.hasOptions && (!newQ[qIdx].options || newQ[qIdx].options.length === 0)) {
+                                    newQ[qIdx].options = ['옵션 1', '옵션 2'];
+                                  }
+                                  if (!selectedMeta.hasOptions) {
+                                    newQ[qIdx].options = [];
+                                  }
+                                  setQuestions(newQ);
+                                  setOpenTypeDropdownIndex(null);
+                                }}
+                              >
+                                {meta.label}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
 

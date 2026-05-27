@@ -157,6 +157,7 @@
     top: calc(100% + 10px);
     right: 0;
     min-width: 138px;
+    max-width: 260px;
     display: flex;
     flex-direction: column;
     gap: 4px;
@@ -169,6 +170,8 @@
 }
 
 .mypage-menu-item {
+    display: flex;
+    align-items: center;
     width: 100%;
     height: 34px;
     border: none;
@@ -180,6 +183,28 @@
     text-align: left;
     padding: 0 10px;
     cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Ensure logout variant shares same sizing/box model; color differs only */
+.mypage-menu-item--logout {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    height: 34px;
+    border-radius: 8px;
+    padding: 0 10px;
+    box-sizing: border-box;
+}
+
+/* Ensure direct children of dropdown fill available width (prevents one item overflowing) */
+.mypage-menu-dropdown > * {
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .mypage-menu-item:hover {
