@@ -1932,8 +1932,8 @@ function Mypage() {
                                                         {selectedCommentIds.includes(String(comment.id)) ? '✓' : ''}
                                                     </button>
                                                     <div className="mypage-manage-preview-body">
-                                                        <p className="mypage-rectText">{comment.surveyTitle}</p>
-                                                        <p className="mypage-manage-preview-sub">{comment.content}</p>
+                                                        <p className="mypage-rectText mypage-comment-preview-title">{comment.surveyTitle}</p>
+                                                        <p className="mypage-manage-preview-sub mypage-comment-preview-content">{comment.content}</p>
                                                     </div>
                                                 </div>
                                             </div>

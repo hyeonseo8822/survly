@@ -1178,6 +1178,23 @@
     min-width: 0;
 }
 
+.mypage-comment-preview-title {
+    margin-bottom: 6px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(148, 172, 196, 0.24);
+    font-size: 16px;
+    font-weight: 800;
+    color: #23415c;
+}
+
+.mypage-comment-preview-content {
+    margin-top: 0;
+    color: #6d8298;
+    line-height: 1.55;
+    font-size: 14px;
+    word-break: break-word;
+}
+
 .mypage-follow-stats strong {
     color: #284863;
     font-weight: 700;
