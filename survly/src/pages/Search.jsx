@@ -383,13 +383,18 @@ function Search() {
                                         <p className='num'>{String((page - 1) * 6 + index + 1).padStart(2, '0')}</p>
                                         <p className="rectText">{survey.title}</p>
                                         <div className="graph">
-                                            <img 
-                                                src={survey.img && survey.img !== 'default_img' 
-                                                    ? resolveUploadUrl(survey.img) 
-                                                    : `${import.meta.env.BASE_URL}img/default_img.svg`}
-                                                alt="Survey Thumbnail"
-                                                className="survey-thumbnail"
-                                            />
+                                            {survey.img && survey.img !== 'default_img' ? (
+                                                <img
+                                                    src={resolveUploadUrl(survey.img)}
+                                                    alt="Survey Thumbnail"
+                                                    className="survey-thumbnail"
+                                                />
+                                            ) : (
+                                                <div className="survey-summary-thumb" aria-label="설문 요약 썸네일">
+                                                    <p className="survey-summary-thumb__title">{survey.title}</p>
+                                                    <p className="survey-summary-thumb__description">이미지가 없는 설문입니다.</p>
+                                                </div>
+                                            )}
                                         </div>
                                         <img
                                             className="part"

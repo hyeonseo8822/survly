@@ -123,10 +123,8 @@ function Surveys() {
         const token = localStorage.getItem('token');
 
         const candidates = surveyList.filter((survey) => {
-            const isLegacyPublicSurvey = survey.responseTabPublic === undefined && survey.isPublic === true;
-            const isResponseTabVisible = survey.responseTabPublic === true || isLegacyPublicSurvey;
             const hasThumbnail = Boolean(survey.img && survey.img !== 'default_img');
-            return isResponseTabVisible && !hasThumbnail;
+            return !hasThumbnail;
         });
 
         if (candidates.length === 0) {
@@ -145,12 +143,12 @@ function Surveys() {
                     const data = await response.json();
 
                     if (!response.ok || !data.success) {
-                        return [survey.id, { kind: 'empty' }];
+                        return [survey.id, { kind: 'fallback', count: Number(survey.participantCount) || 0 }];
                     }
 
                     return [survey.id, buildResponseVisualSummary(data.results)];
                 } catch (err) {
-                    return [survey.id, { kind: 'empty' }];
+                    return [survey.id, { kind: 'fallback', count: Number(survey.participantCount) || 0 }];
                 }
             }));
 
@@ -457,6 +455,14 @@ function Surveys() {
                                                 <div className="survey-summary-chat__count">
                                                     <strong>{summaryData.count}</strong>
                                                     <span>개의 의견</span>
+                                                </div>
+                                            </div>
+                                        ) : summaryData.kind === 'fallback' ? (
+                                            <div className="survey-summary-chat">
+                                                <p className="survey-summary-chat__question">응답 요약</p>
+                                                <div className="survey-summary-chat__count">
+                                                    <strong>{summaryData.count}</strong>
+                                                    <span>개의 응답</span>
                                                 </div>
                                             </div>
                                         ) : (
