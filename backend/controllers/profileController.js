@@ -1,3 +1,4 @@
+const fs = require('fs');
 const User = require('../models/User');
 const Survey = require('../models/Survey');
 const Response = require('../models/Response');
@@ -102,7 +103,15 @@ async function updateMyProfile(req, res) {
     user.bio = bio.slice(0, 240);
 
     if (req.file) {
-      user.avatarUrl = `/uploads/${req.file.filename}`;
+      if (req.file.location) {
+        user.avatarUrl = req.file.location;
+      } else if (req.file.path && fs.existsSync(req.file.path)) {
+        const buffer = fs.readFileSync(req.file.path);
+        const mimeType = req.file.mimetype || 'image/jpeg';
+        user.avatarUrl = `data:${mimeType};base64,${buffer.toString('base64')}`;
+      } else {
+        user.avatarUrl = `/uploads/${req.file.filename}`;
+      }
     } else if (removeAvatar) {
       user.avatarUrl = '';
     }
