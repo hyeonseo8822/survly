@@ -402,6 +402,7 @@ function Create() {
   }
 
   const hasCoverImage = Boolean(imagePreview || existingImage);
+  const showPrivatePlaceholder = !hasCoverImage && !responseTabPublic;
   const embedPreviewUrl = surveyInfo.embedUrl && /^https?:\/\//i.test(surveyInfo.embedUrl.trim())
     ? normalizeEmbedUrl(surveyInfo.embedUrl)
     : '';
@@ -498,6 +499,15 @@ function Create() {
                 </>
               )}
               <input id="surveyImageUpload" type="file" accept="image/*" onChange={handleImageChange} style={{ display: 'none' }} />
+              {showPrivatePlaceholder && (
+                <div className='image-preview-container'>
+                  <img
+                    src={import.meta.env.BASE_URL + 'img/private_response_placeholder.svg'}
+                    alt="비공개 응답 썸네일"
+                    className="image-preview"
+                  />
+                </div>
+              )}
               {hasCoverImage && (
                 <div className='image-preview-container'>
                   <img src={imagePreview || existingImage} alt="Survey Preview" className="image-preview" />

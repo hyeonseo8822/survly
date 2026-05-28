@@ -422,7 +422,8 @@ function Surveys() {
                             {/** 응답탭 비공개면 기본 이미지, 이미지가 없고 응답탭 공개면 요약 썸네일 */}
                             {(() => {
                                 const hasThumbnail = Boolean(survey.img && survey.img !== 'default_img');
-                                const showSummaryThumb = !hasThumbnail;
+                                const showPrivatePlaceholder = !hasThumbnail && survey.responseTabPublic === false;
+                                const showSummaryThumb = !hasThumbnail && !showPrivatePlaceholder;
                                 const summaryData = responseSummaryBySurveyId[survey.id] || { kind: 'empty' };
 
                                 return (
@@ -434,6 +435,12 @@ function Surveys() {
                             <div className="graph">
                                 {hasThumbnail ? (
                                     <img src={resolveUploadUrl(survey.img)} alt="Survey Thumbnail" className="survey-thumbnail" />
+                                ) : showPrivatePlaceholder ? (
+                                    <img
+                                        src={import.meta.env.BASE_URL + 'img/private_response_placeholder.svg'}
+                                        alt="비공개 응답 썸네일"
+                                        className="survey-thumbnail"
+                                    />
                                 ) : (
                                     <div className="survey-summary-thumb" aria-label="설문 요약 썸네일">
                                         <p className="survey-summary-thumb__title">{survey.title}</p>

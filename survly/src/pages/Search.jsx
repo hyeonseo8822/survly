@@ -389,6 +389,12 @@ function Search() {
                                                     alt="Survey Thumbnail"
                                                     className="survey-thumbnail"
                                                 />
+                                            ) : survey.responseTabPublic === false ? (
+                                                <img
+                                                    src={import.meta.env.BASE_URL + 'img/private_response_placeholder.svg'}
+                                                    alt="비공개 응답 썸네일"
+                                                    className="survey-thumbnail"
+                                                />
                                             ) : (
                                                 <div className="survey-summary-thumb" aria-label="설문 요약 썸네일">
                                                     <p className="survey-summary-thumb__title">{survey.title}</p>
