@@ -78,6 +78,7 @@ function Mypage() {
     const [commentManageTotalPages, setCommentManageTotalPages] = useState(1);
     const [managedComments, setManagedComments] = useState([]);
     const [selectedCommentIds, setSelectedCommentIds] = useState([]);
+    const [commentDeleteConfirm, setCommentDeleteConfirm] = useState({ open: false, count: 0 });
     const [responseManagePage, setResponseManagePage] = useState(1);
     const [responseManageTotalPages, setResponseManageTotalPages] = useState(1);
     const [managedRespondedSurveys, setManagedRespondedSurveys] = useState([]);
@@ -794,10 +795,16 @@ function Mypage() {
             return;
         }
 
-        const confirmed = window.confirm(`선택한 댓글 ${selectedCommentIds.length}개를 삭제하시겠습니까?`);
-        if (!confirmed) {
+        setCommentDeleteConfirm({ open: true, count: selectedCommentIds.length });
+    };
+
+    const executeDeleteSelectedComments = async () => {
+        if (selectedCommentIds.length === 0) {
+            setCommentDeleteConfirm({ open: false, count: 0 });
             return;
         }
+
+        setCommentDeleteConfirm({ open: false, count: 0 });
 
         try {
             await Promise.all(selectedCommentIds.map((commentId) => deleteCommentById(commentId)));
@@ -1543,6 +1550,24 @@ function Mypage() {
                         <div className="mypage-delete-modal__actions">
                             <button className="mypage-delete-modal__cancel" onClick={() => setResponseDeleteConfirm({ open: false, surveyId: null })}>취소</button>
                             <button className="mypage-delete-modal__confirm" onClick={executeDeleteRespondedSurvey}>삭제</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {commentDeleteConfirm.open && (
+                <div className="mypage-delete-modal-overlay" onClick={() => setCommentDeleteConfirm({ open: false, count: 0 })}>
+                    <div className="mypage-delete-modal" onClick={(e) => e.stopPropagation()}>
+                        <div className="mypage-delete-modal__icon">
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="#e05c5c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                        </div>
+                        <p className="mypage-delete-modal__title">댓글 삭제</p>
+                        <p className="mypage-delete-modal__body">선택한 댓글 {commentDeleteConfirm.count}개를 삭제하시겠습니까?</p>
+                        <div className="mypage-delete-modal__actions">
+                            <button className="mypage-delete-modal__cancel" onClick={() => setCommentDeleteConfirm({ open: false, count: 0 })}>취소</button>
+                            <button className="mypage-delete-modal__confirm" onClick={executeDeleteSelectedComments}>삭제</button>
                         </div>
                     </div>
                 </div>

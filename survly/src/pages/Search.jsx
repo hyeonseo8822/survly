@@ -7,6 +7,26 @@ import { useNotification } from '../components/NotificationProvider';
 import { resolveUploadUrl } from '../utils/uploadUrl';
 import './css/Search.css';
 
+const getProfileStorageKey = (userId) => `survly-profile-${userId}`;
+
+const readCachedAvatarUrl = (userId) => {
+    if (!userId) {
+        return '';
+    }
+
+    try {
+        const raw = localStorage.getItem(getProfileStorageKey(userId));
+        if (!raw) {
+            return '';
+        }
+
+        const cachedProfile = JSON.parse(raw);
+        return resolveUploadUrl(cachedProfile?.avatarUrl || '');
+    } catch {
+        return '';
+    }
+};
+
 
 function Search() {
     const [surveyList, setSurveyList] = useState([]); // 검색된 설문 목록
@@ -254,14 +274,8 @@ function Search() {
         }
     };
 
-    const resolveAvatarSrc = (avatarUrl) => {
-        if (!avatarUrl) {
-            return '';
-        }
-        if (avatarUrl.startsWith('http://') || avatarUrl.startsWith('https://')) {
-            return avatarUrl;
-        }
-        return `${import.meta.env.VITE_API_BASE}${avatarUrl.startsWith('/') ? '' : '/'}${avatarUrl}`;
+    const resolveAvatarSrc = (user) => {
+        return resolveUploadUrl(user?.avatarUrl || '') || readCachedAvatarUrl(user?.userId || '');
     };
 
     if (error) {
@@ -286,7 +300,7 @@ function Search() {
                         ) : (
                             <div className="search-users-scroll" role="list" aria-label="사용자 검색 결과">
                                 {userResults.map((user) => {
-                                    const avatarSrc = resolveAvatarSrc(user.avatarUrl);
+                                    const avatarSrc = resolveAvatarSrc(user);
                                     return (
                                         <button
                                             key={user.userId}
