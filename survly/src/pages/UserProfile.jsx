@@ -175,11 +175,7 @@ function UserProfile() {
     return (
       <div className='mypage-rectList'>
         {relationUsers.map((user, index) => {
-          const avatarSrc = user.avatarUrl
-            ? (user.avatarUrl.startsWith('http://') || user.avatarUrl.startsWith('https://')
-              ? user.avatarUrl
-              : `${import.meta.env.VITE_API_BASE}${user.avatarUrl.startsWith('/') ? '' : '/'}${user.avatarUrl}`)
-            : '';
+          const avatarSrc = resolveUploadUrl(user.avatarUrl);
 
           return (
             <div className='mypage-rect' key={`${user.userId}-${index}`}>
