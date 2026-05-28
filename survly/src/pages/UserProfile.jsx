@@ -263,9 +263,7 @@ function UserProfile() {
                     <p className='mypage-loading-text'>프로필을 불러오는 중...</p>
                   ) : (
                     <>
-                      {profile?.headline ? <p className='mypage-profile-headline'>{profile.headline}</p> : null}
-                      {profile?.headline && profile?.bio ? <div className='mypage-profile-divider' /> : null}
-                      {profile?.bio ? <p className='mypage-profile-bio'>{profile.bio}</p> : null}
+                      <p className='mypage-profile-empty'>프로필 소개가 없습니다.</p>
                     </>
                   )}
 

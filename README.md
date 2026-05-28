@@ -81,7 +81,7 @@
 ## 4. DB 구조 (주요 컬렉션)
 
 ### User
-- email, password, userId, displayName, headline, bio, avatarUrl, followerCount, followingCount
+- email, password, userId, displayName, avatarUrl, followerCount, followingCount
 
 ### Survey
 - title, description, embedUrl, isPublic, responseTabPublic, userId, link, img, participantCount

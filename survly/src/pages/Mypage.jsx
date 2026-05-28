@@ -16,8 +16,6 @@ const createDefaultProfile = (userId = '') => ({
     userId,
     email: '',
     displayName: userId,
-    headline: '',
-    bio: '',
     avatarUrl: '',
     followerCount: 0,
     followingCount: 0
@@ -606,9 +604,7 @@ function Mypage() {
         const trimmedProfile = {
             ...profileDraft,
             userId: (profileDraft.userId || loggedInUserId || '').trim().slice(0, 20),
-            displayName: (profileDraft.displayName || loggedInUserId).trim().slice(0, 24) || loggedInUserId,
-            headline: '',
-            bio: ''
+            displayName: (profileDraft.displayName || loggedInUserId).trim().slice(0, 24) || loggedInUserId
         };
 
         if (trimmedProfile.userId.length < 3) {
@@ -644,8 +640,6 @@ function Mypage() {
             const formData = new FormData();
             formData.append('userId', trimmedProfile.userId);
             formData.append('displayName', trimmedProfile.displayName);
-            formData.append('headline', trimmedProfile.headline);
-            formData.append('bio', trimmedProfile.bio);
             formData.append('removeAvatar', 'false');
             if (selectedAvatarFile) {
                 formData.append('avatar', selectedAvatarFile);

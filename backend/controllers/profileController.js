@@ -28,8 +28,6 @@ async function serializeProfile(user) {
     userId: user.userId,
     email: user.email,
     displayName: user.displayName || user.userId,
-    headline: user.headline || '',
-    bio: user.bio || '',
     avatarUrl: await resolveUploadDataUrl(user.avatarUrl || ''),
     followerCount: Number.isFinite(user.followerCount) ? user.followerCount : 0,
     followingCount: Number.isFinite(user.followingCount) ? user.followingCount : 0
@@ -40,8 +38,6 @@ async function serializePublicProfile(user) {
   return {
     userId: user.userId,
     displayName: user.displayName || user.userId,
-    headline: user.headline || '',
-    bio: user.bio || '',
     avatarUrl: await resolveUploadDataUrl(user.avatarUrl || ''),
     followerCount: Number.isFinite(user.followerCount) ? user.followerCount : 0,
     followingCount: Number.isFinite(user.followingCount) ? user.followingCount : 0
@@ -80,8 +76,6 @@ async function updateMyProfile(req, res) {
 
     const requestedUserId = String(req.body.userId || '').trim();
     const displayName = (req.body.displayName || '').trim();
-    const headline = (req.body.headline || '').trim();
-    const bio = (req.body.bio || '').trim();
     const removeAvatar = req.body.removeAvatar === 'true';
 
     const nextUserId = requestedUserId || user.userId;
@@ -99,8 +93,6 @@ async function updateMyProfile(req, res) {
     }
 
     user.displayName = displayName.slice(0, 24);
-    user.headline = headline.slice(0, 60);
-    user.bio = bio.slice(0, 240);
 
     if (req.file) {
       if (req.file.location) {

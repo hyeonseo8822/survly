@@ -650,6 +650,14 @@
     white-space: pre-wrap;
 }
 
+.mypage-profile-empty {
+    margin: 6px 0 0;
+    font-size: 14px;
+    line-height: 1.7;
+    color: #8b9bad;
+    text-align: center;
+}
+
 .mypage-char-count {
     margin: 2px 2px 0 0;
     text-align: right;
