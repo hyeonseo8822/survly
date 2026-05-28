@@ -288,8 +288,13 @@ function Surveys() {
                     return { ...survey, bookmarkCount: nextCount };
                 }));
             }
-
             notify(targetList.isBookmarked ? '북마크를 해제했습니다.' : '북마크에 추가했습니다.', 'success');
+
+            // If we just added a bookmark to a list, close the bookmark modal.
+            const updatedList = nextLists.find((l) => l.id === listId);
+            if (updatedList && updatedList.isBookmarked && !targetList.isBookmarked) {
+                setBookmarkModalSurveyId(null);
+            }
         } catch (error) {
             notify(error.message || '북마크 처리에 실패했습니다.', 'error');
         } finally {
@@ -418,9 +423,8 @@ function Surveys() {
                             <p className="survey-bookmark-count">{Number(survey.bookmarkCount) || 0}</p>
                             {/** 응답탭 비공개면 기본 이미지, 이미지가 없고 응답탭 공개면 요약 썸네일 */}
                             {(() => {
-                                const isResponseTabPrivate = survey.responseTabPublic === false;
                                 const hasThumbnail = Boolean(survey.img && survey.img !== 'default_img');
-                                const showSummaryThumb = !isResponseTabPrivate && !hasThumbnail;
+                                const showSummaryThumb = !hasThumbnail;
                                 const summaryData = responseSummaryBySurveyId[survey.id] || { kind: 'empty' };
 
                                 return (
@@ -430,13 +434,7 @@ function Surveys() {
                             {!showSummaryThumb ? <p className="rectText">{survey.title}</p> : null}
 
                             <div className="graph">
-                                {isResponseTabPrivate ? (
-                                        <img
-                                            src={import.meta.env.BASE_URL + 'img/default_img.svg'}
-                                            alt="Survey Thumbnail"
-                                            className="survey-thumbnail"
-                                        />
-                                ) : hasThumbnail ? (
+                                {hasThumbnail ? (
                                     <img src={resolveUploadUrl(survey.img)} alt="Survey Thumbnail" className="survey-thumbnail" />
                                 ) : (
                                     <div className="survey-summary-thumb" aria-label="설문 요약 썸네일">

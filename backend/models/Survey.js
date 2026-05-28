@@ -21,4 +21,12 @@ surveySchema.index(
   { unique: true, partialFilterExpression: { link: { $type: 'string' } } }
 );
 
+// Indexes to improve list / search performance
+// - filter by public surveys and sort by creation time
+surveySchema.index({ isPublic: 1, created_at: -1 });
+// - filter by owner (used in profile/following queries)
+surveySchema.index({ userId: 1 });
+// - text index for title search (supports text search; regex may still be unindexed)
+surveySchema.index({ title: 'text' });
+
 module.exports = mongoose.models.Survey || mongoose.model('Survey', surveySchema);
