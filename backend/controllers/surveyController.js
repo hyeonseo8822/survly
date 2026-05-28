@@ -640,20 +640,20 @@ async function listSurveyComments(req, res) {
       : [];
     const userByUserId = new Map(users.map((user) => [user.userId, user]));
 
-    const normalized = comments.map((comment) => {
+    const normalized = await Promise.all(comments.map(async (comment) => {
       const profile = userByUserId.get(comment.userId) || {};
       return {
         id: comment._id.toString(),
         surveyId: comment.surveyId.toString(),
         userId: comment.userId,
         displayName: profile.displayName || comment.userId,
-        avatarUrl: resolveUploadDataUrl(profile.avatarUrl || ''),
+        avatarUrl: await resolveUploadDataUrl(profile.avatarUrl || ''),
         parentCommentId: comment.parentCommentId ? comment.parentCommentId.toString() : null,
         content: comment.content,
         created_at: comment.created_at,
         replies: []
       };
-    });
+    }));
 
     const byId = new Map(normalized.map((comment) => [comment.id, comment]));
     const roots = [];
@@ -734,7 +734,7 @@ async function createSurveyComment(req, res) {
         surveyId: createdComment.surveyId.toString(),
         userId: createdComment.userId,
         displayName: profile?.displayName || createdComment.userId,
-        avatarUrl: resolveUploadDataUrl(profile?.avatarUrl || ''),
+        avatarUrl: await resolveUploadDataUrl(profile?.avatarUrl || ''),
         parentCommentId: createdComment.parentCommentId ? createdComment.parentCommentId.toString() : null,
         content: createdComment.content,
         created_at: createdComment.created_at
