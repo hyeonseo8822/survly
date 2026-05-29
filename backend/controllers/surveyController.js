@@ -86,6 +86,7 @@ async function createSurvey(req, res) {
 
     res.status(201).json({ success: true, surveyId: createdSurvey._id.toString(), link });
   } catch (error) {
+    console.error(error && error.stack ? error.stack : error);
     res.status(500).json({ success: false, message: '설문 저장 실패', error: error.message });
   } finally {
     await session.endSession();
@@ -221,6 +222,7 @@ async function updateSurvey(req, res) {
 
     res.json({ success: true, message: '설문지가 성공적으로 수정되었습니다.' });
   } catch (error) {
+    console.error(error && error.stack ? error.stack : error);
     res.status(500).json({ success: false, message: '설문 수정 실패', error: error.message });
   } finally {
     await session.endSession();
@@ -267,6 +269,7 @@ async function deleteSurvey(req, res) {
 
     res.json({ success: true, message: '설문지가 성공적으로 삭제되었습니다.' });
   } catch (error) {
+    console.error(error && error.stack ? error.stack : error);
     res.status(500).json({ success: false, message: '설문 삭제 실패', error: error.message });
   } finally {
     await session.endSession();
@@ -348,6 +351,7 @@ async function listSurveys(req, res) {
       totalPages: Math.ceil(totalSurveys / normalizedLimit)
     });
   } catch (error) {
+    console.error(error && error.stack ? error.stack : error);
     res.status(500).json({ success: false, error: error.message });
   }
 }
@@ -368,6 +372,7 @@ async function getSurveyById(req, res) {
     const surveyDetails = await getSurveyDetails(survey);
     res.json({ success: true, survey: surveyDetails });
   } catch (error) {
+    console.error(error && error.stack ? error.stack : error);
     res.status(500).json({ success: false, error: error.message });
   }
 }
@@ -384,6 +389,7 @@ async function getSurveyByLink(req, res) {
     const surveyDetails = await getSurveyDetails(survey);
     res.json({ success: true, survey: surveyDetails });
   } catch (error) {
+    console.error(error && error.stack ? error.stack : error);
     res.status(500).json({ success: false, error: error.message });
   }
 }
@@ -414,6 +420,7 @@ async function getMySurveys(req, res) {
       totalPages: Math.ceil(totalSurveys / normalizedLimit)
     });
   } catch (error) {
+    console.error(error && error.stack ? error.stack : error);
     res.status(500).json({ success: false, error: error.message });
   }
 }
@@ -446,6 +453,7 @@ async function getMyRespondedSurveys(req, res) {
       totalPages: Math.ceil(totalSurveys / normalizedLimit)
     });
   } catch (error) {
+    console.error(error && error.stack ? error.stack : error);
     res.status(500).json({ success: false, error: error.message });
   }
 }
@@ -496,6 +504,7 @@ async function submitResponses(req, res) {
 
     res.json({ success: true, message: overwrite ? '응답 수정 완료' : '응답 제출 완료' });
   } catch (error) {
+    console.error(error && error.stack ? error.stack : error);
     res.status(500).json({ success: false, message: '응답 저장 오류', error: error.message });
   }
 }
@@ -586,6 +595,7 @@ async function getSurveyResults(req, res) {
 
     res.json({ success: true, surveyId, results: Array.from(formatted.values()) });
   } catch (error) {
+    console.error(error && error.stack ? error.stack : error);
     res.status(500).json({ success: false, error: error.message });
   }
 }
@@ -613,6 +623,7 @@ async function getMyParticipationStatus(req, res) {
 
     return res.json({ success: true, isCreator, hasParticipated });
   } catch (error) {
+    console.error(error && error.stack ? error.stack : error);
     return res.status(500).json({ success: false, message: '참여 여부를 확인하는 중 오류가 발생했습니다.', error: error.message });
   }
 }
@@ -672,6 +683,7 @@ async function listSurveyComments(req, res) {
       comments: roots
     });
   } catch (error) {
+    console.error(error && error.stack ? error.stack : error);
     return res.status(500).json({ success: false, message: '댓글을 불러오는 중 오류가 발생했습니다.', error: error.message });
   }
 }
@@ -742,6 +754,7 @@ async function createSurveyComment(req, res) {
       }
     });
   } catch (error) {
+    console.error(error && error.stack ? error.stack : error);
     return res.status(500).json({ success: false, message: '댓글 저장 중 오류가 발생했습니다.', error: error.message });
   }
 }
@@ -784,6 +797,7 @@ async function listMyComments(req, res) {
       totalPages: Math.ceil(totalComments / normalizedLimit)
     });
   } catch (error) {
+    console.error(error && error.stack ? error.stack : error);
     return res.status(500).json({ success: false, message: '내 댓글을 불러오는 중 오류가 발생했습니다.', error: error.message });
   }
 }
@@ -828,6 +842,7 @@ async function updateMyComment(req, res) {
       }
     });
   } catch (error) {
+    console.error(error && error.stack ? error.stack : error);
     return res.status(500).json({ success: false, message: '댓글 수정 중 오류가 발생했습니다.', error: error.message });
   }
 }
@@ -852,6 +867,7 @@ async function deleteMyComment(req, res) {
 
     return res.json({ success: true, deletedCommentId: commentId });
   } catch (error) {
+    console.error(error && error.stack ? error.stack : error);
     return res.status(500).json({ success: false, message: '댓글 삭제 중 오류가 발생했습니다.', error: error.message });
   }
 }
@@ -882,6 +898,7 @@ async function deleteMySurveyResponses(req, res) {
 
     return res.json({ success: true, removedCount: deleted.deletedCount || 0 });
   } catch (error) {
+    console.error(error && error.stack ? error.stack : error);
     return res.status(500).json({ success: false, message: '참여 기록 삭제 중 오류가 발생했습니다.', error: error.message });
   }
 }
