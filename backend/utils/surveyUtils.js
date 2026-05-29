@@ -101,5 +101,6 @@ module.exports = {
   parseQuestionsPayload,
   normalizeBoolean,
   toSurveyResponse,
+  toSurveyListResponse,
   getSurveyDetails
 };

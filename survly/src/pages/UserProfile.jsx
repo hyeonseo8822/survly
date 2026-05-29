@@ -5,26 +5,6 @@ import './css/Mypage.css';
 import './css/UserProfile.css';
 import { resolveUploadUrl } from '../utils/uploadUrl';
 
-const getProfileStorageKey = (profileUserId) => `survly-profile-${profileUserId}`;
-
-const readCachedAvatarUrl = (profileUserId) => {
-  if (!profileUserId) {
-    return '';
-  }
-
-  try {
-    const raw = localStorage.getItem(getProfileStorageKey(profileUserId));
-    if (!raw) {
-      return '';
-    }
-
-    const cachedProfile = JSON.parse(raw);
-    return resolveUploadUrl(cachedProfile?.avatarUrl || '');
-  } catch {
-    return '';
-  }
-};
-
 function UserProfile() {
   const { userId } = useParams();
   const navigate = useNavigate();
@@ -56,6 +36,9 @@ function UserProfile() {
       }
 
       try {
+        setRelationView('surveys');
+        setRelationUsers([]);
+        setRelationLoading(false);
         setLoading(true);
         setError('');
         const token = localStorage.getItem('token');
@@ -85,8 +68,6 @@ function UserProfile() {
     };
 
     fetchProfile();
-    setRelationView('surveys');
-    setRelationUsers([]);
   }, [userId]);
 
   const fallbackText = String(profile?.displayName || profile?.userId || 'SV').slice(0, 2).toUpperCase();
@@ -197,7 +178,7 @@ function UserProfile() {
     return (
       <div className='mypage-rectList'>
         {relationUsers.map((user, index) => {
-          const avatarSrc = resolveUploadUrl(user.avatarUrl) || readCachedAvatarUrl(user.userId);
+          const avatarSrc = resolveUploadUrl(user.avatarUrl);
 
           return (
             <div className='mypage-rect' key={`${user.userId}-${index}`}>
