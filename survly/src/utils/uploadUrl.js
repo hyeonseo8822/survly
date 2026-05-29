@@ -44,10 +44,22 @@ export function resolveUploadUrl(value) {
   }
 
   const normalizedPath = rawValue.replace(/^\/+/, '');
+  const apiBase = import.meta.env.VITE_API_BASE || '';
+  const joinApiBase = (path) => {
+    if (!apiBase) {
+      return '';
+    }
+
+    const normalizedApiBase = apiBase.endsWith('/') ? apiBase : `${apiBase}/`;
+    return new URL(path.replace(/^\/+/, ''), normalizedApiBase).toString();
+  };
+
   if (normalizedPath.startsWith('uploads/')) {
-    // If we reach here, it's a relative uploads path; avoid mapping it to
-    // the GH Pages app base — treat as missing to prevent 404s.
-    return '';
+    return joinApiBase(normalizedPath);
+  }
+
+  if (/^[^/]+\.[a-z0-9]+$/i.test(normalizedPath)) {
+    return joinApiBase(`uploads/${normalizedPath}`);
   }
 
   return joinAppBase(normalizedPath);
