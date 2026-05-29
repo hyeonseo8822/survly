@@ -16,8 +16,6 @@ export function resolveUploadUrl(value) {
     const idx = rawValue.indexOf('data:');
     return rawValue.slice(idx);
   }
-  if (rawValue.includes('/uploads/') && !rawValue.startsWith('data:')) return '';
-
   if (rawValue.startsWith('data:')) {
     return rawValue;
   }
@@ -56,6 +54,12 @@ export function resolveUploadUrl(value) {
 
   if (normalizedPath.startsWith('uploads/')) {
     return joinApiBase(normalizedPath);
+  }
+
+  if (normalizedPath.includes('/uploads/')) {
+    const uploadsIndex = normalizedPath.lastIndexOf('/uploads/');
+    const uploadPath = normalizedPath.slice(uploadsIndex + '/uploads/'.length).replace(/^\/+/, '');
+    return uploadPath ? joinApiBase(`uploads/${uploadPath}`) : '';
   }
 
   if (/^[^/]+\.[a-z0-9]+$/i.test(normalizedPath)) {
