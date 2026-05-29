@@ -44,6 +44,23 @@ async function toSurveyResponse(survey) {
   };
 }
 
+// Lightweight response for list endpoints. Avoid resolving upload data URLs
+// to keep list payloads small and queries fast.
+function toSurveyListResponse(survey) {
+  return {
+    id: survey._id.toString(),
+    title: survey.title,
+    description: survey.description,
+    isPublic: survey.isPublic,
+    responseTabPublic: survey.responseTabPublic,
+    userId: survey.userId,
+    link: survey.link,
+    img: survey.img || 'default_img',
+    participantCount: survey.participantCount || 0,
+    created_at: survey.created_at
+  };
+}
+
 function toQuestionResponse(question, options) {
   return {
     questionId: question._id.toString(),

@@ -94,6 +94,9 @@ async function updateMyProfile(req, res) {
 
     user.displayName = displayName.slice(0, 24);
 
+    // Support two upload flows:
+    // 1) traditional multipart upload handled by multer (req.file)
+    // 2) presigned direct-to-S3 flow: client uploads to S3 and sends `avatarKey` in the body
     if (req.file) {
       if (req.file.location) {
         user.avatarUrl = req.file.location;
@@ -103,6 +106,12 @@ async function updateMyProfile(req, res) {
         user.avatarUrl = `data:${mimeType};base64,${buffer.toString('base64')}`;
       } else {
         user.avatarUrl = `/uploads/${req.file.filename}`;
+      }
+    } else if (req.body && req.body.avatarKey) {
+      // avatarKey is the object key (including any prefix). Store as uploads path
+      const key = String(req.body.avatarKey || '').trim();
+      if (key) {
+        user.avatarUrl = `/uploads/${key}`;
       }
     } else if (removeAvatar) {
       user.avatarUrl = '';

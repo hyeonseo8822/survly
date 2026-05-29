@@ -642,7 +642,35 @@ function Mypage() {
             formData.append('displayName', trimmedProfile.displayName);
             formData.append('removeAvatar', 'false');
             if (selectedAvatarFile) {
-                formData.append('avatar', selectedAvatarFile);
+                // Try presigned upload flow first
+                try {
+                    const presignResp = await fetch(`${import.meta.env.VITE_API_BASE}/api/uploads/presign`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ fileName: selectedAvatarFile.name, contentType: selectedAvatarFile.type })
+                    });
+                    const presignData = await presignResp.json();
+                    if (presignResp.ok && presignData.success && presignData.presignedUrl) {
+                        // Upload the file directly to S3 using the presigned URL
+                        const putResp = await fetch(presignData.presignedUrl, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': selectedAvatarFile.type },
+                            body: selectedAvatarFile
+                        });
+                        if (!putResp.ok) {
+                            throw new Error('S3 업로드에 실패했습니다.');
+                        }
+
+                        // Send avatarKey to the server so it can reference the uploaded object
+                        formData.append('avatarKey', presignData.key);
+                    } else {
+                        // Fallback to multipart upload if presign unavailable
+                        formData.append('avatar', selectedAvatarFile);
+                    }
+                } catch (err) {
+                    // If presign/upload fails, fallback to sending file via formData
+                    formData.append('avatar', selectedAvatarFile);
+                }
             }
 
             const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/me/profile`, {

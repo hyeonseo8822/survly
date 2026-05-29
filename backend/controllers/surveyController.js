@@ -13,6 +13,7 @@ const {
   parseQuestionsPayload,
   normalizeBoolean,
   toSurveyResponse,
+  toSurveyListResponse,
   getSurveyDetails
 } = require('../utils/surveyUtils');
 const { resolveUploadDataUrl } = require('../utils/uploadResolver');
@@ -338,10 +339,10 @@ async function listSurveys(req, res) {
 
     res.json({
       success: true,
-      surveys: await Promise.all(surveys.map(async (survey) => ({
-        ...await toSurveyResponse(survey),
+      surveys: surveys.map((survey) => ({
+        ...toSurveyListResponse(survey),
         bookmarkCount: Number(survey.bookmarkCount) || 0
-      }))),
+      })),
       totalSurveys,
       page: normalizedPage,
       totalPages: Math.ceil(totalSurveys / normalizedLimit)
@@ -407,7 +408,7 @@ async function getMySurveys(req, res) {
 
     res.json({
       success: true,
-      surveys: await Promise.all(surveys.map(async (survey) => toSurveyResponse(survey))),
+      surveys: surveys.map((survey) => toSurveyListResponse(survey)),
       totalSurveys,
       page: normalizedPage,
       totalPages: Math.ceil(totalSurveys / normalizedLimit)
@@ -439,7 +440,7 @@ async function getMyRespondedSurveys(req, res) {
 
     res.json({
       success: true,
-      surveys: await Promise.all(surveys.map(async (survey) => toSurveyResponse(survey))),
+      surveys: surveys.map((survey) => toSurveyListResponse(survey)),
       totalSurveys,
       page: normalizedPage,
       totalPages: Math.ceil(totalSurveys / normalizedLimit)

@@ -1,7 +1,7 @@
 const BookmarkList = require('../models/BookmarkList');
 const SurveyBookmark = require('../models/SurveyBookmark');
 const Survey = require('../models/Survey');
-const { isValidObjectId, toSurveyResponse } = require('../utils/surveyUtils');
+const { isValidObjectId, toSurveyListResponse } = require('../utils/surveyUtils');
 
 const DEFAULT_LIST_NAME = '목록1';
 const DEFAULT_PAGE_SIZE = 6;
@@ -205,8 +205,7 @@ async function listBookmarkedSurveysInList(req, res) {
       : [];
 
     const surveyMap = new Map(
-      (await Promise.all(surveys.map(async (survey) => [survey._id.toString(), await toSurveyResponse(survey)])))
-        .filter(Boolean)
+      surveys.map((survey) => [survey._id.toString(), toSurveyListResponse(survey)])
     );
 
     return res.json({
