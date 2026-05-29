@@ -272,6 +272,23 @@ function Create() {
     }
   };
 
+  const fileToDataUrl = (file) => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ''));
+    reader.onerror = () => reject(new Error('이미지 변환에 실패했습니다.'));
+    reader.readAsDataURL(file);
+  });
+
+  const urlToDataUrl = async (url) => {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error('기존 이미지를 다시 불러오지 못했습니다.');
+    }
+
+    const blob = await response.blob();
+    return await fileToDataUrl(blob);
+  };
+
   /**
    * @async
    * @function saveSurvey
@@ -329,12 +346,12 @@ function Create() {
       }))));
 
       // 3. 이미지 데이터 처리
-      if (selectedImage) { // 새 이미지가 있으면
-        formData.append('surveyImage', selectedImage);
+      if (selectedImage) { // 새 이미지가 있으면 data URL로 저장
+        formData.append('img', await fileToDataUrl(selectedImage));
       } else if (shouldRemoveExistingImage) { // 기존 이미지를 삭제하기로 했으면
         formData.append('img', 'default_img');
       } else if (existingImage) { // 새 이미지는 없지만 기존 이미지가 있으면
-        formData.append('img', existingImage.split('/').pop()); // URL에서 파일명만 추출하여 전송
+        formData.append('img', existingImage.startsWith('data:') ? existingImage : await urlToDataUrl(existingImage));
       } else { // 아무 이미지도 없으면
         formData.append('img', 'default_img');
       }

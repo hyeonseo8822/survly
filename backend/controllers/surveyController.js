@@ -35,7 +35,9 @@ async function createSurvey(req, res) {
 
   const surveyIsPublic = normalizeBoolean(isPublic);
   const surveyResponseTabPublic = normalizeBoolean(responseTabPublic);
-  const finalImg = req.file ? req.file.filename : (img || 'default_img');
+  const uploadedImg = req.file ? await resolveUploadDataUrl(`/uploads/${req.file.filename}`) : '';
+  const existingImg = img ? await resolveUploadDataUrl(img) : '';
+  const finalImg = uploadedImg || existingImg || 'default_img';
   const link = surveyIsPublic ? null : crypto.randomBytes(8).toString('hex');
   const session = await mongoose.startSession();
 
@@ -120,7 +122,9 @@ async function updateSurvey(req, res) {
     return res.status(403).json({ success: false, message: '설문을 수정할 권한이 없습니다.' });
   }
 
-  const finalImg = req.file ? req.file.filename : (img || 'default_img');
+  const uploadedImg = req.file ? await resolveUploadDataUrl(`/uploads/${req.file.filename}`) : '';
+  const existingImg = img ? await resolveUploadDataUrl(img) : '';
+  const finalImg = uploadedImg || existingImg || 'default_img';
   const nextIsPublic = isPublic === undefined ? survey.isPublic : normalizeBoolean(isPublic);
   const nextResponseTabPublic = responseTabPublic === undefined
     ? Boolean(survey.responseTabPublic)
@@ -342,10 +346,10 @@ async function listSurveys(req, res) {
 
     res.json({
       success: true,
-      surveys: surveys.map((survey) => ({
-        ...toSurveyListResponse(survey),
+      surveys: await Promise.all(surveys.map(async (survey) => ({
+        ...await toSurveyListResponse(survey),
         bookmarkCount: Number(survey.bookmarkCount) || 0
-      })),
+      }))),
       totalSurveys,
       page: normalizedPage,
       totalPages: Math.ceil(totalSurveys / normalizedLimit)
@@ -414,7 +418,7 @@ async function getMySurveys(req, res) {
 
     res.json({
       success: true,
-      surveys: surveys.map((survey) => toSurveyListResponse(survey)),
+      surveys: await Promise.all(surveys.map((survey) => toSurveyListResponse(survey))),
       totalSurveys,
       page: normalizedPage,
       totalPages: Math.ceil(totalSurveys / normalizedLimit)
@@ -447,7 +451,7 @@ async function getMyRespondedSurveys(req, res) {
 
     res.json({
       success: true,
-      surveys: surveys.map((survey) => toSurveyListResponse(survey)),
+      surveys: await Promise.all(surveys.map((survey) => toSurveyListResponse(survey))),
       totalSurveys,
       page: normalizedPage,
       totalPages: Math.ceil(totalSurveys / normalizedLimit)

@@ -86,9 +86,7 @@ async function updateMyProfile(req, res) {
 
     if (req.file) {
       if (req.file.path && fs.existsSync(req.file.path)) {
-        const buffer = fs.readFileSync(req.file.path);
-        const mimeType = req.file.mimetype || 'image/jpeg';
-        user.avatarUrl = `/uploads/${req.file.filename}`;
+        user.avatarUrl = await resolveUploadDataUrl(`/uploads/${req.file.filename}`) || `/uploads/${req.file.filename}`;
       } else {
         user.avatarUrl = '';
       }
@@ -170,14 +168,14 @@ async function getUserSurveys(req, res) {
 
     return res.json({
       success: true,
-      surveys: surveys.map((survey) => ({
+      surveys: await Promise.all(surveys.map(async (survey) => ({
         id: survey._id.toString(),
         title: survey.title,
         description: survey.description,
         isPublic: survey.isPublic,
-        img: survey.img,
+        img: survey.img === 'default_img' ? 'default_img' : await resolveUploadDataUrl(survey.img || '') || 'default_img',
         created_at: survey.created_at
-      })),
+      }))),
       totalSurveys,
       page: normalizedPage,
       totalPages: Math.ceil(totalSurveys / normalizedLimit)
@@ -209,14 +207,14 @@ async function getUserRespondedSurveys(req, res) {
 
     return res.json({
       success: true,
-      surveys: surveys.map((survey) => ({
+      surveys: await Promise.all(surveys.map(async (survey) => ({
         id: survey._id.toString(),
         title: survey.title,
         description: survey.description,
         isPublic: survey.isPublic,
-        img: survey.img,
+        img: survey.img === 'default_img' ? 'default_img' : await resolveUploadDataUrl(survey.img || '') || 'default_img',
         created_at: survey.created_at
-      })),
+      }))),
       totalSurveys,
       page: normalizedPage,
       totalPages: Math.ceil(totalSurveys / normalizedLimit)

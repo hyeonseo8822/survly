@@ -45,7 +45,7 @@ export function resolveUploadUrl(value) {
       const uploadsIndex = parsedUrl.pathname.lastIndexOf('/uploads/');
       if (uploadsIndex !== -1) {
         const filePath = parsedUrl.pathname.slice(uploadsIndex + '/uploads/'.length).replace(/^\/+/, '');
-        return toBackendUploadUrl(filePath);
+        return toStaticUploadUrl(filePath) || toBackendUploadUrl(filePath);
       }
     } catch {
       // Fall back to the original value below.
@@ -57,7 +57,8 @@ export function resolveUploadUrl(value) {
   const normalizedPath = rawValue.replace(/^\/+/, '');
 
   if (normalizedPath.startsWith('uploads/')) {
-    return toBackendUploadUrl(normalizedPath.slice('uploads/'.length));
+    const filePath = normalizedPath.slice('uploads/'.length);
+    return toStaticUploadUrl(filePath) || toBackendUploadUrl(filePath);
   }
 
   if (normalizedPath.includes('/uploads/')) {
@@ -66,11 +67,11 @@ export function resolveUploadUrl(value) {
     if (!uploadPath) {
       return '';
     }
-    return toBackendUploadUrl(uploadPath);
+    return toStaticUploadUrl(uploadPath) || toBackendUploadUrl(uploadPath);
   }
 
   if (/^[^/]+\.[a-z0-9]+$/i.test(normalizedPath)) {
-    return toBackendUploadUrl(normalizedPath);
+    return toStaticUploadUrl(normalizedPath) || toBackendUploadUrl(normalizedPath);
   }
 
   return joinAppBase(normalizedPath);

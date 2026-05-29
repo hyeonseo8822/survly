@@ -44,9 +44,13 @@ async function toSurveyResponse(survey) {
   };
 }
 
-// Lightweight response for list endpoints. Avoid resolving upload data URLs
-// to keep list payloads small and queries fast.
-function toSurveyListResponse(survey) {
+// List endpoints still resolve image values so stale file paths can fall back
+// to the copied public uploads or an inlined data URL.
+async function toSurveyListResponse(survey) {
+  const resolvedImg = survey.img === 'default_img'
+    ? 'default_img'
+    : await resolveUploadDataUrl(survey.img || '');
+
   return {
     id: survey._id.toString(),
     title: survey.title,
@@ -55,7 +59,7 @@ function toSurveyListResponse(survey) {
     responseTabPublic: survey.responseTabPublic,
     userId: survey.userId,
     link: survey.link,
-    img: survey.img || 'default_img',
+    img: resolvedImg || 'default_img',
     participantCount: survey.participantCount || 0,
     created_at: survey.created_at
   };
