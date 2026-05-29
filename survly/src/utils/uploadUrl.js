@@ -21,25 +21,23 @@ export function resolveUploadUrl(value) {
   }
 
   const appBase = import.meta.env.BASE_URL || '/';
+  const apiBase = import.meta.env.VITE_API_BASE || '';
   const joinAppBase = (path) => {
     const normalizedBase = appBase.endsWith('/') ? appBase : `${appBase}/`;
     return new URL(path.replace(/^\/+/, ''), window.location.origin + normalizedBase).toString();
   };
 
-  // VITE_UPLOADS_BASE overrides VITE_API_BASE for upload paths.
-  // Set it to an empty string in .env.production to serve uploads from the
-  // static GitHub Pages origin instead of the API server.
-  const uploadsBase = import.meta.env.VITE_UPLOADS_BASE !== undefined
-    ? import.meta.env.VITE_UPLOADS_BASE
-    : (import.meta.env.VITE_API_BASE || '');
   const joinApiBase = (path) => {
-    if (!uploadsBase) {
+    if (!apiBase) {
       return '';
     }
 
-    const normalizedApiBase = uploadsBase.endsWith('/') ? uploadsBase : `${uploadsBase}/`;
+    const normalizedApiBase = apiBase.endsWith('/') ? apiBase : `${apiBase}/`;
     return new URL(path.replace(/^\/+/, ''), normalizedApiBase).toString();
   };
+
+  const toBackendUploadUrl = (filePath) => joinApiBase(`uploads/${filePath}`) || joinAppBase(`uploads/${filePath}`);
+  const toStaticUploadUrl = (filePath) => joinAppBase(`uploads/${filePath}`);
 
   if (rawValue.startsWith('http://') || rawValue.startsWith('https://')) {
     try {
@@ -47,7 +45,7 @@ export function resolveUploadUrl(value) {
       const uploadsIndex = parsedUrl.pathname.lastIndexOf('/uploads/');
       if (uploadsIndex !== -1) {
         const filePath = parsedUrl.pathname.slice(uploadsIndex + '/uploads/'.length).replace(/^\/+/, '');
-        return joinApiBase(`uploads/${filePath}`) || joinAppBase(`uploads/${filePath}`);
+        return toBackendUploadUrl(filePath);
       }
     } catch {
       // Fall back to the original value below.
@@ -59,7 +57,7 @@ export function resolveUploadUrl(value) {
   const normalizedPath = rawValue.replace(/^\/+/, '');
 
   if (normalizedPath.startsWith('uploads/')) {
-    return joinApiBase(normalizedPath) || joinAppBase(normalizedPath);
+    return toBackendUploadUrl(normalizedPath.slice('uploads/'.length));
   }
 
   if (normalizedPath.includes('/uploads/')) {
@@ -68,11 +66,11 @@ export function resolveUploadUrl(value) {
     if (!uploadPath) {
       return '';
     }
-    return joinApiBase(`uploads/${uploadPath}`) || joinAppBase(`uploads/${uploadPath}`);
+    return toBackendUploadUrl(uploadPath);
   }
 
   if (/^[^/]+\.[a-z0-9]+$/i.test(normalizedPath)) {
-    return joinApiBase(`uploads/${normalizedPath}`) || joinAppBase(`uploads/${normalizedPath}`);
+    return toBackendUploadUrl(normalizedPath);
   }
 
   return joinAppBase(normalizedPath);

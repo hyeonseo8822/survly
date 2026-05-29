@@ -2,7 +2,7 @@
   "name": "survly-root",
   "private": true,
   "scripts": {
-    "deploy": "npm --prefix survly run build && npx gh-pages -d survly/dist",
+    "deploy": "node scripts/publish_uploads_to_ghpages.js",
     "backup:uploads": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/backup_uploads.ps1"
   },
   "dependencies": {

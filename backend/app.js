@@ -1,4 +1,5 @@
 ﻿const path = require('path');
+const fs = require('fs');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 
 const express = require('express');
@@ -46,6 +47,21 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
     res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
   }
 }));
+
+app.get('/uploads/:fileName', (req, res, next) => {
+  const fileName = String(req.params.fileName || '').trim();
+  if (!fileName) {
+    return res.sendStatus(404);
+  }
+
+  const localFilePath = path.join(__dirname, 'uploads', fileName);
+  if (fs.existsSync(localFilePath)) {
+    return next();
+  }
+
+  const fallbackBase = process.env.PUBLIC_UPLOADS_BASE || 'https://hyeonseo8822.github.io/survly';
+  return res.redirect(302, `${fallbackBase.replace(/\/$/, '')}/uploads/${encodeURIComponent(fileName)}`);
+});
 
 app.use('/api/auth', authRoutes);
 app.use('/api/surveys', surveyRoutes);
