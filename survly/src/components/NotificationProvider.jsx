@@ -1,7 +1,6 @@
-import { createContext, useCallback, useContext, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import './css/Notification.css';
-
-const NotificationContext = createContext(null);
+import { NotificationContext } from './NotificationContext';
 
 export function NotificationProvider({ children }) {
   const [notifications, setNotifications] = useState([]);
@@ -43,12 +42,4 @@ export function NotificationProvider({ children }) {
       </div>
     </NotificationContext.Provider>
   );
-}
-
-export function useNotification() {
-  const context = useContext(NotificationContext);
-  if (!context) {
-    throw new Error('useNotification must be used within NotificationProvider');
-  }
-  return context;
 }

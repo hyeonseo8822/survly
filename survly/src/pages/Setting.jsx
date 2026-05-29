@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NavBar from '../components/NavBar';
 import Pagination from '../components/Pagination';
-import { useNotification } from '../components/NotificationProvider';
+import { useNotification } from '../components/useNotification';
 import './css/Setting.css';
 
 const ITEMS_PER_PAGE = 6;

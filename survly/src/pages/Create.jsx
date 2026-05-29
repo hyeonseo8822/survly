@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import './css/Create.css';
 import NavBar2 from '../components/NavBar2';
-import { useNotification } from '../components/NotificationProvider';
+import { useNotification } from '../components/useNotification';
 import { resolveUploadUrl } from '../utils/uploadUrl';
 
 const QUESTION_TYPE_META = {

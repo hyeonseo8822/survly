@@ -41,25 +41,11 @@ app.use((req, res, next) => {
   console.warn('Blocked origin by CORS:', origin);
   return res.status(403).send('CORS origin not allowed');
 });
-// Serve uploads from local disk or redirect to S3 when configured.
-if (process.env.S3_BUCKET && process.env.USE_S3 === 'true') {
-  const bucket = process.env.S3_BUCKET;
-  const region = process.env.AWS_REGION || 'us-east-1';
-  app.use('/uploads', (req, res) => {
-    const key = req.path.replace(/^\//, '');
-    const s3Host = region === 'us-east-1'
-      ? `${bucket}.s3.amazonaws.com`
-      : `${bucket}.s3.${region}.amazonaws.com`;
-    const url = `https://${s3Host}/${encodeURIComponent(key)}`;
-    return res.redirect(302, url);
-  });
-} else {
-  app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
-    setHeaders(res) {
-      res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
-    }
-  }));
-}
+app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
+  setHeaders(res) {
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+  }
+}));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/surveys', surveyRoutes);

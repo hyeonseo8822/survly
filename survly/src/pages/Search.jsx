@@ -3,29 +3,12 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import '../components/css/Surveys.css'; 
 import Pagination from '../components/Pagination';
 import NavBar from '../components/NavBar';
-import { useNotification } from '../components/NotificationProvider';
+import { useNotification } from '../components/useNotification';
 import { resolveUploadUrl } from '../utils/uploadUrl';
+import { readCachedAvatarUrl } from '../utils/profileCache';
+import { fetchSurveyBookmarkStatus } from '../utils/bookmarkApi';
+import SurveyBookmarkModal from '../components/SurveyBookmarkModal';
 import './css/Search.css';
-
-const getProfileStorageKey = (userId) => `survly-profile-${userId}`;
-
-const readCachedAvatarUrl = (userId) => {
-    if (!userId) {
-        return '';
-    }
-
-    try {
-        const raw = localStorage.getItem(getProfileStorageKey(userId));
-        if (!raw) {
-            return '';
-        }
-
-        const cachedProfile = JSON.parse(raw);
-        return resolveUploadUrl(cachedProfile?.avatarUrl || '');
-    } catch {
-        return '';
-    }
-};
 
 
 function Search() {
@@ -60,23 +43,6 @@ function Search() {
         } catch {
             return null;
         }
-    };
-
-    const fetchSurveyBookmarkStatus = async (surveyId, token) => {
-        const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/surveys/${surveyId}/bookmark-status`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const data = await response.json();
-
-        if (!response.ok || !data.success) {
-            throw new Error(data.message || '북마크 정보를 불러오지 못했습니다.');
-        }
-
-        const lists = data.lists || [];
-        return {
-            lists,
-            isBookmarked: lists.some((list) => list.isBookmarked)
-        };
     };
 
 
@@ -326,39 +292,15 @@ function Search() {
                 )}
 
 
-                {bookmarkModalSurveyId && (
-                    <div className="survey-bookmark-modal-overlay" onClick={closeBookmarkModal}>
-                        <div className="survey-bookmark-modal" onClick={(event) => event.stopPropagation()}>
-                            <div className="survey-bookmark-modal__header">
-                                <div>
-                                    <p className="survey-bookmark-modal__eyebrow">북마크 목록 선택</p>
-                                    <h3>{bookmarkModalSurvey?.title || '설문 북마크'}</h3>
-                                </div>
-                                <button type="button" className="survey-bookmark-modal__close" onClick={closeBookmarkModal} aria-label="북마크 팝업 닫기">×</button>
-                            </div>
-
-                            {bookmarkModalLoading ? (
-                                <p className="survey-bookmark-modal__empty">목록을 불러오는 중...</p>
-                            ) : !bookmarkModalState?.lists?.length ? (
-                                <p className="survey-bookmark-modal__empty">사용 가능한 목록이 없습니다.</p>
-                            ) : (
-                                <div className="survey-bookmark-modal__list">
-                                    {bookmarkModalState.lists.map((list) => (
-                                        <button
-                                            key={list.id}
-                                            type="button"
-                                            className={`survey-bookmark-modal__item ${list.isBookmarked ? 'is-active' : ''}`}
-                                            onClick={(event) => handleBookmarkListToggle(event, bookmarkModalSurveyId, list.id)}
-                                            disabled={bookmarkBusyBySurveyId[bookmarkModalSurveyId]}
-                                        >
-                                            <span>{list.name}</span>
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                )}
+                <SurveyBookmarkModal
+                    open={Boolean(bookmarkModalSurveyId)}
+                    loading={bookmarkModalLoading}
+                    title={bookmarkModalSurvey?.title || '설문 북마크'}
+                    lists={bookmarkModalState?.lists || []}
+                    disabled={Boolean(bookmarkBusyBySurveyId[bookmarkModalSurveyId])}
+                    onClose={closeBookmarkModal}
+                    onToggle={(event, listId) => handleBookmarkListToggle(event, bookmarkModalSurveyId, listId)}
+                />
                 
                 {loading ? (
                     <div className='surveyExplain'>Loading...</div>

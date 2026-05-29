@@ -26,22 +26,6 @@ export function resolveUploadUrl(value) {
     return new URL(path.replace(/^\/+/, ''), window.location.origin + normalizedBase).toString();
   };
 
-  if (rawValue.startsWith('http://') || rawValue.startsWith('https://')) {
-    try {
-      const parsedUrl = new URL(rawValue);
-      const uploadsIndex = parsedUrl.pathname.lastIndexOf('/uploads/');
-      if (uploadsIndex !== -1) {
-        const filePath = parsedUrl.pathname.slice(uploadsIndex + '/uploads/'.length).replace(/^\/+/, '');
-        return joinAppBase(`uploads/${filePath}`);
-      }
-    } catch {
-      // Fall back to the original value below.
-    }
-
-    return rawValue;
-  }
-
-  const normalizedPath = rawValue.replace(/^\/+/, '');
   const apiBase = import.meta.env.VITE_API_BASE || '';
   const joinApiBase = (path) => {
     if (!apiBase) {
@@ -52,18 +36,38 @@ export function resolveUploadUrl(value) {
     return new URL(path.replace(/^\/+/, ''), normalizedApiBase).toString();
   };
 
+  if (rawValue.startsWith('http://') || rawValue.startsWith('https://')) {
+    try {
+      const parsedUrl = new URL(rawValue);
+      const uploadsIndex = parsedUrl.pathname.lastIndexOf('/uploads/');
+      if (uploadsIndex !== -1) {
+        const filePath = parsedUrl.pathname.slice(uploadsIndex + '/uploads/'.length).replace(/^\/+/, '');
+        return joinApiBase(`uploads/${filePath}`) || joinAppBase(`uploads/${filePath}`);
+      }
+    } catch {
+      // Fall back to the original value below.
+    }
+
+    return rawValue;
+  }
+
+  const normalizedPath = rawValue.replace(/^\/+/, '');
+
   if (normalizedPath.startsWith('uploads/')) {
-    return joinApiBase(normalizedPath);
+    return joinApiBase(normalizedPath) || joinAppBase(normalizedPath);
   }
 
   if (normalizedPath.includes('/uploads/')) {
     const uploadsIndex = normalizedPath.lastIndexOf('/uploads/');
     const uploadPath = normalizedPath.slice(uploadsIndex + '/uploads/'.length).replace(/^\/+/, '');
-    return uploadPath ? joinApiBase(`uploads/${uploadPath}`) : '';
+    if (!uploadPath) {
+      return '';
+    }
+    return joinApiBase(`uploads/${uploadPath}`) || joinAppBase(`uploads/${uploadPath}`);
   }
 
   if (/^[^/]+\.[a-z0-9]+$/i.test(normalizedPath)) {
-    return joinApiBase(`uploads/${normalizedPath}`);
+    return joinApiBase(`uploads/${normalizedPath}`) || joinAppBase(`uploads/${normalizedPath}`);
   }
 
   return joinAppBase(normalizedPath);

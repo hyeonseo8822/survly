@@ -8,7 +8,7 @@ import './css/NavBar.css';
  *              사용자의 로그인 상태에 따라 다른 메뉴를 보여줍니다.
  */
 function NavBar() {
-  const [user] = useState(() => localStorage.getItem('userId') || null);
+  const user = localStorage.getItem('userId') || null;
   const [isMypageMenuOpen, setIsMypageMenuOpen] = useState(false);
   const [keyword, setKeyword] = useState('');
   const navigate = useNavigate();

@@ -1,7 +1,7 @@
 import './css/Login.css'; 
 import { Link, useNavigate } from "react-router-dom";
 import { useRef, useState } from "react";
-import { useNotification } from '../components/NotificationProvider';
+import { useNotification } from '../components/useNotification';
 
 function SignUp() {
     const [userId, setUserId] = useState(""); // 사용자가 입력한 아이디

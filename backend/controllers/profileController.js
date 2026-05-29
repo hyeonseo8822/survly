@@ -23,20 +23,10 @@ function escapeRegExp(value) {
   return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-async function serializeProfile(user) {
+async function serializeProfile(user, { includeEmail = true } = {}) {
   return {
     userId: user.userId,
-    email: user.email,
-    displayName: user.displayName || user.userId,
-    avatarUrl: await resolveUploadDataUrl(user.avatarUrl || ''),
-    followerCount: Number.isFinite(user.followerCount) ? user.followerCount : 0,
-    followingCount: Number.isFinite(user.followingCount) ? user.followingCount : 0
-  };
-}
-
-async function serializePublicProfile(user) {
-  return {
-    userId: user.userId,
+    ...(includeEmail ? { email: user.email } : {}),
     displayName: user.displayName || user.userId,
     avatarUrl: await resolveUploadDataUrl(user.avatarUrl || ''),
     followerCount: Number.isFinite(user.followerCount) ? user.followerCount : 0,
@@ -94,24 +84,13 @@ async function updateMyProfile(req, res) {
 
     user.displayName = displayName.slice(0, 24);
 
-    // Support two upload flows:
-    // 1) traditional multipart upload handled by multer (req.file)
-    // 2) presigned direct-to-S3 flow: client uploads to S3 and sends `avatarKey` in the body
     if (req.file) {
-      if (req.file.location) {
-        user.avatarUrl = req.file.location;
-      } else if (req.file.path && fs.existsSync(req.file.path)) {
+      if (req.file.path && fs.existsSync(req.file.path)) {
         const buffer = fs.readFileSync(req.file.path);
         const mimeType = req.file.mimetype || 'image/jpeg';
-        user.avatarUrl = `data:${mimeType};base64,${buffer.toString('base64')}`;
-      } else {
         user.avatarUrl = `/uploads/${req.file.filename}`;
-      }
-    } else if (req.body && req.body.avatarKey) {
-      // avatarKey is the object key (including any prefix). Store as uploads path
-      const key = String(req.body.avatarKey || '').trim();
-      if (key) {
-        user.avatarUrl = `/uploads/${key}`;
+      } else {
+        user.avatarUrl = '';
       }
     } else if (removeAvatar) {
       user.avatarUrl = '';
@@ -153,10 +132,10 @@ async function getUserProfile(req, res) {
     return res.json({
       success: true,
       profile: {
-        ...await serializePublicProfile({
+        ...await serializeProfile({
           ...user.toObject(),
           ...stats
-        }),
+        }, { includeEmail: false }),
         isFollowing,
         isMe: requesterUserId === targetUserId
       }

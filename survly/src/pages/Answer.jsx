@@ -4,7 +4,7 @@ import './css/Create.css';
 import NavBar2 from '../components/NavBar2';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from "recharts"; // 차트 라이브러리
 import './css/Answer.css';
-import { useNotification } from '../components/NotificationProvider';
+import { useNotification } from '../components/useNotification';
 import { resolveUploadUrl } from '../utils/uploadUrl';
 
 const toStoredAnswer = (questionType, value) => {

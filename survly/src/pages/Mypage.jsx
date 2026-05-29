@@ -3,8 +3,9 @@ import { useNavigate, useParams } from 'react-router-dom';
 import './css/Mypage.css';
 import NavBar from '../components/NavBar';
 import Pagination from '../components/Pagination';
-import { useNotification } from '../components/NotificationProvider';
+import { useNotification } from '../components/useNotification';
 import { resolveUploadUrl } from '../utils/uploadUrl';
+import { readCachedProfile, removeCachedProfile, writeCachedProfile } from '../utils/profileCache';
 
 // 미리보기에 보여줄 항목의 수
 const ITEMS_PER_PAGE = 4;
@@ -20,17 +21,6 @@ const createDefaultProfile = (userId = '') => ({
     followerCount: 0,
     followingCount: 0
 });
-
-const getProfileStorageKey = (userId) => `survly-profile-${userId}`;
-
-const readLocalJson = (key, fallback) => {
-    try {
-        const raw = localStorage.getItem(key);
-        return raw ? JSON.parse(raw) : fallback;
-    } catch {
-        return fallback;
-    }
-};
 
 
 function Mypage() {
@@ -133,11 +123,11 @@ function Mypage() {
     };
 
     const persistLocalProfile = (userId, nextProfile) => {
-        localStorage.setItem(getProfileStorageKey(userId), JSON.stringify(nextProfile));
+        writeCachedProfile(userId, nextProfile);
     };
 
     const hydrateLocalProfile = (userId) => {
-        const storedProfile = readLocalJson(getProfileStorageKey(userId), {});
+        const storedProfile = readCachedProfile(userId) || {};
         const nextProfile = {
             ...createDefaultProfile(userId),
             ...storedProfile,
@@ -643,35 +633,7 @@ function Mypage() {
             formData.append('displayName', trimmedProfile.displayName);
             formData.append('removeAvatar', 'false');
             if (selectedAvatarFile) {
-                // Try presigned upload flow first
-                try {
-                    const presignResp = await fetch(`${import.meta.env.VITE_API_BASE}/api/uploads/presign`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ fileName: selectedAvatarFile.name, contentType: selectedAvatarFile.type })
-                    });
-                    const presignData = await presignResp.json();
-                    if (presignResp.ok && presignData.success && presignData.presignedUrl) {
-                        // Upload the file directly to S3 using the presigned URL
-                        const putResp = await fetch(presignData.presignedUrl, {
-                            method: 'PUT',
-                            headers: { 'Content-Type': selectedAvatarFile.type },
-                            body: selectedAvatarFile
-                        });
-                        if (!putResp.ok) {
-                            throw new Error('S3 업로드에 실패했습니다.');
-                        }
-
-                        // Send avatarKey to the server so it can reference the uploaded object
-                        formData.append('avatarKey', presignData.key);
-                    } else {
-                        // Fallback to multipart upload if presign unavailable
-                        formData.append('avatar', selectedAvatarFile);
-                    }
-                } catch {
-                    // If presign/upload fails, fallback to sending file via formData
-                    formData.append('avatar', selectedAvatarFile);
-                }
+                formData.append('avatar', selectedAvatarFile);
             }
 
             const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/me/profile`, {
@@ -697,7 +659,7 @@ function Mypage() {
             setSelectedAvatarFile(null);
             setIsEditingProfile(false);
             if (trimmedProfile.userId !== loggedInUserId) {
-                localStorage.removeItem(getProfileStorageKey(loggedInUserId));
+                removeCachedProfile(loggedInUserId);
                 localStorage.setItem('userId', nextProfile.userId);
                 setLoggedInUserId(nextProfile.userId);
             }
