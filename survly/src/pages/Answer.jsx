@@ -139,6 +139,58 @@ function Answer() {
     navigate(`/profile/${targetUserId}`);
   };
 
+  const syncTabToUrl = (nextActive) => {
+    const params = new URLSearchParams(location.search);
+
+    if (nextActive === 'responses') {
+      params.set('tab', 'responses');
+    } else {
+      params.delete('tab');
+      params.delete('focusComment');
+      params.delete('editComment');
+    }
+
+    const search = params.toString();
+    navigate(
+      {
+        pathname: location.pathname,
+        search: search ? `?${search}` : ''
+      },
+      { replace: true }
+    );
+  };
+
+  const handleTabChange = (nextActive) => {
+    setActive(nextActive);
+    syncTabToUrl(nextActive);
+  };
+
+  const appendCommentToTree = (currentComments, nextComment) => {
+    if (!nextComment?.parentCommentId) {
+      return [nextComment, ...currentComments];
+    }
+
+    const insertIntoReplies = (items) => items.map((item) => {
+      if (String(item.id) === String(nextComment.parentCommentId)) {
+        return {
+          ...item,
+          replies: [...(Array.isArray(item.replies) ? item.replies : []), nextComment]
+        };
+      }
+
+      if (!Array.isArray(item.replies) || item.replies.length === 0) {
+        return item;
+      }
+
+      return {
+        ...item,
+        replies: insertIntoReplies(item.replies)
+      };
+    });
+
+    return insertIntoReplies(currentComments);
+  };
+
   useEffect(() => {
     if (id) { // URL에 id 파라미터가 있을 경우
       const token = localStorage.getItem('token');
@@ -154,9 +206,7 @@ function Answer() {
     const tab = params.get('tab');
     const focusComment = params.get('focusComment') || params.get('editComment');
 
-    if (tab === 'responses') {
-      setActive('responses');
-    }
+    setActive(tab === 'responses' ? 'responses' : 'answer');
 
     if (focusComment) {
       setFocusTargetCommentId(String(focusComment));
@@ -533,9 +583,9 @@ function Answer() {
         throw new Error(result.message || '댓글 등록에 실패했습니다.');
       }
 
+      setComments((prev) => appendCommentToTree(prev, { ...result.comment, replies: [] }));
       setCommentText('');
       notify('댓글이 등록되었습니다.', 'success');
-      await loadComments();
     } catch (err) {
       notify(err.message || '댓글 등록에 실패했습니다.', 'error');
     } finally {
@@ -622,10 +672,10 @@ function Answer() {
         throw new Error(result.message || '답글 등록에 실패했습니다.');
       }
 
+      setComments((prev) => appendCommentToTree(prev, { ...result.comment, replies: [] }));
       setReplyDraftByCommentId((prev) => ({ ...prev, [parentCommentId]: '' }));
       setReplyOpenByCommentId((prev) => ({ ...prev, [parentCommentId]: false }));
       notify('답글이 등록되었습니다.', 'success');
-      await loadComments();
     } catch (err) {
       notify(err.message || '답글 등록에 실패했습니다.', 'error');
     } finally {
@@ -690,7 +740,7 @@ function Answer() {
       if (overwriteResult.response.ok && overwriteResult.result.success) {
         notify('답변이 수정되었습니다!', 'success');
         setHasParticipated(true);
-        setActive('responses');
+        handleTabChange('responses');
         return;
       }
 
@@ -747,7 +797,7 @@ function Answer() {
       if (response.ok && result.success) {
         notify('답변이 성공적으로 제출되었습니다!', 'success');
         setHasParticipated(true);
-        setActive('responses');
+        handleTabChange('responses');
         return;
       }
 
@@ -817,7 +867,7 @@ function Answer() {
     <div className="answer-container">
       <NavBar2
         active={active}
-        setActive={setActive}
+        setActive={handleTabChange}
         loading={loading}
         tab1Text="답변"
         showResponseTab={showResponseTab}
