@@ -26,13 +26,18 @@ export function resolveUploadUrl(value) {
     return new URL(path.replace(/^\/+/, ''), window.location.origin + normalizedBase).toString();
   };
 
-  const apiBase = import.meta.env.VITE_API_BASE || '';
+  // VITE_UPLOADS_BASE overrides VITE_API_BASE for upload paths.
+  // Set it to an empty string in .env.production to serve uploads from the
+  // static GitHub Pages origin instead of the API server.
+  const uploadsBase = import.meta.env.VITE_UPLOADS_BASE !== undefined
+    ? import.meta.env.VITE_UPLOADS_BASE
+    : (import.meta.env.VITE_API_BASE || '');
   const joinApiBase = (path) => {
-    if (!apiBase) {
+    if (!uploadsBase) {
       return '';
     }
 
-    const normalizedApiBase = apiBase.endsWith('/') ? apiBase : `${apiBase}/`;
+    const normalizedApiBase = uploadsBase.endsWith('/') ? uploadsBase : `${uploadsBase}/`;
     return new URL(path.replace(/^\/+/, ''), normalizedApiBase).toString();
   };
 
