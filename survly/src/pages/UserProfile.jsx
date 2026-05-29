@@ -258,13 +258,7 @@ function UserProfile() {
                 </div>
 
                 <div className='mypage-profile-fields'>
-                  {loading ? (
-                    <p className='mypage-loading-text'>프로필을 불러오는 중...</p>
-                  ) : (
-                    <>
-                      <p className='mypage-profile-empty'>프로필 소개가 없습니다.</p>
-                    </>
-                  )}
+                  {loading ? <p className='mypage-loading-text'>프로필을 불러오는 중...</p> : null}
 
                   <div className='mypage-profile-controls mypage-profile-controls--stack'>
                     <button type='button' className='mypage-secondary-btn user-profile-back-btn' onClick={() => navigate(-1)}>이전으로</button>
