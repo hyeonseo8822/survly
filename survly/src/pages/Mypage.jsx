@@ -52,6 +52,7 @@ function Mypage() {
     const [selectedBookmarkListIds, setSelectedBookmarkListIds] = useState([]);
     const [selectedBookmarkSurveyIds, setSelectedBookmarkSurveyIds] = useState([]);
     const [selectedRespondedSurveyIds, setSelectedRespondedSurveyIds] = useState([]);
+    const [openRespondedSurveyListMenuId, setOpenRespondedSurveyListMenuId] = useState('');
     const [loading, setLoading] = useState({ created: true, bookmarkLists: true, bookmarkSurveys: false }); // 각 목록의 로딩 상태
     const [error, setError] = useState(null); // 에러 메시지
     const [createdPage, setCreatedPage] = useState(1); // '생성한 설문'의 현재 페이지
@@ -667,7 +668,7 @@ function Mypage() {
                         // Fallback to multipart upload if presign unavailable
                         formData.append('avatar', selectedAvatarFile);
                     }
-                } catch (err) {
+                } catch {
                     // If presign/upload fails, fallback to sending file via formData
                     formData.append('avatar', selectedAvatarFile);
                 }
@@ -1115,14 +1116,45 @@ function Mypage() {
         navigate(`/surveys/${comment.surveyId}?tab=responses&focusComment=${encodeURIComponent(comment.id)}`);
     };
 
-    const handleEditRespondedSurvey = (surveyId) => {
-        setOpenRespondedSurveyMenuId('');
-        navigate(`/surveys/${surveyId}`);
+    const toggleRespondedSurveyListMenu = (surveyId) => {
+        setOpenRespondedSurveyListMenuId((prev) => (String(prev) === String(surveyId) ? '' : String(surveyId)));
     };
 
-    const handleDeleteRespondedSurvey = (surveyId) => {
+    const handleAddRespondedSurveyToList = async (surveyId, listId) => {
         setOpenRespondedSurveyMenuId('');
-        setResponseDeleteConfirm({ open: true, surveyId });
+        setOpenRespondedSurveyListMenuId('');
+
+        if (!listId) {
+            return;
+        }
+
+        const token = localStorage.getItem('token');
+        if (!token) {
+            notify('로그인이 필요합니다.', 'warning');
+            navigate('/login');
+            return;
+        }
+
+        try {
+            const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/surveys/${surveyId}/bookmark`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ listId })
+            });
+            const data = await safeParseJson(response);
+
+            if (!response.ok || !data.success) {
+                throw new Error(data.message || '리스트에 추가하지 못했습니다.');
+            }
+
+            await fetchBookmarkLists().catch(() => { });
+            notify('리스트에 추가되었습니다.', 'success');
+        } catch (err) {
+            notify(err.message || '리스트에 추가하지 못했습니다.', 'error');
+        }
     };
 
     const executeDeleteRespondedSurvey = async () => {
@@ -2039,8 +2071,20 @@ function Mypage() {
                                                         </button>
                                                         {openRespondedSurveyMenuId === String(survey.id) && (
                                                             <div className="mypage-list-menu">
-                                                                <button type="button" onClick={() => handleEditRespondedSurvey(survey.id)}>수정</button>
-                                                                <button type="button" onClick={() => handleDeleteRespondedSurvey(survey.id)}>삭제</button>
+                                                                <button type="button" onClick={() => toggleRespondedSurveyListMenu(survey.id)}>리스트 추가</button>
+                                                                {openRespondedSurveyListMenuId === String(survey.id) && (
+                                                                    <div className="mypage-list-menu mypage-list-menu--submenu" onClick={(event) => event.stopPropagation()}>
+                                                                        {bookmarkLists.length > 0 ? (
+                                                                            bookmarkLists.map((list) => (
+                                                                                <button key={list.id} type="button" onClick={() => handleAddRespondedSurveyToList(survey.id, list.id)}>
+                                                                                    {list.name}
+                                                                                </button>
+                                                                            ))
+                                                                        ) : (
+                                                                            <button type="button" onClick={openBookmarkCreateModal}>리스트 만들기</button>
+                                                                        )}
+                                                                    </div>
+                                                                )}
                                                             </div>
                                                         )}
                                                     </div>
