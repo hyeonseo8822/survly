@@ -34,6 +34,16 @@ async function serializeProfile(user, { includeEmail = true } = {}) {
   };
 }
 
+async function serializePublicProfile(user) {
+  return {
+    userId: user.userId,
+    displayName: user.displayName || user.userId,
+    avatarUrl: user.avatarUrl || '',
+    followerCount: Number.isFinite(user.followerCount) ? user.followerCount : 0,
+    followingCount: Number.isFinite(user.followingCount) ? user.followingCount : 0
+  };
+}
+
 async function getMyProfile(req, res) {
   try {
     const user = await User.findOne({ userId: req.user.userId });
