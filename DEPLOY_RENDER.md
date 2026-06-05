@@ -17,13 +17,13 @@
    - `JWT_SECRET` — secure random value
    - `ALLOWED_ORIGINS` — e.g. `https://hyeonseo8822.github.io,https://<your-render-host>`
 
-5. Deploy. After the service is live the backend will provide a public URL like `http://survly.mirim-it-show.site:3000`.
+5. Deploy. After the service is live the backend will provide a public URL like `https://survly.mirim-it-show.site:3000`.
 
 6. Update the frontend `VITE_API_BASE` to the Render URL (no trailing slash) and rebuild the `survly` app:
 
 ```bash
 # Windows PowerShell
-$env:VITE_API_BASE='http://survly.mirim-it-show.site:3000'
+$env:VITE_API_BASE='https://survly.mirim-it-show.site:3000'
 npm --prefix survly run build
 npx gh-pages -d survly/dist
 ```

@@ -1,5 +1,5 @@
 param(
-    [string]$RenderUrl = "http://survly.mirim-it-show.site:3000"
+    [string]$RenderUrl = "https://survly.mirim-it-show.site:3000"
 )
 
 Write-Host "Building survly frontend with VITE_API_BASE=$RenderUrl"
