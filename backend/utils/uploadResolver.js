@@ -4,7 +4,7 @@ const path = require('path');
 const UPLOADS_DIR = path.join(__dirname, '..', 'uploads');
 const PUBLIC_UPLOAD_ORIGINS = [
   'https://hyeonseo8822.github.io/survly',
-  'https://survly.mirim-it-show.site:3000'
+  'https://survly.onrender.com'
 ];
 const uploadCache = new Map();
 
