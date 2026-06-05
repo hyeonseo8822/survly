@@ -1,4 +1,4 @@
-$url='https://survly.onrender.com/uploads/surveyImage-1779354349779-221801648.jpg'
+$url='http://survly.mirim-it-show.site:3000/uploads/surveyImage-1779354349779-221801648.jpg'
 try {
   $r = Invoke-WebRequest -Uri $url -Method Head -UseBasicParsing -TimeoutSec 15
   Write-Output $r.StatusCode
