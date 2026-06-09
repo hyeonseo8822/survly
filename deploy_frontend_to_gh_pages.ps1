@@ -18,6 +18,7 @@ if (Test-Path $backendUploads) {
 
 # Ensure no trailing slash
 $render = $RenderUrl.TrimEnd('/')
+$env:VITE_APP_BASE = '/survly/'
 $env:VITE_API_BASE = $render
 
 npm --prefix survly run build

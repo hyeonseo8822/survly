@@ -1,0 +1,21 @@
+[Unit]
+Description=Survly Express Backend
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=survly
+Group=survly
+WorkingDirectory=/var/www/survly/current/backend
+Environment=NODE_ENV=production
+EnvironmentFile=-/etc/survly/backend.env
+ExecStart=/usr/bin/npm start
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=survly-backend
+
+[Install]
+WantedBy=multi-user.target
