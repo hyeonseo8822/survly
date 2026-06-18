@@ -909,10 +909,10 @@ function Answer() {
               {q.type === 'multiple-choice' && (
                 <div className='radioOptions'>
                   {q.options.map((opt, idx) => (
-                    <div key={idx} className='radio-option-container'>
+                    <label key={idx} className='radio-option-container'>
                       <input type='radio' name={`answer-${q.questionId}`} value={opt} onChange={(e) => handleAnswerChange(q.questionId, e.target.value)} />
-                      <label>{opt}</label>
-                    </div>
+                      <span>{opt}</span>
+                    </label>
                   ))}
                 </div>
               )}
@@ -921,15 +921,15 @@ function Answer() {
                   {q.options.map((opt, idx) => {
                     const selected = Array.isArray(userAnswers[q.questionId]) && userAnswers[q.questionId].includes(opt);
                     return (
-                      <div key={idx} className='radio-option-container'>
+                      <label key={idx} className='radio-option-container'>
                         <input
                           type='checkbox'
                           name={`answer-${q.questionId}-${idx}`}
                           checked={selected}
                           onChange={(e) => handleCheckboxChange(q.questionId, opt, e.target.checked)}
                         />
-                        <label>{opt}</label>
-                      </div>
+                        <span>{opt}</span>
+                      </label>
                     );
                   })}
                 </div>
